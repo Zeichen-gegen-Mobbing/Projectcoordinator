@@ -6,4 +6,6 @@ resource "azuread_application" "client" {
   description      = "Application to login to the Projectcoordinator application"
   sign_in_audience = "AzureADMyOrg"
   owners           = [data.azuread_client_config.current.object_id]
+
+  prevent_duplicate_names = true
 }
