@@ -1,4 +1,5 @@
 using FrontEnd;
+using FrontEnd.Services;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 
@@ -24,5 +25,8 @@ builder.Services.AddHttpClient("GraphAPI",
                     "v1.0",
                 string.Empty)))
     .AddHttpMessageHandler<GraphAuthorizationMessageHandler>();
+
+builder.Services.AddScoped<IUserService,FakeUserService>();
+builder.Services.AddScoped<IPlaceService, FakePlaceService>();
 
 await builder.Build().RunAsync();

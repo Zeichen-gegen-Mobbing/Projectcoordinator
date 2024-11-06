@@ -1,34 +1,123 @@
 ﻿@page "/"
 @using FrontEnd.Models
+@using FrontEnd.Services
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using Microsoft.AspNetCore.Components.QuickGrid
 
-@inject IHttpClientFactory ClientFactory
+@inject IPlaceService PlaceService;
+@inject IUserService UserService;
 
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
+<EditForm EditContext="editContext" OnSubmit="Submit" FormName="Starship4">
+    <DataAnnotationsValidator />
+    <div>
+        <label>
+            Adresse:
+            <InputText @bind-Value="address" />
+        </label>
+    </div>
+    <div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </div>
+</EditForm>
 
-Welcome to your new app.
+<p>@_status</p>
 
-@if (!string.IsNullOrEmpty(user?.DisplayName))
+@if(trips.Count > 0)
 {
-    <p>Thimos Name: @user.DisplayName</p>
-} 
+    <QuickGrid Items="trips.AsQueryable()" Class="table table-hover table-bordered table-striped">
+    <PropertyColumn Property="@(t => t.User.ToString())" Sortable="true" />
+    <PropertyColumn Property="@(t => t.Place.ToString())" Sortable="false" />
+    <PropertyColumn Property="@(t => t.time)" Sortable="true" IsDefaultSortColumn="true" />
+</QuickGrid>
+
+
+} else {
+    <p><em>Loading Addresses</em></p>
+}
+
 
 @code {
-    private User? user;
+    [SupplyParameterFromForm]
+    private string address { get; set; } = "";
 
-    protected override async Task OnInitializedAsync()
+    private string _status = "Please enter an address";
+
+    private bool _placesLoaded = false;
+
+    private EditContext? editContext { get; set; }
+
+    private List<TripViewModel> trips = new List<TripViewModel>();
+
+
+    protected override void OnInitialized()
     {
-        try
-        {
-            var client = ClientFactory.CreateClient("GraphAPI");
-
-            user = await client.GetFromJsonAsync<User>($"users/045df388-1ead-4ad2-8f5c-ff4c4d71b55e?$select=displayName");
-        }
-        catch (AccessTokenNotAvailableException exception)
-        {
-            exception.Redirect();
-        }
+        editContext = new(address);
+        LoadPlaces();
+        Console.WriteLine("Initialization finished");
     }
+
+    private async void LoadPlaces()
+    {
+        Console.WriteLine("Start getting places");
+
+        var places = await PlaceService.GetAllPlacesAsync();
+
+        foreach (Place place in places)
+        {
+            var user = new User(place.UserId, $"Loading Name ({place.UserId})");
+            var trip = new TripViewModel()
+                {
+                    User = user,
+                    Place = place
+                };
+            _ = UserService.GetUserAsync(user.Id).ContinueWith(task => {
+                trip.User = task.Result;
+                StateHasChanged();
+            }            );
+
+            trips.Add(trip);
+        }
+        StateHasChanged();
+        _placesLoaded = true;
+
+        //var places = await Http.GetFromJsonAsync<Place[]>("sample-data/SoViPlaces.json");
+
+        Console.WriteLine("Places finished");
+    }
+
+    private async void Submit()
+    {
+        Console.WriteLine(address);
+
+        // TODO: Add validation
+
+        while (!_placesLoaded)
+        {
+            _status = "Wait to load all places";
+            await Task.Delay(100);
+        }
+
+        _status = "Loading times";
+
+        IEnumerable<Task> tasks = trips.Select(trip =>
+        {
+            return PlaceService.GetTripTimeAsync(trip.Place.Id, address).ContinueWith(task => {
+                trip.time = task.Result;
+                StateHasChanged();
+            });
+        });
+
+        await Task.WhenAll(tasks);
+
+        _status = "All times loaded";
+    }
+
+    protected class TripViewModel
+	{
+		public required User User { get; set; }
+		public required Place Place { get; set; }
+		public TimeSpan? time { get; set; }
+	}
 }
