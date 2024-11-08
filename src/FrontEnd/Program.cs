@@ -1,5 +1,7 @@
 using FrontEnd;
+#if DEBUG
 using FrontEnd.LocalAuthentication;
+#endif
 using FrontEnd.Services;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;

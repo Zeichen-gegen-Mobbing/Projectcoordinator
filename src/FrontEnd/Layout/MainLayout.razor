@@ -1,25 +1,30 @@
 ﻿@inherits LayoutComponentBase
 @using Microsoft.AspNetCore.Components.WebAssembly.Hosting
-@inject IWebAssemblyHostEnvironment hostEnv
+
 <div class="page">
     <div class="sidebar">
         <NavMenu />
     </div>
 
     <main>
-        <div class="top-row px-4 auth">
 
-@if (hostEnv.IsDevelopment())
-            {
+        @{
+#pragma warning disable
+#if DEBUG
+        Console.WriteLine("Debug Mode");
 
-                <FrontEnd.LocalAuthentication.LocalIdentitySwitcher />
-            }
-else 
-{
-            <LoginDisplay />
-}
+                <div class="top-row px-4 auth">
+            <FrontEnd.LocalAuthentication.LocalIdentitySwitcher />
         </div>
+#else
+		Console.WriteLine("Not Debug Mode");  
 
+            <div class="top-row px-4 auth">
+            <LoginDisplay />
+            </div>
+#endif
+            }
+        
         <article class="content px-4">
             @Body
         </article>

@@ -4,8 +4,6 @@
 @using Microsoft.AspNetCore.Components.WebAssembly.Hosting
 @inject IWebAssemblyHostEnvironment hostEnv
 
-@if (hostEnv.IsDevelopment())
-{
     <div class="w-25">
         Change User:
         <select id="userselect" class="form-control" @onchange="ChangeUser">
@@ -22,7 +20,7 @@
             }
         </select>
     </div>
-}
+
 
 @code {
 #if DEBUG
