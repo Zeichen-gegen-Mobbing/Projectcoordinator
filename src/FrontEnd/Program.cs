@@ -34,6 +34,6 @@ builder.Services.AddHttpClient("GraphAPI",
     .AddHttpMessageHandler<GraphAuthorizationMessageHandler>();
 
 builder.Services.AddScoped<IUserService,FakeUserService>();
-builder.Services.AddScoped<IPlaceService, FakePlaceService>();
+builder.Services.AddScoped<IPlaceService, PlaceService>();
 
 await builder.Build().RunAsync();

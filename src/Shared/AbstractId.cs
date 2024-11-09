@@ -1,11 +1,10 @@
-﻿using Microsoft.Extensions.Options;
+﻿using System.ComponentModel;
 
-namespace FrontEnd.Models.Id
+namespace ZgM.ProjectCoordinator.Shared
 {
-
     public abstract class AbstractId<T, BaseType> : IEquatable<AbstractId<T, BaseType>> where T : AbstractId<T, BaseType>
     {
-        private BaseType Id { init; get; }
+        internal BaseType Id { init; get; }
 
         protected AbstractId(BaseType id)
         {
@@ -14,7 +13,7 @@ namespace FrontEnd.Models.Id
                 throw new ArgumentNullException(nameof(id));
             }
 
-            this.Id = id;
+            Id = id;
         }
 
         public override bool Equals(object? obj)
