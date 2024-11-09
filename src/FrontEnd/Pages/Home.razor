@@ -27,8 +27,8 @@
 @if(trips.Count > 0)
 {
     <QuickGrid Items="trips.AsQueryable()" Class="table table-hover table-bordered table-striped">
-    <PropertyColumn Property="@(t => t.User.ToString())" Sortable="true" />
-    <PropertyColumn Property="@(t => t.Place.ToString())" Sortable="false" />
+    <PropertyColumn Property="@(t => t.User)" Sortable="true" />
+    <PropertyColumn Property="@(t => t.Place)" Sortable="false" />
     <PropertyColumn Property="@(t => t.time)" Sortable="true" IsDefaultSortColumn="true" />
 </QuickGrid>
 
