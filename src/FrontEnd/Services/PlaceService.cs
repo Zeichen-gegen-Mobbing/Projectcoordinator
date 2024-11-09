@@ -18,9 +18,9 @@ namespace FrontEnd.Services
             }
         }
 
-        public Task<TimeSpan> GetTripTimeAsync(PlaceId place, string address)
+        public async Task<Trip> GetTripAsync(PlaceId place, string address)
         {
-            throw new NotImplementedException();
+            return await httpClient.GetFromJsonAsync<Trip>($"api/places/{place}/trips/{Uri.EscapeDataString(address)}");
         }
     }
 }

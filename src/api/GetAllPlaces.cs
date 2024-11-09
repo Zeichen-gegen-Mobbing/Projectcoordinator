@@ -11,7 +11,7 @@ namespace ZgM.Projectcoordinator.api
     {
         private readonly ILogger<GetAllPlaces> _logger;
 
-        private readonly IEnumerable<Place> _places = new List<Place>
+        public static readonly IEnumerable<Place> _places = new List<Place>
         {
             new Place { Id = new PlaceId("P1"), UserId= new UserId(Guid.NewGuid()), Name = "Fake BE Place 1" },
             new Place { Id = new PlaceId("P2"),UserId= new UserId(Guid.NewGuid()), Name = "Fake BE Place 2" },
@@ -25,9 +25,9 @@ namespace ZgM.Projectcoordinator.api
             _logger = logger;
         }
 
-        [Function("places")]
+        [Function(nameof(GetAllPlaces))]
         [ProducesResponseType(200, Type = typeof(Place[]))]
-        public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequest req)
+        public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "places")] HttpRequest req)
         {
             _logger.LogInformation(Environment.GetEnvironmentVariable("AzureWebJobsFeatureFlags"));
             _logger.LogInformation(JsonSerializer.Serialize(_places));

@@ -19,11 +19,15 @@ namespace FrontEnd.Services
             return _places;
         }
 
-        public async Task<TimeSpan> GetTripTimeAsync(PlaceId place, string address)
+        public async Task<Trip> GetTripAsync(PlaceId place, string address)
         {
             Random random = new Random();
             await Task.Delay(random.Next(random.Next(10000)));
-            return new TimeSpan(random.Next(8), random.Next(59), random.Next(59));
+            return new Trip() {
+                Cost = (ushort)random.Next(ushort.MaxValue),
+                PlaceId = place,
+                Time = new TimeSpan(random.Next(8), random.Next(59), random.Next(59))
+            };
         }
     }
 }
