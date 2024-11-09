@@ -32,8 +32,7 @@ jobs:
         run: |
           New-Item -Path ./.sonar/scanner -ItemType Directory
           dotnet tool update dotnet-sonarscanner --tool-path ./.sonar/scanner
-          Write-Output "tests"
-          Get-ChildItem -Path "." -Recurse
+          Get-ChildItem -Path "./.sonar/" -Recurse
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
