@@ -8,7 +8,7 @@ namespace ZgM.ProjectCoordinator.Shared
 
         protected AbstractId(BaseType id)
         {
-            if (id == null)
+            if (EqualityComparer<BaseType>.Default.Equals(id, default(BaseType)))
             {
                 throw new ArgumentNullException(nameof(id));
             }
