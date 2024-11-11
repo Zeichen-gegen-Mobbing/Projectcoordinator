@@ -396,3 +396,6 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+# Certificate of Local CosmosDB Emulator
+emulatorcert.crt
