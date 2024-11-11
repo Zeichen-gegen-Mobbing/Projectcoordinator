@@ -26,17 +26,19 @@
 
 <p>@_status</p>
 
-@if(trips.Count > 0)
+@if (trips.Count > 0)
 {
     <QuickGrid Items="trips.AsQueryable()" Class="table table-hover table-bordered table-striped">
-    <PropertyColumn Property="@(t => t.User)" Sortable="true" />
-    <PropertyColumn Property="@(t => t.Place)" Sortable="false" />
-    <PropertyColumn Property="@(t => t.time)" Sortable="true" IsDefaultSortColumn="true" />
-    <PropertyColumn Property="@(t => t.Cost)" Format="C2" Sortable="true" IsDefaultSortColumn="true" />
-</QuickGrid>
+        <PropertyColumn Property="@(t => t.User)" Sortable="true" />
+        <PropertyColumn Property="@(t => t.Place)" Sortable="false" />
+        <PropertyColumn Property="@(t => t.time)" Sortable="true" IsDefaultSortColumn="true" />
+        <PropertyColumn Property="@(t => t.Cost)" Format="C2" Sortable="true" IsDefaultSortColumn="true" />
+    </QuickGrid>
 
 
-} else {
+}
+else
+{
     <p><em>Loading Addresses</em></p>
 }
 
@@ -56,7 +58,7 @@
 
     protected override void OnInitialized()
     {
-        address ??= new Address(){Value=""};
+        address ??= new Address() { Value = "" };
         editContext = new(address);
         LoadPlaces();
         Console.WriteLine("Initialization finished");
@@ -76,10 +78,11 @@
                     User = user,
                     Place = place
                 };
-            _ = UserService.GetUserAsync(user.Id).ContinueWith(task => {
+            _ = UserService.GetUserAsync(user.Id).ContinueWith(task =>
+            {
                 trip.User = task.Result;
                 StateHasChanged();
-            }            );
+            });
 
             trips.Add(trip);
         }
@@ -103,9 +106,10 @@
 
         IEnumerable<Task> tasks = trips.Select(trip =>
         {
-            return PlaceService.GetTripAsync(trip.Place.Id, address!.Value!).ContinueWith(task => {
+            return PlaceService.GetTripAsync(trip.Place.Id, address!.Value!).ContinueWith(task =>
+            {
                 trip.time = task.Result.Time;
-                trip.Cost = task.Result.Cost/100;
+                trip.Cost = (decimal)task.Result.Cost / 100;
                 StateHasChanged();
             });
         });
