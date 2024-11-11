@@ -1,2 +1,24 @@
 # Projectcoordinator
+
 App um die Arbeit der Projektkoordination zu erleichtern
+
+## Architecture
+
+The FrontEnd is a Blazor WASM Application to be run in Azure Static Website. The BackEnd is a C# Azure Functions implementation intended to run as a Managed Api insight of the Static Web App. The data will be persisted in CosmosDB (TODO).
+
+## Local Development
+
+The suggested Local Development Environment is using Visual Studio. To run Front- and Backend together right click on the Solution and select *Configure Startup projects*.
+
+### FrontEnd
+
+The FrontEnd can be run without the backend thanks to the `FakeServices`. To enable the FakeServices you need to Change the `Program.cs`(src\FrontEnd\Program.cs) to load the FakeService Implementations eg.
+
+```C#
+builder.Services.AddScoped<IUserService,FakeUserService>();
+builder.Services.AddScoped<IPlaceService, FakePlaceService>();
+```
+
+### BackEnd
+
+To run the backend you need the Azure Function Core Tools. ~~Furthermore you need the [Azure Cosmos Emulator](https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-develop-emulator?tabs=docker-windows%2Ccsharp&pivots=api-nosql). You can run `pwsh ./scripts/Start-PcDatabase.ps1` if you have PowerShell and podman installed.~~
