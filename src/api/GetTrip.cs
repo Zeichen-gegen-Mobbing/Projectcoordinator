@@ -22,17 +22,21 @@ namespace ZgM.Projectcoordinator.api
         [ProducesResponseType(200, Type = typeof(Trip))]
         public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Function, "get", Route = "places/{placeId}/trips/{address}")] HttpRequest req, string placeId, string address)
         {
-            Random random = new Random();
-            await Task.Delay(random.Next(random.Next(1000)));
+            using (_logger.BeginScope(new Dictionary<string, object> { { "FunctionName", nameof(GetTrip) } }))
+            {
+                _logger.LogDebug("Returning trip from place {placeId} to address {address}", placeId, address);
+                Random random = new Random();
+                await Task.Delay(random.Next(random.Next(1000)));
 
-            Trip trip = new Trip() 
-            { 
-                PlaceId = new PlaceId(placeId),
-                Time = new TimeSpan(random.Next(8), random.Next(59), random.Next(59)),
-                Cost = (ushort)random.Next(ushort.MaxValue)
-            };
+                Trip trip = new Trip()
+                {
+                    PlaceId = new PlaceId(placeId),
+                    Time = new TimeSpan(random.Next(8), random.Next(59), random.Next(59)),
+                    Cost = (ushort)random.Next(ushort.MaxValue)
+                };
 
-            return new OkObjectResult(trip);
+                return new OkObjectResult(trip);
+            }
         }
-   }
+    }
 }
