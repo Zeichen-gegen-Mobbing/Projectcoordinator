@@ -29,11 +29,13 @@ namespace ZgM.Projectcoordinator.api
         [ProducesResponseType(200, Type = typeof(Place[]))]
         public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "places")] HttpRequest req)
         {
-            _logger.LogInformation(Environment.GetEnvironmentVariable("AzureWebJobsFeatureFlags"));
-            _logger.LogInformation(JsonSerializer.Serialize(_places));
-            Random random = new Random();
-            await Task.Delay(random.Next(random.Next(10000)));
-            return new OkObjectResult(_places.ToArray());
+            using (_logger.BeginScope(new Dictionary<string, object> { { "FunctionName", nameof(GetAllPlaces) } }))
+            {
+                _logger.LogDebug("Returning places: {places}", _places);
+                Random random = new Random();
+                await Task.Delay(random.Next(random.Next(10000)));
+                return new OkObjectResult(_places.ToArray());
+            }
         }
     }
 }
