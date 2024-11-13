@@ -1,16 +1,17 @@
 ﻿using System.ComponentModel;
 using System.Security.AccessControl;
 using System.Text.Json.Serialization;
+using StronglyTypedIds;
 
 namespace ZgM.ProjectCoordinator.Shared
 {
-    [JsonConverter(typeof(IdJsonConverter<PlaceId, string>))]
-    public class PlaceId(string value) : AbstractId<PlaceId, string>(value)
+    [StronglyTypedId(Template.String)]
+    public partial struct PlaceId
     {
     }
 
-    [JsonConverter(typeof(IdJsonConverter<UserId, Guid>))]
-    public class UserId(Guid value) : AbstractId<UserId, Guid>(value)
+    [StronglyTypedId]
+    public partial struct UserId
     {
     }
 

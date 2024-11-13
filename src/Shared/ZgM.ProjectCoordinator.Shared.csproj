@@ -6,4 +6,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="StronglyTypedId" Version="1.0.0-beta08" PrivateAssets="all"
+      ExcludeAssets="runtime" />
+  </ItemGroup>
+
 </Project>
