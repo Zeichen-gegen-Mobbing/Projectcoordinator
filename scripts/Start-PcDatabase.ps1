@@ -8,6 +8,8 @@ The pwsh version is required to fail on non zero exit codes from docker.
 #Requires -Version 7.4.0
 [CmdletBinding()]
 param (
+    # Number of times to try to reach the started Cosmos Emulator
+    [int]$RetryCount = 10
 )
 
 Set-StrictMode -Version Latest
@@ -40,14 +42,29 @@ while (!$logs -or $logs[-1] -ne "Started") {
     $logs = docker logs $containerId
 }
 
-Start-Sleep -Seconds 1
-
 $parameters = @{
     Uri                  = 'https://localhost:8081/_explorer/emulator.pem'
     Method               = 'GET'
     OutFile              = 'emulatorcert.crt'
     SkipCertificateCheck = $True
 }
-Invoke-WebRequest @parameters
 
-Write-Output "You can open https://localhost:8081/_explorer/index.html . You may need to import the emulator certificate into your trusted root certificate store."
+$available = $false
+for ($i = 0; $i -lt $RetryCount; $i++) {
+    try {
+        Start-Sleep -Seconds 1
+        Invoke-WebRequest @parameters
+        $available = $true
+        break
+    }
+    catch {
+        Write-Progress -Activity "Downloading emulator certificate" -Status "Attempt $i of $RetryCount"
+    }
+}
+
+if ($available) {
+    Write-Output "You can open https://localhost:8081/_explorer/index.html . You may need to import the emulator certificate into your trusted root certificate store."
+}
+else {
+    Write-Error "Failed to download emulator certificate after $RetryCount attempts." -Exception $Error[0]
+}
