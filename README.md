@@ -28,3 +28,16 @@ builder.Services.AddScoped<IPlaceService, FakePlaceService>();
 ### BackEnd
 
 To run the backend you need the Azure Function Core Tools. Furthermore you need the [Azure Cosmos Emulator](https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-develop-emulator?tabs=docker-windows%2Ccsharp&pivots=api-nosql). You can run `pwsh ./scripts/Start-PcDatabase.ps1` if you have PowerShell and docker installed.
+
+#### Add Places
+
+To add places for now, you can use the `ThunderClient` Extension for Visual Studio Code. Just `post` the following JSON to `http://localhost:7127/api/CreatePlace`
+
+```json
+{
+  "Id": "6bb5b57c-edf6-4d33-ae08-37fa8ac07211",
+  "UserId": "490a8d19-7805-4c69-8392-78323878ba16",
+  "Name": "Name1",
+  "Address": "Address"
+}
+```

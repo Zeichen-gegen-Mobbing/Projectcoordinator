@@ -21,6 +21,7 @@ $parameters = @(
     "--publish", "10250-10255:10250-10255"
     "--name", "linux-emulator"
     "--env", "AZURE_COSMOS_EMULATOR_PARTITION_COUNT=2"
+    "--env", "AZURE_COSMOS_EMULATOR_IP_ADDRESS_OVERRIDE=127.0.0.1"
     "--detach",
     "--rm"
 )
@@ -36,8 +37,11 @@ else {
 }
 
 [string[]]$logs = docker logs $containerId
+$tries = 0
 while (!$logs -or $logs[-1] -ne "Started") {
     Start-Sleep -Seconds 1
+    $tries++
+    Write-Progress -Activity "Waiting for emulator to start..." -Status "Attempt $tries"
     Write-Output "Waiting for emulator to start..."
     $logs = docker logs $containerId
 }
@@ -66,5 +70,5 @@ if ($available) {
     Write-Output "You can open https://localhost:8081/_explorer/index.html . You may need to import the emulator certificate into your trusted root certificate store."
 }
 else {
-    Write-Error "Failed to download emulator certificate after $RetryCount attempts." -Exception $Error[0]
+    Write-Error -Message "Failed to download emulator certificate after $RetryCount attempts." -Exception $Error[0].Exception
 }

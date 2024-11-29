@@ -1,4 +1,5 @@
 using System.Text.Json;
+using api.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
@@ -7,34 +8,18 @@ using ZgM.ProjectCoordinator.Shared;
 
 namespace ZgM.Projectcoordinator.api
 {
-    public class GetAllPlaces
+    public class GetAllPlaces(ILogger<GetAllPlaces> logger, IPlaceService placeService)
     {
-        private readonly ILogger<GetAllPlaces> _logger;
-
-        public static readonly IEnumerable<Place> _places = new List<Place>
-        {
-            new Place { Id = new PlaceId("P1"), UserId= new UserId(Guid.NewGuid()), Name = "Fake BE Place 1" },
-            new Place { Id = new PlaceId("P2"),UserId= new UserId(Guid.NewGuid()), Name = "Fake BE Place 2" },
-            new Place { Id = new PlaceId("P3"),UserId= new UserId(Guid.NewGuid()), Name = "Fake BE Place 3" },
-            new Place { Id = new PlaceId("P4"),UserId= new UserId(Guid.NewGuid()), Name = "Fake BE Place 4" },
-            new Place { Id = new PlaceId("P5"),UserId= new UserId(Guid.NewGuid()), Name = "Fake BE Place 5" },
-        };
-
-        public GetAllPlaces(ILogger<GetAllPlaces> logger)
-        {
-            _logger = logger;
-        }
-
         [Function(nameof(GetAllPlaces))]
         [ProducesResponseType(200, Type = typeof(Place[]))]
         public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "places")] HttpRequest req)
         {
-            using (_logger.BeginScope(new Dictionary<string, object> { { "FunctionName", nameof(GetAllPlaces) } }))
+            using (logger.BeginScope(new Dictionary<string, object> { { "FunctionName", nameof(GetAllPlaces) } }))
             {
-                _logger.LogDebug("Returning places: {places}", _places);
-                Random random = new Random();
-                await Task.Delay(random.Next(random.Next(10000)));
-                return new OkObjectResult(_places.ToArray());
+                logger.LogTrace($"{nameof(GetAllPlaces)} invoked");
+                var places = await placeService.GetAllPlacesAsync();
+                logger.LogDebug("Returning places: {places}", places);
+                return new OkObjectResult(places.ToArray());
             }
         }
     }
