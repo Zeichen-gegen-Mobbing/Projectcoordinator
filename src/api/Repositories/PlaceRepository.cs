@@ -33,10 +33,10 @@ namespace api.Repositories
             var containerResponse = await database.Database.CreateContainerIfNotExistsAsync(settings.ContainerId, "/userId");
             return containerResponse.Container;
         }
-        public async Task AddAsync(PlaceEntity entity)
+        public async Task<PlaceEntity> AddAsync(PlaceEntity entity)
         {
             var container = await this.container;
-            await container.CreateItemAsync(entity);
+            return await container.CreateItemAsync(entity);
         }
 
         public async Task<IEnumerable<PlaceEntity>> GetAllAsync()

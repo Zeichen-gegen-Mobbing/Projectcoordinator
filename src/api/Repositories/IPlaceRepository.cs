@@ -11,6 +11,6 @@ namespace api.Repositories
     {
         Task<IEnumerable<PlaceEntity>> GetAllAsync();
 
-        Task AddAsync(PlaceEntity entity);
+        Task<PlaceEntity> AddAsync(PlaceEntity entity);
     }
 }

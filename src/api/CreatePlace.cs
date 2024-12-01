@@ -1,9 +1,11 @@
 using api.Entities;
+using api.Models;
 using api.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
+using ZgM.Projectcoordinator.api;
 
 namespace api
 {
@@ -18,12 +20,16 @@ namespace api
             _placeService = placeService;
         }
 
-        [Function("CreatePlace")]
-        public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Admin, "post")] HttpRequest request)
+        [Function(nameof(CreatePlace))]
+        public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Admin, "post", Route = "places")] HttpRequest request)
         {
-            var place = await request.ReadFromJsonAsync<PlaceEntity>();
-            await _placeService.AddPlace(place);
-            return new CreatedResult();
+            using (_logger.BeginScope(new Dictionary<string, object> { { "FunctionName", nameof(CreatePlace) } }))
+            {
+                var placeRequest = await request.ReadFromJsonAsync<PlaceRequest>();
+                _logger.LogInformation("Read place from request");
+                await _placeService.AddPlace(placeRequest);
+                return new CreatedResult();
+            }
         }
     }
 }

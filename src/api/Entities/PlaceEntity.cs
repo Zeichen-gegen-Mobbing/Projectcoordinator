@@ -6,7 +6,7 @@ namespace api.Entities
     {
         public required UserId UserId { get; init; }
         public required PlaceId Id { get; init; }
-        public string Name { get; init; }
-        public string Address { get; init; }
+        public required string Name { get; init; }
+        public required string Address { get; init; }
     }
 }

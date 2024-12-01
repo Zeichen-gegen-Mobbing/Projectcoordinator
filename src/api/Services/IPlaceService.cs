@@ -1,4 +1,4 @@
-﻿using api.Entities;
+﻿using api.Models;
 using ZgM.ProjectCoordinator.Shared;
 
 namespace api.Services
@@ -6,6 +6,6 @@ namespace api.Services
     public interface IPlaceService
     {
         Task<IEnumerable<Place>> GetAllPlacesAsync();
-        Task AddPlace(PlaceEntity place);
+        Task<Place> AddPlace(PlaceRequest place);
     }
 }

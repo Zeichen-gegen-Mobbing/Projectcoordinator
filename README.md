@@ -35,7 +35,6 @@ To add places for now, you can use the `ThunderClient` Extension for Visual Stud
 
 ```json
 {
-  "Id": "6bb5b57c-edf6-4d33-ae08-37fa8ac07211",
   "UserId": "490a8d19-7805-4c69-8392-78323878ba16",
   "Name": "Name1",
   "Address": "Address"
