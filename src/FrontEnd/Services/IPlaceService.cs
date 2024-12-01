@@ -1,5 +1,4 @@
-﻿using FrontEnd.Models;
-using FrontEnd.Models.Id;
+﻿using ZgM.ProjectCoordinator.Shared;
 
 namespace FrontEnd.Services
 {
@@ -12,10 +11,10 @@ namespace FrontEnd.Services
         public Task<IEnumerable<Place>> GetAllPlacesAsync();
 
         /// <summary>
-        /// Get Trip time from given Place to address
+        /// Get Trip from given Place to address
         /// </summary>
-        /// <param name="place">The id of place to load the trip time</param>
-        /// <param name="address">The adress to end the trips</param>
-        public Task<TimeSpan> GetTripTimeAsync(PlaceId place, string address);
+        /// <param name="place">The id of place to load the trip</param>
+        /// <param name="address">The adress to end the trip</param>
+        public Task<Trip> GetTripAsync(PlaceId place, string address);
     }
 }

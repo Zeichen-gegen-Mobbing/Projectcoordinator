@@ -10,7 +10,7 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.Configuration["API_Prefix"] ?? builder.HostEnvironment.BaseAddress) });
 
 #if DEBUG
     LocalAuthenticationProvider.AddLocalAuthentication(builder.Services);
@@ -34,6 +34,6 @@ builder.Services.AddHttpClient("GraphAPI",
     .AddHttpMessageHandler<GraphAuthorizationMessageHandler>();
 
 builder.Services.AddScoped<IUserService,FakeUserService>();
-builder.Services.AddScoped<IPlaceService, FakePlaceService>();
+builder.Services.AddScoped<IPlaceService, PlaceService>();
 
 await builder.Build().RunAsync();
