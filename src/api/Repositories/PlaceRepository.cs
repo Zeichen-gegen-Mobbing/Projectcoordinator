@@ -14,13 +14,13 @@ namespace api.Repositories
 {
     internal sealed class PlaceRepository : IPlaceRepository
     {
-        private readonly Task<Container> container;
+        private readonly Task<Container> initContainer;
         private readonly ILogger<PlaceRepository> logger;
 
         public PlaceRepository(CosmosClient client, IOptions<CosmosSettings> options, ILogger<PlaceRepository> logger)
         {
             this.logger = logger;
-            container = Init(options.Value, client);
+            initContainer = Init(options.Value, client);
         }
 
         private async Task<Container> Init(CosmosSettings settings, CosmosClient client)
@@ -35,14 +35,14 @@ namespace api.Repositories
         }
         public async Task<PlaceEntity> AddAsync(PlaceEntity entity)
         {
-            var container = await this.container;
+            var container = await initContainer;
             return await container.CreateItemAsync(entity);
         }
 
         public async Task<IEnumerable<PlaceEntity>> GetAllAsync()
         {
             logger.LogDebug("Get All Places from CosmosDB");
-            var container = await this.container;
+            var container = await initContainer;
             var list = new List<PlaceEntity>();
             using FeedIterator<PlaceEntity> iterator = container.GetItemLinqQueryable<PlaceEntity>().ToFeedIterator();
 
