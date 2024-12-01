@@ -6,6 +6,6 @@ namespace api.Services
     public interface IPlaceService
     {
         Task<IEnumerable<Place>> GetAllPlacesAsync();
-        Task<Place> AddPlace(PlaceRequest place);
+        Task<Place> AddPlace(PlaceRequest placeRequest);
     }
 }
