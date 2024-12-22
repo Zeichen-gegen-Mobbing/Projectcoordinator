@@ -1,5 +1,5 @@
 ﻿using System.Text.Json.Serialization;
-using FrontEnd.Models.Id;
+using ZgM.ProjectCoordinator.Shared;
 
 namespace FrontEnd.Models
 {

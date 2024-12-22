@@ -1,20 +1,22 @@
 ﻿@page "/"
+@using System.ComponentModel.DataAnnotations
 @using FrontEnd.Models
 @using FrontEnd.Services
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 @using Microsoft.AspNetCore.Components.QuickGrid
+@using ZgM.ProjectCoordinator.Shared
 
 @inject IPlaceService PlaceService;
 @inject IUserService UserService;
 
 <PageTitle>Home</PageTitle>
 
-<EditForm EditContext="editContext" OnSubmit="Submit" FormName="Starship4">
+<EditForm EditContext="editContext" OnValidSubmit="Submit" FormName="Address">
     <DataAnnotationsValidator />
     <div>
         <label>
             Adresse:
-            <InputText @bind-Value="address" />
+            <InputText @bind-Value="address!.Value" />
         </label>
     </div>
     <div>
@@ -24,23 +26,26 @@
 
 <p>@_status</p>
 
-@if(trips.Count > 0)
+@if (trips.Count > 0)
 {
     <QuickGrid Items="trips.AsQueryable()" Class="table table-hover table-bordered table-striped">
-    <PropertyColumn Property="@(t => t.User)" Sortable="true" />
-    <PropertyColumn Property="@(t => t.Place)" Sortable="false" />
-    <PropertyColumn Property="@(t => t.time)" Sortable="true" IsDefaultSortColumn="true" />
-</QuickGrid>
+        <PropertyColumn Property="@(t => t.User)" Sortable="true" />
+        <PropertyColumn Property="@(t => t.Place)" Sortable="false" />
+        <PropertyColumn Property="@(t => t.time)" Sortable="true" IsDefaultSortColumn="true" />
+        <PropertyColumn Property="@(t => t.Cost)" Format="C2" Sortable="true" IsDefaultSortColumn="true" />
+    </QuickGrid>
 
 
-} else {
+}
+else
+{
     <p><em>Loading Addresses</em></p>
 }
 
 
 @code {
     [SupplyParameterFromForm]
-    private string address { get; set; } = "";
+    private Address? address { get; set; }
 
     private string _status = "Please enter an address";
 
@@ -53,6 +58,7 @@
 
     protected override void OnInitialized()
     {
+        address ??= new Address() { Value = "" };
         editContext = new(address);
         LoadPlaces();
         Console.WriteLine("Initialization finished");
@@ -72,26 +78,23 @@
                     User = user,
                     Place = place
                 };
-            _ = UserService.GetUserAsync(user.Id).ContinueWith(task => {
+            _ = UserService.GetUserAsync(user.Id).ContinueWith(task =>
+            {
                 trip.User = task.Result;
                 StateHasChanged();
-            }            );
+            });
 
             trips.Add(trip);
         }
         StateHasChanged();
         _placesLoaded = true;
 
-        //var places = await Http.GetFromJsonAsync<Place[]>("sample-data/SoViPlaces.json");
-
         Console.WriteLine("Places finished");
     }
 
     private async void Submit()
     {
-        Console.WriteLine(address);
-
-        // TODO: Add validation
+        Console.WriteLine(address!.Value);
 
         while (!_placesLoaded)
         {
@@ -103,8 +106,10 @@
 
         IEnumerable<Task> tasks = trips.Select(trip =>
         {
-            return PlaceService.GetTripTimeAsync(trip.Place.Id, address).ContinueWith(task => {
-                trip.time = task.Result;
+            return PlaceService.GetTripAsync(trip.Place.Id, address!.Value!).ContinueWith(task =>
+            {
+                trip.time = task.Result.Time;
+                trip.Cost = (decimal)task.Result.Cost / 100;
                 StateHasChanged();
             });
         });
@@ -115,9 +120,16 @@
     }
 
     protected class TripViewModel
-	{
-		public required User User { get; set; }
-		public required Place Place { get; set; }
-		public TimeSpan? time { get; set; }
-	}
+    {
+        public required User User { get; set; }
+        public required Place Place { get; set; }
+        public TimeSpan? time { get; set; }
+        public decimal Cost { get; set; }
+    }
+
+    public class Address
+    {
+        [Required]
+        public string? Value { get; set; }
+    }
 }

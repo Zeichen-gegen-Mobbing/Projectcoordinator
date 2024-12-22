@@ -1,5 +1,5 @@
 ﻿using FrontEnd.Models;
-using FrontEnd.Models.Id;
+using ZgM.ProjectCoordinator.Shared;
 
 namespace FrontEnd.Services
 {
