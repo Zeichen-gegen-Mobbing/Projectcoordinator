@@ -21,7 +21,8 @@ namespace api.Services
                 Id = new PlaceId(Guid.NewGuid().ToString()),
                 UserId = placeRequest.UserId,
                 Name = placeRequest.Name,
-                Address = placeRequest.Address,
+                Longitude = placeRequest.Longitude,
+                Latitude = placeRequest.Latitude
             };
             place = await repository.AddAsync(place);
             return new Place()
