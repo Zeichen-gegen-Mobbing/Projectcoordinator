@@ -1,4 +1,5 @@
 using api.Entities;
+using api.Exceptions;
 using api.Models;
 using api.Services;
 using Microsoft.AspNetCore.Http;
@@ -27,8 +28,15 @@ namespace api
             {
                 var placeRequest = await request.ReadFromJsonAsync<PlaceRequest>();
                 _logger.LogInformation("Read place from request");
-                await _placeService.AddPlace(placeRequest);
-                return new CreatedResult();
+                try
+                {
+                    await _placeService.AddPlace(placeRequest);
+                    return new CreatedResult();
+                }
+                catch (ProblemDetailsException ex)
+                {
+                    return new BadRequestObjectResult(ex.ProblemDetails);
+                }
             }
         }
     }

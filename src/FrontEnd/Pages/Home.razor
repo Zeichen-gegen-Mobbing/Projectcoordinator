@@ -1,4 +1,5 @@
 ﻿@page "/"
+@using System.Globalization
 @using System.ComponentModel.DataAnnotations
 @using FrontEnd.Models
 @using FrontEnd.Services
@@ -6,130 +7,80 @@
 @using Microsoft.AspNetCore.Components.QuickGrid
 @using ZgM.ProjectCoordinator.Shared
 
-@inject IPlaceService PlaceService;
 @inject IUserService UserService;
+@inject ITripService TripService;
 
 <PageTitle>Home</PageTitle>
 
-<EditForm EditContext="editContext" OnValidSubmit="Submit" FormName="Address">
-    <DataAnnotationsValidator />
-    <div>
-        <label>
-            Adresse:
-            <InputText @bind-Value="address!.Value" />
-        </label>
-    </div>
-    <div>
-        <button type="submit" class="btn btn-primary">Submit</button>
-    </div>
-</EditForm>
+<FrontEnd.Components.LocationSelector Disabled=LocationSelected OnLocationSelected=LoadTrips />
 
-<p>@_status</p>
-
-@if (trips.Count > 0)
+@if(trips.Count() > 0)
 {
     <QuickGrid Items="trips.AsQueryable()" Class="table table-hover table-bordered table-striped">
-        <PropertyColumn Property="@(t => t.User)" Sortable="true" />
+        <PropertyColumn Property="@(t => t.UserDisplayName)" Sortable="true" />
         <PropertyColumn Property="@(t => t.Place)" Sortable="false" />
-        <PropertyColumn Property="@(t => t.time)" Sortable="true" IsDefaultSortColumn="true" />
-        <PropertyColumn Property="@(t => t.Cost)" Format="C2" Sortable="true" IsDefaultSortColumn="true" />
+        <PropertyColumn Property="@(t => t.Time)" Format="" Sortable="true" IsDefaultSortColumn="true" />
+        <PropertyColumn Property="@(t => t.Cost)" Format="C2" Sortable="true" />
     </QuickGrid>
-
-
+    <small>Time & Distance provided by © openrouteservice.org by HeiGIT | Map data © OpenStreetMap contributors</small>
 }
 else
 {
-    <p><em>Loading Addresses</em></p>
+    <b>@status</b>
 }
 
 
 @code {
-    [SupplyParameterFromForm]
-    private Address? address { get; set; }
-
-    private string _status = "Please enter an address";
-
-    private bool _placesLoaded = false;
-
-    private EditContext? editContext { get; set; }
-
-    private List<TripViewModel> trips = new List<TripViewModel>();
+    private readonly ICollection<TripViewModel> trips = new List<TripViewModel>();
+    private bool LocationSelected = false;
+    private string status = "Loading Site";
 
 
     protected override void OnInitialized()
     {
-        address ??= new Address() { Value = "" };
-        editContext = new(address);
-        LoadPlaces();
+        status = "Waiting for coordinates";
         Console.WriteLine("Initialization finished");
     }
 
-    private async void LoadPlaces()
+    private async Task LoadTrips(double latitude, double longitude)
     {
-        Console.WriteLine("Start getting places");
-
-        var places = await PlaceService.GetAllPlacesAsync();
-
-        foreach (Place place in places)
-        {
-            var user = new User(place.UserId, $"Loading Name ({place.UserId})");
-            var trip = new TripViewModel()
-                {
-                    User = user,
-                    Place = place
-                };
-            _ = UserService.GetUserAsync(user.Id).ContinueWith(task =>
-            {
-                trip.User = task.Result;
-                StateHasChanged();
-            });
-
-            trips.Add(trip);
-        }
+        status = "Loading Trips";
+        LocationSelected = true;
+        trips.Clear();
         StateHasChanged();
-        _placesLoaded = true;
-
-        Console.WriteLine("Places finished");
-    }
-
-    private async void Submit()
-    {
-        Console.WriteLine(address!.Value);
-
-        while (!_placesLoaded)
+        await Task.Yield();
+        Console.WriteLine("Start getting trips");
+        foreach (Trip t in (await TripService.GetTripsAsync(latitude, longitude)))
         {
-            _status = "Wait to load all places";
-            await Task.Delay(100);
+            var trip = new TripViewModel()
+			{
+				Place = t.Place,
+				Time = t.Time,
+                Cost = (decimal)t.Cost / 100
+			};
+            trips.Add(trip);
+            StateHasChanged();
+            await Task.Yield();
+            _ = loadUser(trip);
         }
+        LocationSelected = false;
+        status = "Finished loading trips";
 
-        _status = "Loading times";
-
-        IEnumerable<Task> tasks = trips.Select(trip =>
-        {
-            return PlaceService.GetTripAsync(trip.Place.Id, address!.Value!).ContinueWith(task =>
-            {
-                trip.time = task.Result.Time;
-                trip.Cost = (decimal)task.Result.Cost / 100;
-                StateHasChanged();
-            });
-        });
-
-        await Task.WhenAll(tasks);
-
-        _status = "All times loaded";
     }
 
-    protected class TripViewModel
+    private async Task loadUser(TripViewModel trip)
+	{
+		trip.User = await UserService.GetUserAsync(trip.Place.UserId);
+        StateHasChanged();
+        await Task.Yield();
+	}
+
+    private class TripViewModel
     {
-        public required User User { get; set; }
+        public User? User { get; set; }
+        public string UserDisplayName => User?.DisplayName ?? "Loading Name";
         public required Place Place { get; set; }
-        public TimeSpan? time { get; set; }
+        public required TimeSpan Time { get; set; }
         public decimal Cost { get; set; }
-    }
-
-    public class Address
-    {
-        [Required]
-        public string? Value { get; set; }
     }
 }

@@ -26,7 +26,7 @@ namespace ZgM.Projectcoordinator.api
         [ProducesResponseType(200, Type = typeof(IEnumerable<Trip>))]
         public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Function, "get", Route = "trips")] HttpRequest req)
         {
-            using (_logger.BeginScope(new Dictionary<string, object> { { "FunctionName", nameof(GetTrip) } }))
+            using (_logger.BeginScope(new Dictionary<string, object> { { "FunctionName", nameof(GetTrips) } }))
             {
                 if (!double.TryParse(req.Query["latitude"], CultureInfo.GetCultureInfo("en-US"), out double latitude) || !double.TryParse(req.Query["longitude"], CultureInfo.GetCultureInfo("en-US"), out double longitude))
                 {
