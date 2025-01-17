@@ -14,7 +14,7 @@
 
 <FrontEnd.Components.LocationSelector Disabled=LocationSelected OnLocationSelected=LoadTrips />
 
-@if (trips.Count > 0)
+@if (trips.Any())
 {
     <QuickGrid Items="trips.AsQueryable()" Class="table table-hover table-bordered table-striped">
         <PropertyColumn Property="@(t => t.UserDisplayName)" Sortable="true" />
