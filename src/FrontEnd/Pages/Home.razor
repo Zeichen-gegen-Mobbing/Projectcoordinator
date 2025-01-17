@@ -75,7 +75,7 @@ else
         await Task.Yield();
     }
 
-    private class TripViewModel
+    private sealed class TripViewModel
     {
         public User? User { get; set; }
         public string UserDisplayName => User?.DisplayName ?? "Loading Name";
