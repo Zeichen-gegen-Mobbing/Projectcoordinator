@@ -8,6 +8,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using api.Entities;
+using api.Exceptions;
 using api.Models;
 using api.Repositories;
 using Microsoft.Azure.Cosmos;
@@ -76,7 +77,7 @@ namespace api.Services
                 else
                 {
                     logger.LogError("Something went wrong while getting Matrix from ORS {Status}: {Content}", response.StatusCode, responseBody);
-                    throw new Exception();
+                    throw new ProblemDetailsException(System.Net.HttpStatusCode.InternalServerError, "Internal Server Error", "Something went wrong while getting Matrix from ORS");
                 }
             }
             else
