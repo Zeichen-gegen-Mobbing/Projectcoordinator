@@ -8,16 +8,16 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace api.Exceptions
 {
-    internal class ProblemDetailsException : Exception
+    public class ProblemDetailsException : Exception
     {
-        internal ProblemDetails ProblemDetails { get; init; }
+        public ProblemDetails ProblemDetails { get; init; }
 
-        internal ProblemDetailsException(ProblemDetails problemDetails)
+        public ProblemDetailsException(ProblemDetails problemDetails)
         {
             ProblemDetails = problemDetails;
         }
 
-        internal ProblemDetailsException( HttpStatusCode statusCode, string title, string detail)
+        public ProblemDetailsException(HttpStatusCode statusCode, string title, string detail)
         {
             ProblemDetails = new ProblemDetails
             {
