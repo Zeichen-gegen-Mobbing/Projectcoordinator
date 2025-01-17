@@ -112,9 +112,9 @@ namespace api.Services
         {
             [Required]
 
-            public required ORSLocation?[] Locations { get; set; }
+            public required OrsLocation?[] Locations { get; set; }
 
-            public struct ORSLocation
+            public struct OrsLocation
             {
                 public required double[] Location { get; set; }
             }
