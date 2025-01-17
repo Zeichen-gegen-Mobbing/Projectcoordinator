@@ -37,7 +37,7 @@ namespace ZgM.Projectcoordinator.api
                         Status = StatusCodes.Status400BadRequest
                     });
                 }
-                _logger.LogDebug("Returning trips from places to address {latitude} latitude {longitude}", latitude, longitude);
+                _logger.LogDebug("Returning trips from places to the specified latitude and longitude.");
                 var trips = await _tripService.GetAllTripsAsync(latitude, longitude);
                 return new OkObjectResult(trips);
             }
