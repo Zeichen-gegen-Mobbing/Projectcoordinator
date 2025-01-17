@@ -24,6 +24,10 @@ namespace api.Services
         private readonly IPlaceRepository repository;
         private readonly ILogger<TripOpenRouteService> logger;
         private static readonly string[] _metrics = ["duration", "distance"];
+        private static readonly JsonSerializerOptions _serializeOptions = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        };
 
         public TripOpenRouteService(IPlaceRepository repository, IOptions<OpenRouteServiceOptions> options, IHttpClientFactory clientFactory, ILogger<TripOpenRouteService> logger)
         {
@@ -51,13 +55,9 @@ namespace api.Services
 
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {
-                    logger.LogDebug("Response from API: {Response}", responseBody);
-                    var serializeOptions = new JsonSerializerOptions
-                    {
-                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                    };
+                    logger.LogDebug("Response from API: {Response}", responseBody); ;
                     // TODO: Expose attribution to API
-                    var result = JsonSerializer.Deserialize<OpenRouteServiceMatrixResponse>(responseBody, serializeOptions);
+                    var result = JsonSerializer.Deserialize<OpenRouteServiceMatrixResponse>(responseBody, _serializeOptions);
                     return places.Select((place, index) =>
                     {
                         return new Trip
@@ -97,11 +97,7 @@ namespace api.Services
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
                 logger.LogDebug("Response from API: {Response}", responseBody);
-                var serializeOptions = new JsonSerializerOptions
-                {
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                };
-                var result = JsonSerializer.Deserialize<OpenRouteServiceSnapResponse>(responseBody, serializeOptions);
+                var result = JsonSerializer.Deserialize<OpenRouteServiceSnapResponse>(responseBody, _serializeOptions);
                 return result.Locations.SingleOrDefault() != null;
             }
             else
