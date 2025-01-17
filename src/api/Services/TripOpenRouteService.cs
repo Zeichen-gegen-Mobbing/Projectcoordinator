@@ -104,7 +104,7 @@ namespace api.Services
             else
             {
                 logger.LogError("Something went wrong while getting Snap from ORS {Status}: {Content}", response.StatusCode, responseBody);
-                throw new Exception();
+                throw new ProblemDetailsException(System.Net.HttpStatusCode.InternalServerError, "Internal Server Error", "Something went wrong while getting Snap from ORS");
             }
 
         }
