@@ -23,6 +23,7 @@ namespace api.Services
         private readonly HttpClient client;
         private readonly IPlaceRepository repository;
         private readonly ILogger<TripOpenRouteService> logger;
+        private static readonly string[] _metrics = ["duration", "distance"];
 
         public TripOpenRouteService(IPlaceRepository repository, IOptions<OpenRouteServiceOptions> options, IHttpClientFactory clientFactory, ILogger<TripOpenRouteService> logger)
         {
@@ -44,7 +45,7 @@ namespace api.Services
                     locations = places.Select(place => new[] { place.Longitude, place.Latitude }).Append([longitude, latitude]).ToArray(),
                     destinations = Enumerable.Range(places.Count(), 1),
                     sources = Enumerable.Range(0, places.Count()),
-                    metrics = new[] { "duration", "distance" }
+                    metrics = _metrics
                 });
                 string responseBody = await response.Content.ReadAsStringAsync();
 
