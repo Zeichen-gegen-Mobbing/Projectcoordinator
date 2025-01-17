@@ -11,6 +11,7 @@ The FrontEnd is a Blazor WASM Application to be run in Azure Static Website. The
 Following configurations are required:
 
 - `Cosmos__ConnectionString`
+- `OpenRouteService__ApiKey`
 
 ## Local Development
 
@@ -29,7 +30,7 @@ builder.Services.AddScoped<IPlaceService, FakePlaceService>();
 
 To run the backend you need the Azure Function Core Tools. Furthermore you need the [Azure Cosmos Emulator](https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-develop-emulator?tabs=docker-windows%2Ccsharp&pivots=api-nosql). You can run `pwsh ./scripts/Start-PcDatabase.ps1` if you have PowerShell and docker installed.
 
-The backend needs the `Cosmos__ConnectionString` & `OpenRouteService__ApiKey` configure them in `local.settings.json`. Furthermore you may disable CORS for local development:
+Configure the required Configurations in `local.settings.json`. Furthermore you may disable CORS for local development:
 
 ```json
 "Host": {
@@ -43,8 +44,9 @@ To add places for now, you can use the `ThunderClient` Extension for Visual Stud
 
 ```json
 {
-  "UserId": "490a8d19-7805-4c69-8392-78323878ba16",
-  "Name": "Name1",
-  "Address": "Address"
+  "UserId": "021d4e6b-c0bb-466c-86be-4143f1e7ed8a",
+  "Name": "Woanders",
+  "Longitude": 48.1411,
+  "Latitude": 10.5751
 }
 ```
