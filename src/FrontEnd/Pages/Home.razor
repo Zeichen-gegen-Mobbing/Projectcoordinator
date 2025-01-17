@@ -14,7 +14,7 @@
 
 <FrontEnd.Components.LocationSelector Disabled=LocationSelected OnLocationSelected=LoadTrips />
 
-@if(trips.Count() > 0)
+@if (trips.Count > 0)
 {
     <QuickGrid Items="trips.AsQueryable()" Class="table table-hover table-bordered table-striped">
         <PropertyColumn Property="@(t => t.UserDisplayName)" Sortable="true" />
@@ -53,11 +53,11 @@ else
         foreach (Trip t in (await TripService.GetTripsAsync(latitude, longitude)))
         {
             var trip = new TripViewModel()
-			{
-				Place = t.Place,
-				Time = t.Time,
-                Cost = (decimal)t.Cost / 100
-			};
+                {
+                    Place = t.Place,
+                    Time = t.Time,
+                    Cost = (decimal)t.Cost / 100
+                };
             trips.Add(trip);
             StateHasChanged();
             await Task.Yield();
@@ -69,11 +69,11 @@ else
     }
 
     private async Task loadUser(TripViewModel trip)
-	{
-		trip.User = await UserService.GetUserAsync(trip.Place.UserId);
+    {
+        trip.User = await UserService.GetUserAsync(trip.Place.UserId);
         StateHasChanged();
         await Task.Yield();
-	}
+    }
 
     private class TripViewModel
     {
