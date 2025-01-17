@@ -37,7 +37,7 @@ namespace api.Services
         public async Task<IEnumerable<Trip>> GetAllTripsAsync(double latitude, double longitude)
         {
             var places = await repository.GetAllAsync();
-            if (places.Count() > 0)
+            if (places.Any())
             {
                 var response = await client.PostAsJsonAsync("v2/matrix/driving-car", new
                 {
