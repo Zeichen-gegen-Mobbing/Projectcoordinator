@@ -22,7 +22,6 @@ namespace api.Services
     {
         private readonly HttpClient client;
         private readonly IPlaceRepository repository;
-        private readonly IOptions<OpenRouteServiceOptions> options;
         private readonly ILogger<TripOpenRouteService> logger;
 
         public TripOpenRouteService(IPlaceRepository repository, IOptions<OpenRouteServiceOptions> options, IHttpClientFactory clientFactory, ILogger<TripOpenRouteService> logger)
@@ -33,7 +32,6 @@ namespace api.Services
             client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
 
             this.repository = repository;
-            this.options = options;
             this.logger = logger;
         }
         public async Task<IEnumerable<Trip>> GetAllTripsAsync(double latitude, double longitude)
@@ -70,7 +68,7 @@ namespace api.Services
                                 UserId = place.UserId,
                             },
                             Time = TimeSpan.FromSeconds(result.Durations[index].Single()),
-                            Cost = (ushort)(Math.Ceiling(result.Distances[index].Single()/1000) * 30)
+                            Cost = (ushort)(Math.Ceiling(result.Distances[index].Single() / 1000) * 30)
                         };
                     });
                 }
@@ -115,7 +113,7 @@ namespace api.Services
         public struct OpenRouteServiceSnapResponse
         {
             [Required]
-            
+
             public required ORSLocation?[] Locations { get; set; }
 
             public struct ORSLocation
