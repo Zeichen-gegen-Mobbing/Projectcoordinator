@@ -56,7 +56,6 @@ namespace api.Services
 
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {
-                    logger.LogDebug("Response from API: {Response}", responseBody); ;
                     // TODO: Expose attribution to API
                     var result = JsonSerializer.Deserialize<OpenRouteServiceMatrixResponse>(responseBody, _serializeOptions);
                     return places.Select((place, index) =>
