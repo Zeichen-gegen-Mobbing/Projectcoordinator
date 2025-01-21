@@ -8,7 +8,7 @@ namespace ZgM.ProjectCoordinator.Shared
 {
     public readonly struct Trip
     {
-        public required PlaceId PlaceId { get; init; }
+        public required Place Place { get; init; }
         public required TimeSpan Time { get; init; }
 
         /// <summary>

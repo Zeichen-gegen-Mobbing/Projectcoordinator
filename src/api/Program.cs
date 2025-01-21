@@ -14,10 +14,16 @@ var host = new HostBuilder()
     {
         services.AddApplicationInsightsTelemetryWorkerService();
         services.ConfigureFunctionsApplicationInsights();
-        services.AddOptions<CosmosSettings>().Configure<IConfiguration>((settings, configuration) =>
+        services.AddOptionsWithValidateOnStart<CosmosSettings>().Configure<IConfiguration>((settings, configuration) =>
         {
             configuration.GetSection("Cosmos").Bind(settings);
-        });
+        }).ValidateDataAnnotations();
+
+        services.AddOptionsWithValidateOnStart<OpenRouteServiceOptions>().Configure<IConfiguration>((settings, configuration) =>
+        {
+            configuration.GetSection(settings.Title).Bind(settings);
+        }).ValidateDataAnnotations();
+
         SocketsHttpHandler socketsHttpHandler = new SocketsHttpHandler();
         // Customize this value based on desired DNS refresh timer
         socketsHttpHandler.PooledConnectionLifetime = TimeSpan.FromMinutes(5);
@@ -37,8 +43,12 @@ var host = new HostBuilder()
             var cosmosSettings = provider.GetRequiredService<IOptions<CosmosSettings>>();
             return new CosmosClient(cosmosSettings.Value.ConnectionString, options);
         });
+
+        services.AddHttpClient();
+
         services.AddScoped<IPlaceRepository, PlaceRepository>();
         services.AddScoped<IPlaceService, PlaceCosmosService>();
+        services.AddScoped<ITripService, TripOpenRouteService>();
     })
     .Build();
 await host.RunAsync();

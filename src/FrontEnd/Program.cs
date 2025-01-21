@@ -5,6 +5,7 @@ using FrontEnd.LocalAuthentication;
 using FrontEnd.Services;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using System.Globalization;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -34,6 +35,6 @@ builder.Services.AddHttpClient("GraphAPI",
     .AddHttpMessageHandler<GraphAuthorizationMessageHandler>();
 
 builder.Services.AddScoped<IUserService,FakeUserService>();
-builder.Services.AddScoped<IPlaceService, PlaceService>();
+builder.Services.AddScoped<ITripService, TripService>();
 
 await builder.Build().RunAsync();

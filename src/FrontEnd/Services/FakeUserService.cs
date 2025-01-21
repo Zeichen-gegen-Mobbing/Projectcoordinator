@@ -24,8 +24,7 @@ namespace FrontEnd.Services
                 user = random.Next(5) == 0 ? new User(Id): new User(Id, name) ;
                 users.Add(Id, user);
                 return user;
-            }
-            
+            } 
         }
     }
 }

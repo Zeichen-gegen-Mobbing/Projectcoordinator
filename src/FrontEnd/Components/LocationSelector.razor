@@ -1,0 +1,71 @@
+﻿@using System.ComponentModel.DataAnnotations;
+@using System.ComponentModel.DataAnnotations.Schema;
+
+<p>Dies ist lediglich ein funktionaler Platzhalter. Später ist geplant dies durch eine klassische Locationsuche wie man sie von Maps kennt abzulösen.</p>
+<p>Das kostet allerdings etwas Gehirnschmalz, daher bis dahin dieser etwas umständlichere Weg, an die Koordinaten zu kommen:</p>
+<ol>
+	<li>Öffne <a href="https://www.openstreetmap.org" target="_blank">Open Street Map</a></li>
+	<li>Suche oben Links nach der Adresse oder dem Namen</li>
+	<li>Wenn der richtige Ort auf der Karte angezeigt wird, mache einen Rechklick auf den Ort und wähle <i>Show Address</i>/<i>Adresse anzeigen</i> aus</li>
+	<li>Auf der linken Seite werden nun in der Suchleiste die Koordinaten angezeigt</li>
+	<li>Kopiere die Koordinaten in die entsprechenden Felder unten</li>
+	<li>Klicke außerhalb des Feldes, damit die Karte aktualisiert wird</li>
+	<li>Überprüfe, ob der angezeigte Ort stimmt</li>
+	<li>Klicke auf <i>Submit</i></li>
+</ol>
+<EditForm Model="location" OnValidSubmit="Submit">
+	<DataAnnotationsValidator />
+	<label>
+		Breitengrad:
+		<InputNumber @bind-Value="location.Latitude" placeholder="52.105130" />
+	</label>
+	<label>
+		Längengrad:
+		<InputNumber @bind-Value="location.Longitude" placeholder="9.801650" />
+	</label>
+	<br />
+		<iframe	src="@mapUrl"
+				width="90%"
+				style="border: 1px solid black" />
+		<br />
+	<button disabled="@Disabled" type="submit" class="btn btn-primary">Submit</button>
+</EditForm>
+
+@code {
+	[Parameter]
+	[Required]
+	public required Func<double, double, Task> OnLocationSelected { get; init; }
+	[Parameter]
+	[Required]
+	public required bool Disabled { get; set; }
+
+	[SupplyParameterFromForm]
+	private Location location { get; set; } = new();
+
+	private async Task Submit()
+	{
+		if (location.Latitude != null && location.Longitude != null)
+		{
+			await OnLocationSelected((double)location.Latitude, (double)location.Longitude);
+		}
+		else
+		{
+			Console.WriteLine("Latitude or Longitude was null on Submit. This should be impossible.");
+		}
+
+	}
+
+	public class Location
+	{
+		[Required]
+		[Range(-90, 90)]
+		public double? Latitude { get; set; }
+		[Required]
+		[Range(-180, 180)]
+		public double? Longitude { get; set; }
+
+		public bool isChoosen => Latitude != null && Longitude != null;
+	}
+
+	private string mapUrl => location.isChoosen ? $"https://www.openstreetmap.org/export/embed.html?bbox={location.Longitude - 0.1},{location.Latitude - 0.1},{location.Longitude + 0.1},{location.Latitude + 0.1}&layer=mapnik&marker={location.Latitude},{location.Longitude}" : "https://www.openstreetmap.org/export/embed.html";
+}
