@@ -1,3 +1,8 @@
+resource "azurerm_resource_group" "this" {
+  name     = "rg-ProjectCoordinator-${var.environment}"
+  location = "westeurope"
+}
+
 data "azuread_client_config" "current" {
 }
 
@@ -24,11 +29,6 @@ resource "azuread_application" "client" {
     }
   }
   single_page_application {
-    redirect_uris = [
-      "http://localhost:5062/authentication/login-callback",
-      "http://localhost:62714/authentication/login-callback",
-      "https://localhost:44313/authentication/login-callback",
-      "https://localhost:7112/authentication/login-callback",
-    ]
+    redirect_uris = concat(["https://${azurerm_static_web_app.this.default_host_name}/authentication/login-callback"], var.redirect_uris)
   }
 }

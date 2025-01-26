@@ -4,7 +4,11 @@ App um die Arbeit der Projektkoordination zu erleichtern
 
 ## Architecture
 
-The FrontEnd is a Blazor WASM Application to be run in Azure Static Website. The BackEnd is a C# Azure Functions implementation intended to run as a Managed Api insight of the Static Web App. The data will be persisted in CosmosDB (TODO).
+The FrontEnd is a Blazor WASM Application to be run in Azure Static Website. The BackEnd is a C# Azure Functions implementation intended to run as a Managed Api inside of the Static Web App. The data will be persisted in CosmosDB.
+
+## Deployment
+
+The deployment of the infrastructure uses OpenTofu (see `./infrastructure`).  The deployment of the code uses GitHub Actions to deploy COde Changes to the infrastructure.
 
 ## Configuration
 
