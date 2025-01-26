@@ -54,3 +54,10 @@ To add places for now, you can use the `ThunderClient` Extension for Visual Stud
   "Latitude": 10.5751
 }
 ```
+
+## Azure Deployment
+
+The Deployment to Azure is done using GitHub Actions and Open Tofu.
+
+TODO: Configure TF-Backend & maybe encryption
+TODO: Configure Functions/Cosmos DB
