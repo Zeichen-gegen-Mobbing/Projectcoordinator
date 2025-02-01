@@ -17,6 +17,8 @@ jobs:
         uses: dflook/terraform-validate@v1
         with:
           path: infrastructure
+        env:
+          OPENTOFU_VERSION: 1.9.0
 
   fmt-check:
     runs-on: ubuntu-latest
@@ -29,3 +31,5 @@ jobs:
         uses: dflook/terraform-fmt-check@v1
         with:
           path: infrastructure
+        env:
+          OPENTOFU_VERSION: 1.9.0

@@ -21,3 +21,5 @@ jobs:
         uses: dflook/terraform-plan@v1
         with:
           path: infrastructure
+        env:
+          OPENTOFU_VERSION: 1.9.0
