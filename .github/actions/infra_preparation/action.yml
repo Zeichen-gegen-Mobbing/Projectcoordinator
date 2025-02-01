@@ -13,6 +13,7 @@ runs:
   steps:
   - name: Enable Backend
     run: cp infrastructure/backend.tf.disabled infrastructure/backend.tf
+    shell: bash
   - name: Configure Backend
     run: |
       echo "ARM_AZURE_CLIENT_ID=${{ secrets.AZURE_CLIENT_ID }}" >> $GITHUB_ENV
