@@ -4,7 +4,11 @@ App um die Arbeit der Projektkoordination zu erleichtern
 
 ## Architecture
 
-The FrontEnd is a Blazor WASM Application to be run in Azure Static Website. The BackEnd is a C# Azure Functions implementation intended to run as a Managed Api inside of the Static Web App. The data will be persisted in CosmosDB.
+The FrontEnd is a Blazor WASM Application to be run in Azure Static Website. The BackEnd is a C# Azure Functions implementation intended to run as a Managed Api inside of the Static Web App. The data will be persisted in CosmosDB. Using these srvices allows us to run this app for free.
+
+### Authentication
+
+As we can't use Bring your own function (requires SWA Standard), we need to secure the api via SWA integrated authentication or implement authentication ourself. As using the integrated authentication of SWA prevents us from using access tokens to get the users from Graph API, we implement authentication using MSAL ourself.
 
 ## Deployment
 
@@ -19,7 +23,7 @@ Following configurations are required:
 
 ## Local Development
 
-The suggested Local Development Environment is using Visual Studio. To run Front- and Backend together right click on the Solution and select *Configure Startup projects*.
+The suggested Local Development Environment is using Visual Studio Code. To run Front- and Backend together use [static web app cli](https://learn.microsoft.com/en-us/azure/static-web-apps/local-development) `swa start`
 
 ### FrontEnd
 
