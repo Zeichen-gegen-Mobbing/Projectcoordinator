@@ -18,10 +18,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
+      - name: Prepare OpenTofu
+        uses: ./.github/actions/infra_preparation
       - name: terraform apply
         uses: dflook/terraform-apply@v1
         with:
           path: infrastructure
-        env:
-          OPENTOFU_VERSION: 1.9.0

@@ -12,14 +12,12 @@ jobs:
     name: Create a plan for an example terraform configuration
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      OPENTOFU_VERSION: 1.9.0
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
+      - name: Prepare OpenTofu
+        uses: ./.github/actions/infra_preparation
       - name: terraform plan
         uses: dflook/terraform-plan@v1
         with:
           path: infrastructure
-        env:
-          OPENTOFU_VERSION: 1.9.0

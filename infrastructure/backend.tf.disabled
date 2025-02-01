@@ -1,0 +1,9 @@
+terraform {
+  backend "azurerm" {
+    storage_account_name = "stzgmtfbackendprd"
+    container_name       = "projectcoordinator"
+    key                  = "projectcoordinator.tfstate"
+    use_azuread_auth     = true
+    use_oidc             = true
+  }
+}

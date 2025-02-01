@@ -11,6 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     name: Close Pull Request Job
     steps:
+      - name: Prepare OpenTofu
+        uses: ./.github/actions/infra_preparation
       - name: terraform output
         id: tfoutputs
         uses: dflook/terraform-output@v1

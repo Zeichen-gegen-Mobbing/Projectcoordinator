@@ -12,7 +12,7 @@ As we can't use Bring your own function (requires SWA Standard), we need to secu
 
 ## Deployment
 
-The deployment of the infrastructure uses OpenTofu (see `./infrastructure`).  The deployment of the code uses GitHub Actions to deploy COde Changes to the infrastructure.
+The deployment of the infrastructure uses OpenTofu (see `./infrastructure`). The deployment of the code uses GitHub Actions to deploy the infrastructure. These are using a remote backend in Azure and user managed identity to access resources and backend using OIDC.
 
 ## Configuration
 
