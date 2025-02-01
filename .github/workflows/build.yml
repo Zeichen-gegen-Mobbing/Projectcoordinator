@@ -9,25 +9,9 @@ on:
       - main
 
 jobs:
-  apply:
-    runs-on: ubuntu-latest
-    name: Apply terraform plan
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      OPENTOFU_VERSION: 1.9.0
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: terraform apply
-        uses: dflook/terraform-apply@v1
-        with:
-          path: infrastructure
-
   build:
     name: Build and analyze
     runs-on: ubuntu-latest
-    needs: [apply]
     permissions: 
         security-events: write
     steps:
