@@ -28,6 +28,7 @@ runs:
       echo "ARM_CLIENT_ID=${{ inputs.client-id }}" >> $GITHUB_ENV
       echo "ARM_TENANT_ID=${{ inputs.tenant-id }}" >> $GITHUB_ENV
       echo "ARM_SUBSCRIPTION_ID=${{ inputs.subscription-id }}" >> $GITHUB_ENV
+      echo "ARM_USE_OIDC=true" >> $GITHUB_ENV
     shell: bash
 
   - name: Configure OpenTofu
