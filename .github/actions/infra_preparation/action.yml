@@ -25,7 +25,7 @@ runs:
     shell: bash
   - name: Configure Backend
     run: |
-      echo "ARM_AZURE_CLIENT_ID=${{ inputs.client-id }}" >> $GITHUB_ENV
+      echo "ARM_CLIENT_ID=${{ inputs.client-id }}" >> $GITHUB_ENV
       echo "ARM_TENANT_ID=${{ inputs.tenant-id }}" >> $GITHUB_ENV
       echo "ARM_SUBSCRIPTION_ID=${{ inputs.subscription-id }}" >> $GITHUB_ENV
     shell: bash
