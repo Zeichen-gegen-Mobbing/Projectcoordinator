@@ -35,6 +35,10 @@ runs:
     run: echo "OPENTOFU_VERSION=${{ inputs.version }}" >> $GITHUB_ENV
     shell: bash
 
-  - name: Test az cli
-    run: az --version
+  - name: Test environment
+    run: |
+      echo $ARM_USE_OIDC
+      echo $ARM_CLIENT_ID
+      echo $ARM_TENANT_ID
+      echo $ARM_SUBSCRIPTION_ID
     shell: bash
