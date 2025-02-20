@@ -32,5 +32,5 @@ runs:
     shell: bash
 
   - name: Configure OpenTofu
-    run: echo "huhu # echo "OPENTOFU_VERSION=${{ inputs.version }}" >> $GITHUB_ENV
+    run: echo "huhu" # echo "OPENTOFU_VERSION=${{ inputs.version }}" >> $GITHUB_ENV
     shell: bash
