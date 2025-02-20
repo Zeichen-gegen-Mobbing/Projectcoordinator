@@ -38,3 +38,6 @@ runs:
   - name: Install az cli
     run: curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
     shell: bash
+  - name: Test az cli
+    run: az --version
+    shell: bash
