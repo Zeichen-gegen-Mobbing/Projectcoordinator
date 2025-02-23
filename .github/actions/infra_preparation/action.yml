@@ -38,10 +38,10 @@ runs:
     run: | 
       echo "TERRAFORM_PRE_RUN<<EOF" >> $GITHUB_ENV
       echo "curl -sL https://aka.ms/InstallAzureCLIDeb | bash" >> $GITHUB_ENV
-      echo '$ARM_CLIENT_ID' >> $GITHUB_ENV
-      echo '$ARM_TENANT_ID' >> $GITHUB_ENV
-      echo '$ARM_SUBSCRIPTION_ID' >> $GITHUB_ENV
-      echo '$ARM_USE_OIDC' >> $GITHUB_ENV
+      echo 'echo $ARM_CLIENT_ID' >> $GITHUB_ENV
+      echo 'echo $ARM_TENANT_ID' >> $GITHUB_ENV
+      echo 'echo $ARM_SUBSCRIPTION_ID' >> $GITHUB_ENV
+      echo 'echo $ARM_USE_OIDC' >> $GITHUB_ENV
       echo "cd /github/workspace/infrastructure" >> $GITHUB_ENV
       echo "terraform init" >> $GITHUB_ENV
       echo "EOF" >> $GITHUB_ENV
