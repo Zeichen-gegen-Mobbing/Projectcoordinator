@@ -6,5 +6,7 @@ terraform {
     key                  = "projectcoordinator.tfstate"
     use_azuread_auth     = true
     use_oidc             = true
+    client_id            = "123"
+    tenant_id            = "1234"
   }
 }

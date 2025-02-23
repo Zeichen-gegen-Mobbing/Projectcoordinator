@@ -64,6 +64,7 @@ To add places for now, you can use the `ThunderClient` Extension for Visual Stud
 The Deployment to Azure is done using GitHub Actions and Open Tofu.
 
 - Register App in Azure and add as Variables to Github Secrets
+- TODO: Use <https://github.com/Azure-Samples/github-terraform-oidc-ci-cd/blob/main/terraform-example-deploy/main.tf> as baseline to create required config?
 
 TODO: Configure TF-Backend & maybe encryption
 TODO: Configure Functions/Cosmos DB
