@@ -1,6 +1,7 @@
 terraform {
   backend "azurerm" {
     storage_account_name = "stzgmtfbackendprd"
+    resource_group_name  = "rg-TerraformBackend-prd-01"
     container_name       = "projectcoordinator"
     key                  = "projectcoordinator.tfstate"
     use_azuread_auth     = true
