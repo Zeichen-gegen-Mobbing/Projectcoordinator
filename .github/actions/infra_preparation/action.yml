@@ -35,4 +35,4 @@ runs:
     shell: bash
 
   - name: Configure Az cli in tf container
-    run echo "TERRAFORM_PRE_RUN=curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash" >> $GITHUB_ENV
+    run: echo "TERRAFORM_PRE_RUN=curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash" >> $GITHUB_ENV
