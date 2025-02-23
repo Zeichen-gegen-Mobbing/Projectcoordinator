@@ -35,5 +35,12 @@ runs:
     shell: bash
 
   - name: Configure Az cli in tf container
-    run: echo "TERRAFORM_PRE_RUN=curl -sL https://aka.ms/InstallAzureCLIDeb | bash" >> $GITHUB_ENV
+    run: | 
+      echo "TERRAFORM_PRE_RUN=curl -sL https://aka.ms/InstallAzureCLIDeb | bash" >> $GITHUB_ENV
+      echo $ARM_CLIENT_ID
+      echo $ARM_TENANT_ID
+      echo $ARM_SUBSCRIPTION_ID
+      echo $ARM_USE_OIDC
+      cd /github/workspace/infrastructure
+      terraform init
     shell: bash
