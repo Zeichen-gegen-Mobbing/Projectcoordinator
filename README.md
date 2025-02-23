@@ -63,5 +63,7 @@ To add places for now, you can use the `ThunderClient` Extension for Visual Stud
 
 The Deployment to Azure is done using GitHub Actions and Open Tofu.
 
+- Register App in Azure and add as Variables to Github Secrets
+
 TODO: Configure TF-Backend & maybe encryption
 TODO: Configure Functions/Cosmos DB
