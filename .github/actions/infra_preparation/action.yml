@@ -31,5 +31,8 @@ runs:
     shell: bash
 
   - name: Configure OpenTofu
-    run: echo "huhu" # "OPENTOFU_VERSION=${{ inputs.version }}" >> $GITHUB_ENV
+    run: echo "OPENTOFU_VERSION=${{ inputs.version }}" >> $GITHUB_ENV
     shell: bash
+
+  - name: Configure Az cli in tf container
+    run echo "TERRAFORM_PRE_RUN=curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash" >> $GITHUB_ENV
