@@ -44,7 +44,7 @@ runs:
       echo 'echo $ARM_USE_OIDC' >> $GITHUB_ENV
       echo "cd /github/workspace/infrastructure" >> $GITHUB_ENV
       echo "cat backend.tf" >> $GITHUB_ENV
-      echo "export TF_LOG=DEBUG" >> $GITHUB_ENV
+      echo "export TF_LOG=TRACE" >> $GITHUB_ENV
       echo "terraform init" >> $GITHUB_ENV
       echo "EOF" >> $GITHUB_ENV
     shell: bash
