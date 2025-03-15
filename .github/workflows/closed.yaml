@@ -10,13 +10,16 @@ jobs:
   close_pull_request_job:
     runs-on: ubuntu-latest
     name: Close Pull Request Job
+    environment: prd
+    permissions: 
+        id-token: write
     steps:
       - name: Prepare OpenTofu
         uses: ./.github/actions/infra_preparation
         with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          client-id: "${{ vars.AZURE_CLIENT_ID }}"
+          tenant-id: "${{ vars.AZURE_TENANT_ID }}"
+          subscription-id: "${{ vars.AZURE_SUBSCRIPTION_ID }}"
       - name: terraform output
         id: tfoutputs
         uses: dflook/terraform-output@v1
