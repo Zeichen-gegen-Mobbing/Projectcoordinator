@@ -13,6 +13,7 @@ jobs:
   apply:
     runs-on: ubuntu-latest
     name: Apply terraform plan
+    environment: prd
     permissions: 
       id-token: write
     env:

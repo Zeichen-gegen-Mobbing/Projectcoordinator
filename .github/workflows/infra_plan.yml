@@ -9,7 +9,8 @@ permissions:
 jobs:
   plan:
     runs-on: ubuntu-latest
-    name: Create a plan for an example terraform configuration
+    name: Create plan
+    environment: prd
     permissions: 
       id-token: write
     env:
