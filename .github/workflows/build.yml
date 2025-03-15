@@ -9,11 +9,13 @@ on:
       - main
 
 jobs:
-  build:
+  deployment:
     name: Build and analyze
     runs-on: ubuntu-latest
+    environment: prd
     permissions: 
         security-events: write
+        id-token: write
     steps:
       - uses: actions/checkout@v4
         with:

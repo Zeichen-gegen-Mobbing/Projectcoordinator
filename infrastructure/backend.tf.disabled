@@ -1,13 +1,10 @@
 terraform {
   backend "azurerm" {
-    storage_account_name = "stzgmtfbackendprd"
-    resource_group_name  = "rg-TerraformBackend-prd-01"
-    container_name       = "projectcoordinator"
+    esource_group_name  = "rg-ProjectcoordinatorDeploy-prd"
+    storage_account_name = "rg-ProjectcoordinatorDeploy-prd"
+    container_name       = "tfstate"
     key                  = "projectcoordinator.tfstate"
     use_azuread_auth     = true
     use_oidc             = true
-    client_id            = "123"
-    tenant_id            = "1234"
-    subscription_id      = "123214"
   }
 }

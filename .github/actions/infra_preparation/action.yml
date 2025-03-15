@@ -27,24 +27,10 @@ runs:
       echo "ARM_CLIENT_ID=${{ inputs.client-id }}" >> $GITHUB_ENV
       echo "ARM_TENANT_ID=${{ inputs.tenant-id }}" >> $GITHUB_ENV
       echo "ARM_SUBSCRIPTION_ID=${{ inputs.subscription-id }}" >> $GITHUB_ENV
+      echo "ARM_USE_AZUREAD=true" >> $GITHUB_ENV
       echo "ARM_USE_OIDC=true" >> $GITHUB_ENV
     shell: bash
 
   - name: Configure OpenTofu
     run: echo "OPENTOFU_VERSION=${{ inputs.version }}" >> $GITHUB_ENV
-    shell: bash
-
-  - name: Configure Az cli in tf container
-    run: | 
-      echo "TERRAFORM_PRE_RUN<<EOF" >> $GITHUB_ENV
-      echo "curl -sL https://aka.ms/InstallAzureCLIDeb | bash" >> $GITHUB_ENV
-      echo 'echo $ARM_CLIENT_ID' >> $GITHUB_ENV
-      echo 'echo $ARM_TENANT_ID' >> $GITHUB_ENV
-      echo 'echo $ARM_SUBSCRIPTION_ID' >> $GITHUB_ENV
-      echo 'echo $ARM_USE_OIDC' >> $GITHUB_ENV
-      echo "cd /github/workspace/infrastructure" >> $GITHUB_ENV
-      echo "cat backend.tf" >> $GITHUB_ENV
-      echo "export TF_LOG=TRACE" >> $GITHUB_ENV
-      echo "terraform init" >> $GITHUB_ENV
-      echo "EOF" >> $GITHUB_ENV
     shell: bash
