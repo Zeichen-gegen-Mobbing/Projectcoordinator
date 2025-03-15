@@ -1,6 +1,6 @@
 terraform {
   backend "azurerm" {
-    esource_group_name  = "rg-ProjectcoordinatorDeploy-prd"
+    resource_group_name  = "rg-ProjectcoordinatorDeploy-prd"
     storage_account_name = "rg-ProjectcoordinatorDeploy-prd"
     container_name       = "tfstate"
     key                  = "projectcoordinator.tfstate"
