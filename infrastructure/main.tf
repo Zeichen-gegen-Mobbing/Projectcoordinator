@@ -32,3 +32,4 @@ resource "azuread_application" "client" {
     redirect_uris = concat(["https://${azurerm_static_web_app.this.default_host_name}/authentication/login-callback"], var.redirect_uris)
   }
 }
+
