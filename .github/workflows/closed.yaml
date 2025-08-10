@@ -1,0 +1,35 @@
+name: Remove PR environment
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+
+jobs:
+  close_pull_request_job:
+    runs-on: ubuntu-latest
+    name: Close Pull Request Job
+    environment: prd
+    permissions: 
+        id-token: write
+    steps:
+      - name: Prepare OpenTofu
+        uses: ./.github/actions/infra_preparation
+        with:
+          client-id: "${{ vars.AZURE_CLIENT_ID }}"
+          tenant-id: "${{ vars.AZURE_TENANT_ID }}"
+          subscription-id: "${{ vars.AZURE_SUBSCRIPTION_ID }}"
+      - name: terraform output
+        id: tfoutputs
+        uses: dflook/terraform-output@v2
+        with:
+          path: infrastructure
+        env:
+          OPENTOFU_VERSION: 1.9.0
+      - name: Close Pull Request
+        id: closepullrequest
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ steps.tfoutputs.outputs.static_web_app_api_key }}
+          action: "close"

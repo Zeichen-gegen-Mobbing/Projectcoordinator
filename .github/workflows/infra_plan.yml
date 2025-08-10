@@ -1,0 +1,30 @@
+name: Create terraform plan
+
+on: [pull_request]
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    name: Create plan
+    environment: prd
+    permissions: 
+      id-token: write
+      contents: read
+      pull-requests: write
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Prepare OpenTofu
+        uses: ./.github/actions/infra_preparation
+        with:
+          client-id: "${{ vars.AZURE_CLIENT_ID }}"
+          tenant-id: "${{ vars.AZURE_TENANT_ID }}"
+          subscription-id: "${{ vars.AZURE_SUBSCRIPTION_ID }}"
+      - name: terraform plan
+        uses: dflook/terraform-plan@v2
+        with:
+          path: infrastructure
+          variables: |
+            environment = "prd"

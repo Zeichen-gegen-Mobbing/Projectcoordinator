@@ -1,0 +1,36 @@
+name: infra_preparation
+description: "Prepare backend configuration and configure OpenTofu version to use"
+
+inputs:
+  client-id:
+    description: "Azure client ID of Managed Identity to use with OIDC"
+    required: true
+  tenant-id:
+    description: "Azure tenant ID"
+    required: true
+  subscription-id:
+    description: "Azure subscription ID"
+    required: true
+  version: 
+    description: "The version of OpenTofu to use"
+    default: "1.9.0"
+    required: false
+
+runs:
+  using: "composite"
+  steps:
+  - name: Enable Backend
+    run: cp infrastructure/backend.tf.disabled infrastructure/backend.tf
+    shell: bash
+  - name: Configure Backend
+    run: |
+      echo "ARM_CLIENT_ID=${{ inputs.client-id }}" >> $GITHUB_ENV
+      echo "ARM_TENANT_ID=${{ inputs.tenant-id }}" >> $GITHUB_ENV
+      echo "ARM_SUBSCRIPTION_ID=${{ inputs.subscription-id }}" >> $GITHUB_ENV
+      echo "ARM_USE_AZUREAD=true" >> $GITHUB_ENV
+      echo "ARM_USE_OIDC=true" >> $GITHUB_ENV
+    shell: bash
+
+  - name: Configure OpenTofu
+    run: echo "OPENTOFU_VERSION=${{ inputs.version }}" >> $GITHUB_ENV
+    shell: bash

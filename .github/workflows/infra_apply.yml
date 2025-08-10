@@ -1,0 +1,33 @@
+name: Apply terraform plan
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    name: Apply terraform plan
+    environment: prd
+    permissions: 
+      id-token: write
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Prepare OpenTofu
+        uses: ./.github/actions/infra_preparation
+        with:
+          client-id: "${{ vars.AZURE_CLIENT_ID }}"
+          tenant-id: "${{ vars.AZURE_TENANT_ID }}"
+          subscription-id: "${{ vars.AZURE_SUBSCRIPTION_ID }}"
+      - name: terraform apply
+        uses: dflook/terraform-apply@v2
+        with:
+          path: infrastructure
