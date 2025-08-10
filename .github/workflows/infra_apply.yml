@@ -4,6 +4,12 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      autoApprove:
+        description: 'Automatically approve the plan - useful when the plan from last PR is stale'
+        default: false
+        type: 'boolean'
 
 permissions:
   contents: read
@@ -31,5 +37,6 @@ jobs:
         uses: dflook/terraform-apply@v2
         with:
           path: infrastructure
+          auto_approve: ${{ github.event.inputs.autoApprove || false }}
           variables: |
             environment = "prd"
