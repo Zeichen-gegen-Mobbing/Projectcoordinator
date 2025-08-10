@@ -61,7 +61,7 @@ jobs:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
             SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          ./.sonar/scanner/dotnet-sonarscanner begin /d:sonar.verbose=true /k:"Zeichen-gegen-Mobbing_Projectcoordinator" /o:"zeichen-gegen-mobbing" /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+          ./.sonar/scanner/dotnet-sonarscanner begin /d:sonar.verbose=true /s:$GITHUB_WORKSPACE/SonarQube.Analysis.xml /k:"Zeichen-gegen-Mobbing_Projectcoordinator" /o:"zeichen-gegen-mobbing" /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
       - name: Build And Deploy
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
