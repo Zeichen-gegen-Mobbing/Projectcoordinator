@@ -25,7 +25,7 @@ jobs:
           tenant-id: "${{ vars.AZURE_TENANT_ID }}"
           subscription-id: "${{ vars.AZURE_SUBSCRIPTION_ID }}"
       - name: terraform plan
-        uses: dflook/terraform-plan@v1
+        uses: dflook/terraform-plan@v2
         with:
           path: infrastructure
           variables: |

@@ -22,7 +22,7 @@ jobs:
           subscription-id: "${{ vars.AZURE_SUBSCRIPTION_ID }}"
       - name: terraform output
         id: tfoutputs
-        uses: dflook/terraform-output@v1
+        uses: dflook/terraform-output@v2
         with:
           path: infrastructure
         env:
