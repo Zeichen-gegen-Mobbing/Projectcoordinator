@@ -8,8 +8,8 @@ on:
     inputs:
       autoApprove:
         description: 'Automatically approve the plan - useful when the plan from last PR is stale'
-        required: true
-        default: 'false'
+        default: false
+        type: 'boolean'
 
 permissions:
   contents: read
