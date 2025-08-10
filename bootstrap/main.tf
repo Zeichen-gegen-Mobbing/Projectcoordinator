@@ -6,44 +6,49 @@ locals {
 data "azurerm_client_config" "current" {
 }
 
-resource "azurerm_resource_group" "this" {
+moved {
+  from = azurerm_resource_group.this
+  to   = azurerm_resource_group.deployment
+}
+
+resource "azurerm_resource_group" "deployment" {
   name     = "rg-ProjectcoordinatorDeploy-${var.environment}"
   location = var.location
 }
 
-resource "azurerm_user_assigned_identity" "this" {
+resource "azurerm_user_assigned_identity" "deployment" {
   location            = var.location
   name                = "id-ProjectcoordinatorDeploy-${var.environment}"
-  resource_group_name = azurerm_resource_group.this.name
+  resource_group_name = azurerm_resource_group.deployment.name
 }
 
-resource "azurerm_federated_identity_credential" "this" {
+resource "azurerm_federated_identity_credential" "deployment" {
   name                = "${var.github_organization}-${var.github_repository}"
-  resource_group_name = azurerm_resource_group.this.name
+  resource_group_name = azurerm_resource_group.deployment.name
   audience            = [local.default_audience_name]
   issuer              = local.github_issuer_url
-  parent_id           = azurerm_user_assigned_identity.this.id
+  parent_id           = azurerm_user_assigned_identity.deployment.id
   subject             = "repo:${var.github_organization}/${var.github_repository}:environment:${var.environment}"
 }
 
-resource "azurerm_storage_account" "this" {
+resource "azurerm_storage_account" "deployment" {
   name                     = "st${var.environment}tfprojectcoordinato"
-  resource_group_name      = azurerm_resource_group.this.name
-  location                 = azurerm_resource_group.this.location
+  resource_group_name      = azurerm_resource_group.deployment.name
+  location                 = azurerm_resource_group.deployment.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
-resource "azurerm_storage_container" "this" {
+resource "azurerm_storage_container" "deployment" {
   name                  = "tfstate"
-  storage_account_id    = azurerm_storage_account.this.id
+  storage_account_id    = azurerm_storage_account.deployment.id
   container_access_type = "private"
 }
 
 resource "azurerm_role_assignment" "storage_container" {
-  scope                = azurerm_storage_container.this.id
+  scope                = azurerm_storage_container.deployment.id
   role_definition_name = "Storage Blob Data Owner"
-  principal_id         = azurerm_user_assigned_identity.this.principal_id
+  principal_id         = azurerm_user_assigned_identity.deployment.principal_id
 }
 
 data "azuread_application_published_app_ids" "well_known" {}
@@ -55,6 +60,19 @@ resource "azuread_service_principal" "msgraph" {
 
 resource "azuread_app_role_assignment" "graph_applications_owned" {
   app_role_id         = azuread_service_principal.msgraph.app_role_ids["Application.ReadWrite.OwnedBy"]
-  principal_object_id = azurerm_user_assigned_identity.this.principal_id
+  principal_object_id = azurerm_user_assigned_identity.deployment.principal_id
   resource_object_id  = azuread_service_principal.msgraph.object_id
+}
+
+## Bootstrap Resource Group to allow only access to it
+
+resource "azurerm_resource_group" "bootstrap" {
+  name     = "rg-Projectcoordinator-${var.environment}"
+  location = var.location
+}
+
+resource "azurerm_role_assignment" "resource_group" {
+  scope                = azurerm_resource_group.bootstrap.id
+  role_definition_name = "Contributor"
+  principal_id         = azurerm_user_assigned_identity.deployment.principal_id
 }
