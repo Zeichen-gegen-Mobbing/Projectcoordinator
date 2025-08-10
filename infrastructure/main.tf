@@ -1,6 +1,5 @@
-resource "azurerm_resource_group" "this" {
-  name     = "rg-ProjectCoordinator-${var.environment}"
-  location = "westeurope"
+data "azurerm_resource_group" "this" {
+  name = "rg-ProjectCoordinator-${var.environment}"
 }
 
 data "azuread_client_config" "current" {

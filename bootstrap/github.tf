@@ -7,7 +7,7 @@ resource "github_actions_environment_variable" "azure_client_id" {
   repository    = var.github_repository
   environment   = github_repository_environment.this.environment
   variable_name = "AZURE_CLIENT_ID"
-  value         = azurerm_user_assigned_identity.this.client_id
+  value         = azurerm_user_assigned_identity.deployment.client_id
 }
 
 resource "github_actions_environment_variable" "azure_subscription_id" {
@@ -28,19 +28,19 @@ resource "github_actions_environment_variable" "backend_azure_resource_group_nam
   repository    = var.github_repository
   environment   = github_repository_environment.this.environment
   variable_name = "BACKEND_AZURE_RESOURCE_GROUP_NAME"
-  value         = azurerm_resource_group.this.name
+  value         = azurerm_resource_group.deployment.name
 }
 
 resource "github_actions_environment_variable" "backend_azure_storage_account_name" {
   repository    = var.github_repository
   environment   = github_repository_environment.this.environment
   variable_name = "BACKEND_AZURE_STORAGE_ACCOUNT_NAME"
-  value         = azurerm_storage_account.this.name
+  value         = azurerm_storage_account.deployment.name
 }
 
 resource "github_actions_environment_variable" "backend_azure_storage_account_container_name" {
   repository    = var.github_repository
   environment   = github_repository_environment.this.environment
   variable_name = "BACKEND_AZURE_STORAGE_ACCOUNT_CONTAINER_NAME"
-  value         = azurerm_storage_container.this.name
+  value         = azurerm_storage_container.deployment.name
 }

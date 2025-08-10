@@ -16,10 +16,20 @@ resource "azurerm_resource_group" "deployment" {
   location = var.location
 }
 
+moved {
+  from = azurerm_user_assigned_identity.this
+  to   = azurerm_user_assigned_identity.deployment
+}
+
 resource "azurerm_user_assigned_identity" "deployment" {
   location            = var.location
   name                = "id-ProjectcoordinatorDeploy-${var.environment}"
   resource_group_name = azurerm_resource_group.deployment.name
+}
+
+moved {
+  from = azurerm_federated_identity_credential.this
+  to   = azurerm_federated_identity_credential.deployment
 }
 
 resource "azurerm_federated_identity_credential" "deployment" {
@@ -31,12 +41,22 @@ resource "azurerm_federated_identity_credential" "deployment" {
   subject             = "repo:${var.github_organization}/${var.github_repository}:environment:${var.environment}"
 }
 
+moved {
+  from = azurerm_storage_account.this
+  to   = azurerm_storage_account.deployment
+}
+
 resource "azurerm_storage_account" "deployment" {
   name                     = "st${var.environment}tfprojectcoordinato"
   resource_group_name      = azurerm_resource_group.deployment.name
   location                 = azurerm_resource_group.deployment.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
+}
+
+moved {
+  from = azurerm_storage_container.this
+  to   = azurerm_storage_container.deployment
 }
 
 resource "azurerm_storage_container" "deployment" {

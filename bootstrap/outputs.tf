@@ -1,5 +1,5 @@
 output "AZURE_CLIENT_ID" {
-  value = azurerm_user_assigned_identity.this.client_id
+  value = azurerm_user_assigned_identity.deployment.client_id
 }
 
 output "AZURE_SUBSCRIPTION_ID" {
@@ -11,13 +11,13 @@ output "AZURE_TENANT_ID" {
 }
 
 output "BACKEND_AZURE_RESOURCE_GROUP_NAME" {
-  value = azurerm_resource_group.this.name
+  value = azurerm_resource_group.deployment.name
 }
 
 output "BACKEND_AZURE_STORAGE_ACCOUNT_NAME" {
-  value = azurerm_storage_account.this.name
+  value = azurerm_storage_account.deployment.name
 }
 
 output "BACKEND_AZURE_STORAGE_ACCOUNT_CONTAINER_NAME" {
-  value = azurerm_storage_container.this.name
+  value = azurerm_storage_container.deployment.name
 }
