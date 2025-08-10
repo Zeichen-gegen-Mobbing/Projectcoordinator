@@ -1,4 +1,4 @@
-resource "azurerm_resource_group" "this" {
+data "azurerm_resource_group" "this" {
   name     = "rg-ProjectCoordinator-${var.environment}"
   location = "westeurope"
 }
