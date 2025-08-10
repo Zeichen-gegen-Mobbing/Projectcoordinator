@@ -64,7 +64,7 @@ resource "azuread_app_role_assignment" "graph_applications_owned" {
   resource_object_id  = azuread_service_principal.msgraph.object_id
 }
 
-## Bootstrap Resource Group to allow only access to it
+## Bootstrap Resource Group to allow access only to it
 
 resource "azurerm_resource_group" "bootstrap" {
   name     = "rg-Projectcoordinator-${var.environment}"
