@@ -1,8 +1,26 @@
 # This file is maintained automatically by "tofu init".
 # Manual edits may be lost in future updates.
 
+provider "registry.opentofu.org/hashicorp/azuread" {
+  version     = "3.4.0"
+  constraints = "~> 3.4"
+  hashes = [
+    "h1:SHlgSs7/v4CQ7pTCp0VfrAVUyIC4CCpk1nj5Q/+5v1w=",
+    "zh:1d281545e673788f15fc03cd7637465f14c03ce28492aed112928af88a1e6a91",
+    "zh:3cfd8de978d7e3de6ada15313ce26e61b90465e345078595ce2b677d071f29cd",
+    "zh:411634ad8b4fb69ac06e5464f08bab043230b9f18a9171032f3bfe1f2c050c5b",
+    "zh:4763b8852fe1613e5e6fc742cb12018369cfd46ed630da2b3d65809bfcdf58ea",
+    "zh:81df6d495f95a5e83529961f1e0e5dc53f90938f08c72ce88dd7bba35b5bbf89",
+    "zh:9681fc8bce2f5d5dd6dd7026d9a7cf37f2a8b5867f42c996129b8fe49833c5a7",
+    "zh:c4d36ef64e8d51b3bbfeb148559e7fd0663576b0c6a38333c95500752f6778c1",
+    "zh:dc3b4d7385a622a4fe9865d986e2b4f501678d4e709a66b350f0d584790aba7d",
+    "zh:f38af14a92027bfa688cb38c9ade8ed31c31c789333d426307ff7924626996c9",
+  ]
+}
+
 provider "registry.opentofu.org/hashicorp/azurerm" {
-  version = "4.23.0"
+  version     = "4.23.0"
+  constraints = "~> 4.20"
   hashes = [
     "h1:1c882ByoKq533emQa63K3FqoLKUs/FBo9ARrD6om6PI=",
     "zh:3e3b220ffc6ec415532326bee7301044eb79817ea1cbd6a5de49410dde59cb22",

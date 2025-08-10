@@ -4,12 +4,6 @@ variable "location" {
   default     = "Germany West Central"
 }
 
-variable "github_personal_access_token" {
-  type        = string
-  description = "The personal access token used to authenticate with GitHub."
-  sensitive   = true
-}
-
 variable "github_organization" {
   type        = string
   description = "The GitHub organization that owns the repositories."
