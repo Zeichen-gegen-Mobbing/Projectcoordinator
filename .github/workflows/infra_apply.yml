@@ -31,3 +31,5 @@ jobs:
         uses: dflook/terraform-apply@v2
         with:
           path: infrastructure
+          variables: |
+            environment = "prd"
