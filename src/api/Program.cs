@@ -46,9 +46,9 @@ var host = new HostBuilder()
 
         services.AddHttpClient();
 
-        //services.AddScoped<IPlaceRepository, PlaceRepository>();
-        //services.AddScoped<IPlaceService, PlaceCosmosService>();
-        //services.AddScoped<ITripService, TripOpenRouteService>();
+        services.AddScoped<IPlaceRepository, PlaceRepository>();
+        services.AddScoped<IPlaceService, PlaceCosmosService>();
+        services.AddScoped<ITripService, TripOpenRouteService>();
     })
     .Build();
 await host.RunAsync();
