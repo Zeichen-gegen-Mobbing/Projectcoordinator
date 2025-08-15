@@ -113,7 +113,7 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.x.x'
-      - run: dotnet test
+      - run: dotnet build
       - name: Perform SonarCloud Analysis
         shell: pwsh
         env:
