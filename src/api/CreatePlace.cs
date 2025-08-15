@@ -22,7 +22,7 @@ namespace api
         }
 
         [Function(nameof(CreatePlace))]
-        public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Admin, "post", Route = "places")] HttpRequest request)
+        public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Function, "post", Route = "places")] HttpRequest request)
         {
             using (_logger.BeginScope(new Dictionary<string, object> { { "FunctionName", nameof(CreatePlace) } }))
             {
