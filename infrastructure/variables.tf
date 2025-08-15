@@ -8,3 +8,9 @@ variable "redirect_uris" {
   description = "Additional redirect Uris. Usually for local development."
   default     = []
 }
+
+variable "open_route_service_api_key" {
+  type        = string
+  description = "API key for the OpenRouteService."
+  sensitive   = true
+}

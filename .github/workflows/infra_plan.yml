@@ -28,3 +28,4 @@ jobs:
           path: infrastructure
           variables: |
             environment = "prd"
+            open_route_service_api_key = "${{ secrets.OPEN_ROUTE_SERVICE_API_KEY }}"
