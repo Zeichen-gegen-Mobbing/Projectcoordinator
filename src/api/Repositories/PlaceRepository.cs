@@ -28,7 +28,16 @@ namespace api.Repositories
             logger.LogDebug("Initializing Container");
             var container = client.GetContainer(settings.DatabaseId, settings.ContainerId);
             // verify that container exists
-            await container.ReadContainerAsync();
+            try
+            {
+                await container.ReadContainerAsync();
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Failed to read container {ContainerId} in database {DatabaseId}. Make sure they exists!", settings.ContainerId, settings.DatabaseId);
+                throw;
+            }
+
             return container;
         }
         public async Task<PlaceEntity> AddAsync(PlaceEntity entity)
