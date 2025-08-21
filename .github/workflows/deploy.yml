@@ -29,6 +29,10 @@ jobs:
         uses: dflook/terraform-output@v1
         with:
           path: infrastructure
+          backend_config: |
+            resource_group_name=${{ vars.BACKEND_AZURE_RESOURCE_GROUP_NAME }}
+            storage_account_name=${{ vars.BACKEND_AZURE_STORAGE_ACCOUNT_NAME }}
+            container_name=${{ vars.BACKEND_AZURE_STORAGE_ACCOUNT_CONTAINER_NAME }}
       - name: Build And Deploy
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
