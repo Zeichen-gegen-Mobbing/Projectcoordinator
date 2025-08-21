@@ -25,13 +25,20 @@ namespace api.Repositories
 
         private async Task<Container> Init(CosmosSettings settings, CosmosClient client)
         {
-            logger.LogDebug("Initializing Database");
-            //TODO: Remove creating Database from code. Database should be handled by Resources
-            var database = await client.CreateDatabaseIfNotExistsAsync(settings.DatabaseId);
             logger.LogDebug("Initializing Container");
-            //TODO: Remove creating Container from code. Container should be handled by Resources
-            var containerResponse = await database.Database.CreateContainerIfNotExistsAsync(settings.ContainerId, "/userId");
-            return containerResponse.Container;
+            var container = client.GetContainer(settings.DatabaseId, settings.ContainerId);
+            // verify that container exists
+            try
+            {
+                await container.ReadContainerAsync();
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Failed to read container {ContainerId} in database {DatabaseId}. Make sure they exists!", settings.ContainerId, settings.DatabaseId);
+                throw;
+            }
+
+            return container;
         }
         public async Task<PlaceEntity> AddAsync(PlaceEntity entity)
         {

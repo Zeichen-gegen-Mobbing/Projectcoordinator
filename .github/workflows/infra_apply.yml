@@ -41,6 +41,7 @@ jobs:
           variables: |
             environment = "prd"
             open_route_service_api_key = "${{ secrets.OPEN_ROUTE_SERVICE_API_KEY }}"
+            cosmos_connection_string = "${{ secrets.COSMOS_CONNECTION_STRING }}"
           backend_config: |
             resource_group_name=${{ vars.BACKEND_AZURE_RESOURCE_GROUP_NAME }}
             storage_account_name=${{ vars.BACKEND_AZURE_STORAGE_ACCOUNT_NAME }}
