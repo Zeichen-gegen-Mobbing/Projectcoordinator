@@ -23,11 +23,13 @@ jobs:
           subscription-id: "${{ vars.AZURE_SUBSCRIPTION_ID }}"
       - name: terraform output
         id: tfoutputs
-        uses: dflook/terraform-output@v2
+        uses: dflook/terraform-output@v1
         with:
           path: infrastructure
-        env:
-          OPENTOFU_VERSION: 1.9.0
+          backend_config: |
+            resource_group_name=${{ vars.BACKEND_AZURE_RESOURCE_GROUP_NAME }}
+            storage_account_name=${{ vars.BACKEND_AZURE_STORAGE_ACCOUNT_NAME }}
+            container_name=${{ vars.BACKEND_AZURE_STORAGE_ACCOUNT_CONTAINER_NAME }}
       - name: Close Pull Request
         id: closepullrequest
         uses: Azure/static-web-apps-deploy@v1
