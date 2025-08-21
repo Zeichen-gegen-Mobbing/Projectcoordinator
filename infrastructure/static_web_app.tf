@@ -3,7 +3,7 @@ resource "azurerm_static_web_app" "this" {
   resource_group_name = data.azurerm_resource_group.this.name
   location            = "westeurope"
   app_settings = {
-    "Cosmos__ConnectionString" = "AccountEndpoint=https://localhost:8081/;AccountKey=C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw=="
+    "Cosmos__ConnectionString" = var.cosmos_connection_string
     "OpenRouteService__ApiKey" = var.open_route_service_api_key
   }
 }

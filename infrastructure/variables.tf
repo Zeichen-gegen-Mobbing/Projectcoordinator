@@ -14,3 +14,9 @@ variable "open_route_service_api_key" {
   description = "API key for the OpenRouteService."
   sensitive   = true
 }
+
+variable "cosmos_connection_string" {
+  type        = string
+  description = "Connection string for the Cosmos DB."
+  sensitive   = true
+}
