@@ -7,9 +7,8 @@ data "azuread_client_config" "current" {
 
 data "azuread_application_published_app_ids" "well_known" {}
 
-resource "azuread_service_principal" "microsoft_graph" {
-  client_id    = data.azuread_application_published_app_ids.well_known.result["MicrosoftGraph"]
-  use_existing = true
+data "azuread_service_principal" "microsoft_graph" {
+  client_id = data.azuread_application_published_app_ids.well_known.result["MicrosoftGraph"]
 }
 
 resource "azuread_application" "client" {
@@ -21,9 +20,9 @@ resource "azuread_application" "client" {
   prevent_duplicate_names = true
 
   required_resource_access {
-    resource_app_id = azuread_service_principal.microsoft_graph.client_id
+    resource_app_id = data.azuread_service_principal.microsoft_graph.client_id
     resource_access {
-      id   = azuread_service_principal.microsoft_graph.oauth2_permission_scope_ids["User.ReadBasic.All"]
+      id   = data.azuread_service_principal.microsoft_graph.oauth2_permission_scope_ids["User.ReadBasic.All"]
       type = "Scope"
     }
   }
