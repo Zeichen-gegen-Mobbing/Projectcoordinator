@@ -31,3 +31,10 @@ resource "azuread_application" "client" {
   }
 }
 
+resource "azurerm_cosmosdb_sql_container" "places" {
+  account_name        = var.cosmos_account_name
+  resource_group_name = var.cosmos_resource_group_name
+  database_name       = var.cosmos_database_name
+  name                = "Projectcoordinator-Places"
+  partition_key_paths = ["/userId"]
+}

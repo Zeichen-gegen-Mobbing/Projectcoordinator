@@ -20,3 +20,21 @@ variable "cosmos_connection_string" {
   description = "Connection string for the Cosmos DB."
   sensitive   = true
 }
+
+variable "cosmos_account_name" {
+  type        = string
+  description = "Name of the Cosmos DB account."
+  default     = "cosmos-shared-free-zgm"
+}
+
+variable "cosmos_resource_group_name" {
+  type        = string
+  description = "Name of the resource group for the Cosmos DB."
+  default     = "rg-shared-prd"
+}
+
+variable "cosmos_database_name" {
+  type        = string
+  description = "Name of the Cosmos DB database."
+  default     = "cosql-shared-free-zgm"
+}
