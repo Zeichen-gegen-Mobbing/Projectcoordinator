@@ -38,3 +38,11 @@ resource "azurerm_cosmosdb_sql_container" "places" {
   name                = "Projectcoordinator-Places"
   partition_key_paths = ["/userId"]
 }
+
+resource "azurerm_application_insights" "this" {
+  name                = "appi-ProjectCoordinator-${var.environment}"
+  resource_group_name = data.azurerm_resource_group.this.name
+  location            = "westeurope"
+  application_type    = "web"
+  workspace_id        = data.azurerm_key_vault_secret.log_analytics_workspace_id.value
+}

@@ -15,12 +15,6 @@ variable "open_route_service_api_key" {
   sensitive   = true
 }
 
-variable "cosmos_connection_string" {
-  type        = string
-  description = "Connection string for the Cosmos DB."
-  sensitive   = true
-}
-
 variable "cosmos_account_name" {
   type        = string
   description = "Name of the Cosmos DB account."
@@ -37,4 +31,9 @@ variable "cosmos_database_name" {
   type        = string
   description = "Name of the Cosmos DB database."
   default     = "cosql-shared-free-zgm"
+}
+
+variable "key_vault_name" {
+  type        = string
+  description = "Name of the Key Vault."
 }
