@@ -8,7 +8,7 @@ data "azurerm_key_vault_secret" "cosmos_connection_string" {
   key_vault_id = data.azurerm_key_vault.this.id
 }
 
-data "azurerm_key_vault_secret" "loganalytics_workspace_id" {
-  name         = "loganalytics-workspace-id"
+data "azurerm_key_vault_secret" "log_analytics_workspace_id" {
+  name         = "log-analytics-workspace-id"
   key_vault_id = data.azurerm_key_vault.this.id
 }

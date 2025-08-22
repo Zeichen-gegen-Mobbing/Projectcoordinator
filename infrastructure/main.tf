@@ -44,5 +44,5 @@ resource "azurerm_application_insights" "this" {
   resource_group_name = data.azurerm_resource_group.this.name
   location            = "westeurope"
   application_type    = "web"
-  workspace_id        = data.azurerm_key_vault_secret.loganalytics_workspace_id.value
+  workspace_id        = data.azurerm_key_vault_secret.log_analytics_workspace_id.value
 }
