@@ -53,19 +53,20 @@ else
         foreach (Trip t in (await TripService.GetTripsAsync(latitude, longitude)))
         {
             var trip = new TripViewModel()
-                {
-                    Place = t.Place,
-                    Time = t.Time,
-                    Cost = (decimal)t.Cost / 100
-                };
+            {
+                Place = t.Place,
+                Time = t.Time,
+                Cost = (decimal)t.Cost / 100
+            };
             trips.Add(trip);
             StateHasChanged();
             await Task.Yield();
             _ = loadUser(trip);
         }
         LocationSelected = false;
-        status = "Finished loading trips";
-
+        status = trips.Any() ? "Finished loading trips" : "No trips found. Probably no Places are saved.";
+        StateHasChanged();
+        await Task.Yield();
     }
 
     private async Task loadUser(TripViewModel trip)
