@@ -69,7 +69,8 @@
 	}
 
 	private string mapUrl => location.isChoosen ?
-	String.Format("https://www.openstreetmap.org/export/embed.html?bbox={0},{1},{2},{3}&layer=mapnik&marker={4},{5}",
+	String.Format(new System.Globalization.CultureInfo("en-US"),
+	"https://www.openstreetmap.org/export/embed.html?bbox={0},{1},{2},{3}&layer=mapnik&marker={4},{5}",
 	location.Longitude - 0.1, location.Latitude - 0.1, location.Longitude + 0.1, location.Latitude + 0.1, location.Latitude,
-	location.Longitude, new System.Globalization.CultureInfo("en-US")) : "https://www.openstreetmap.org/export/embed.html";
+	location.Longitude) : "https://www.openstreetmap.org/export/embed.html";
 }
