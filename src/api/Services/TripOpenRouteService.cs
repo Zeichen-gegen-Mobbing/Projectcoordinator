@@ -57,21 +57,30 @@ namespace api.Services
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {
                     // TODO: Expose attribution to API
-                    var result = JsonSerializer.Deserialize<OpenRouteServiceMatrixResponse>(responseBody, _serializeOptions);
-                    return places.Select((place, index) =>
+                    try
                     {
-                        return new Trip
+                        var result = JsonSerializer.Deserialize<OpenRouteServiceMatrixResponse>(responseBody, _serializeOptions);
+                        return places.Select((place, index) =>
                         {
-                            Place = new Place()
+                            return new Trip
                             {
-                                Id = place.Id,
-                                Name = place.Name,
-                                UserId = place.UserId,
-                            },
-                            Time = TimeSpan.FromSeconds(result.Durations[index].Single()),
-                            Cost = (ushort)(Math.Ceiling(result.Distances[index].Single() / 1000) * 30)
-                        };
-                    });
+                                Place = new Place()
+                                {
+                                    Id = place.Id,
+                                    Name = place.Name,
+                                    UserId = place.UserId,
+                                },
+                                Time = TimeSpan.FromSeconds(result.Durations[index].Single()),
+                                Cost = (ushort)(Math.Ceiling(result.Distances[index].Single() / 1000) * 30)
+                            };
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError(ex, "Something went wrong while deserializing Matrix from ORS: {Content}", responseBody);
+                        throw new ProblemDetailsException(System.Net.HttpStatusCode.InternalServerError, "Internal Server Error", "Something went wrong while getting Matrix from ORS");
+                    }
+
                 }
                 else
                 {
