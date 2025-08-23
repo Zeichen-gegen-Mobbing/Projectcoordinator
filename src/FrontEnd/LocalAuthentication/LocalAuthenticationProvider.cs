@@ -19,10 +19,13 @@ namespace FrontEnd.LocalAuthentication
                 new Claim(ClaimTypes.Name, "TEST User")
         }, "LocalAuthentication"));
 
-        ClaimsPrincipal _selected = _projectCoordination;
+        static ClaimsPrincipal _unauthenticated = new(new ClaimsIdentity());
+
+        ClaimsPrincipal _selected = _unauthenticated; // Start unauthenticated
         public static List<string?> GetNames()
         {
-            return new List<string?>() { 
+            return new List<string?>() {
+            "None (Unauthenticated)",
             nameof(_projectCoordination),
             nameof(_user)
             };
@@ -30,7 +33,7 @@ namespace FrontEnd.LocalAuthentication
 
         public override Task<AuthenticationState> GetAuthenticationStateAsync()
         {
-             return Task.FromResult(new AuthenticationState(_selected));
+            return Task.FromResult(new AuthenticationState(_selected));
         }
         public Task<AuthenticationState> ChangeIdentityAsync(string username)
         {
@@ -42,8 +45,11 @@ namespace FrontEnd.LocalAuthentication
                 case nameof(_user):
                     _selected = _user;
                     break;
+                case "None (Unauthenticated)":
+                    _selected = _unauthenticated;
+                    break;
                 default:
-                    _selected = new ClaimsPrincipal();
+                    _selected = _unauthenticated;
                     break;
             }
 
@@ -56,7 +62,7 @@ namespace FrontEnd.LocalAuthentication
         {
             return ValueTask.FromResult(new AccessTokenResult(AccessTokenResultStatus.Success, new AccessToken() { Expires = DateTime.Now + new TimeSpan(365, 0, 0, 0) }, "", null));
         }
-        
+
         public ValueTask<AccessTokenResult> RequestAccessToken(AccessTokenRequestOptions _)
         {
             return RequestAccessToken();

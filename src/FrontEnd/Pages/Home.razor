@@ -5,7 +5,9 @@
 @using FrontEnd.Services
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 @using Microsoft.AspNetCore.Components.QuickGrid
+@using Microsoft.AspNetCore.Authorization
 @using ZgM.ProjectCoordinator.Shared
+@attribute [Authorize]
 
 @inject IUserService UserService;
 @inject ITripService TripService;
