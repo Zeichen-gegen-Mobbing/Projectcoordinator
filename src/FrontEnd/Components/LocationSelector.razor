@@ -1,12 +1,15 @@
 ﻿@using System.ComponentModel.DataAnnotations;
 @using System.ComponentModel.DataAnnotations.Schema;
 
-<p>Dies ist lediglich ein funktionaler Platzhalter. Später ist geplant dies durch eine klassische Locationsuche wie man sie von Maps kennt abzulösen.</p>
-<p>Das kostet allerdings etwas Gehirnschmalz, daher bis dahin dieser etwas umständlichere Weg, an die Koordinaten zu kommen:</p>
+<p>Dies ist lediglich ein funktionaler Platzhalter. Später ist geplant dies durch eine klassische Locationsuche wie man
+	sie von Maps kennt abzulösen.</p>
+<p>Das kostet allerdings etwas Gehirnschmalz, daher bis dahin dieser etwas umständlichere Weg, an die Koordinaten zu
+	kommen:</p>
 <ol>
 	<li>Öffne <a href="https://www.openstreetmap.org" target="_blank">Open Street Map</a></li>
 	<li>Suche oben Links nach der Adresse oder dem Namen</li>
-	<li>Wenn der richtige Ort auf der Karte angezeigt wird, mache einen Rechklick auf den Ort und wähle <i>Show Address</i>/<i>Adresse anzeigen</i> aus</li>
+	<li>Wenn der richtige Ort auf der Karte angezeigt wird, mache einen Rechklick auf den Ort und wähle <i>Show
+			Address</i>/<i>Adresse anzeigen</i> aus</li>
 	<li>Auf der linken Seite werden nun in der Suchleiste die Koordinaten angezeigt</li>
 	<li>Kopiere die Koordinaten in die entsprechenden Felder unten</li>
 	<li>Klicke außerhalb des Feldes, damit die Karte aktualisiert wird</li>
@@ -24,10 +27,8 @@
 		<InputNumber @bind-Value="location.Longitude" placeholder="9.801650" />
 	</label>
 	<br />
-		<iframe	src="@mapUrl"
-				width="90%"
-				style="border: 1px solid black" />
-		<br />
+	<iframe src="@mapUrl" width="90%" style="border: 1px solid black" />
+	<br />
 	<button disabled="@Disabled" type="submit" class="btn btn-primary">Submit</button>
 </EditForm>
 
@@ -67,5 +68,8 @@
 		public bool isChoosen => Latitude != null && Longitude != null;
 	}
 
-	private string mapUrl => location.isChoosen ? $"https://www.openstreetmap.org/export/embed.html?bbox={location.Longitude - 0.1},{location.Latitude - 0.1},{location.Longitude + 0.1},{location.Latitude + 0.1}&layer=mapnik&marker={location.Latitude},{location.Longitude}" : "https://www.openstreetmap.org/export/embed.html";
+	private string mapUrl => location.isChoosen ?
+	String.Format("https://www.openstreetmap.org/export/embed.html?bbox={0},{1},{2},{3}&layer=mapnik&marker={4},{5}",
+	location.Longitude - 0.1, location.Latitude - 0.1, location.Longitude + 0.1, location.Latitude + 0.1, location.Latitude,
+	location.Longitude, new System.Globalization.CultureInfo("en-US")) : "https://www.openstreetmap.org/export/embed.html";
 }
