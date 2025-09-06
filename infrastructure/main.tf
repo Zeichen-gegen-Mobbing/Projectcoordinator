@@ -16,6 +16,7 @@ locals {
   client_preview_domain_right = substr(azurerm_static_web_app.this.default_host_name, length(local.client_preview_domain_left), -1)
   client_preview_domains      = [for num in range(var.redirect_uris_number, var.redirect_uris_number + 100) : "${local.client_preview_domain_left}-${num}.${local.client_preview_domain_right}"]
 }
+
 resource "azuread_application" "client" {
   display_name     = "Projectcoordinator-${var.environment}"
   description      = "Application to login to the Projectcoordinator application"
@@ -32,7 +33,11 @@ resource "azuread_application" "client" {
     }
   }
   single_page_application {
-    redirect_uris = concat(["https://${azurerm_static_web_app.this.default_host_name}/authentication/login-callback"], var.redirect_uris)
+    redirect_uris = concat(
+      ["https://${azurerm_static_web_app.this.default_host_name}/authentication/login-callback"],
+      var.redirect_uris,
+      local.client_preview_domains
+    )
   }
 }
 
