@@ -9,6 +9,13 @@ variable "redirect_uris" {
   default     = []
 }
 
+variable "redirect_uris_number" {
+  type        = number
+  description = "Create redirect uris for preview environment by appending the number. Will start creating redirect Uris at given number up until +100."
+  default     = 0
+  nullable    = false
+}
+
 variable "open_route_service_api_key" {
   type        = string
   description = "API key for the OpenRouteService."
