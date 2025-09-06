@@ -14,6 +14,10 @@ As we can't use Bring your own function (requires SWA Standard), we need to secu
 
 The deployment of the infrastructure uses OpenTofu (see `./infrastructure`). The deployment of the code uses GitHub Actions to deploy the infrastructure. These are using a remote backend in Azure and user managed identity to access resources and backend using OIDC.
 
+### Preview Environments
+
+On every PR the site is pushed to a preview environment. As this is a different URL, the application must contain the Redirect URI. To allow this the parameter `redirect_uris_number` configures from which number 100 PRs are added as redirect URIs. Update this number when you have almost reached 100.
+
 ## Configuration
 
 Following configurations are required:
