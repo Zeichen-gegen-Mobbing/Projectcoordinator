@@ -11,6 +11,11 @@ data "azuread_service_principal" "microsoft_graph" {
   client_id = data.azuread_application_published_app_ids.well_known.result["MicrosoftGraph"]
 }
 
+locals {
+  client_preview_domain_left  = split(".", azurerm_static_web_app.this.default_host_name)[0]
+  client_preview_domain_right = substr(azurerm_static_web_app.this.default_host_name, length(local.client_preview_domain_left), -1)
+  client_preview_domains      = [for num in range(var.redirect_uris_number, var.var.redirect_uris_number + 100) : "${local.client_preview_domain_left}-${num}.${client_preview_domain_right}"]
+}
 resource "azuread_application" "client" {
   display_name     = "Projectcoordinator-${var.environment}"
   description      = "Application to login to the Projectcoordinator application"
