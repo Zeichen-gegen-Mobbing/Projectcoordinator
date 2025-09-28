@@ -16,6 +16,8 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $PSNativeCommandUseErrorActionPreference = $true # might be true by default
 
+$image = "mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:latest"
+
 $parameters = @(
     "--publish", "8081:8081"
     "--publish", "10250-10255:10250-10255"
@@ -30,8 +32,9 @@ if ($containerId) {
     Write-Output "Cosmos Emulator already Running with container id $containerId"
 }
 else {
-
-    $containerId = docker run @parameters mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:latest
+    # We need to pull the image as the evaluation period expires 180 days after publishing...
+    docker pull $image
+    $containerId = docker run @parameters $image
 
     Write-Output "Cosmos Emulator container started with container id $containerId"
 }
