@@ -42,6 +42,7 @@ jobs:
             environment = "prd"
             open_route_service_api_key = "${{ secrets.OPEN_ROUTE_SERVICE_API_KEY }}"
             key_vault_name = "${{ vars.KEY_VAULT_NAME }}"
+            redirect_uris_number = 40
           backend_config: |
             resource_group_name=${{ vars.BACKEND_AZURE_RESOURCE_GROUP_NAME }}
             storage_account_name=${{ vars.BACKEND_AZURE_STORAGE_ACCOUNT_NAME }}
