@@ -43,7 +43,7 @@ builder.Services.AddHttpClient<ITripService, TripService>(client =>
 })
     .AddHttpMessageHandler(services =>
     {
-        var handler = new FakeAuthorizationMessageHandler();
+        var handler = new FakeAuthorizationMessageHandler(services.GetRequiredService<IConfiguration>());
         return handler;
     });
 #else

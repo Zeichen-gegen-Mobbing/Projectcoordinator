@@ -55,9 +55,14 @@ var host = new HostBuilder()
 #if DEBUG
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
         {
-            options.Authority = context.Configuration["AzureAd:Instance"] + context.Configuration["AzureAd:TenantId"];
-            options.Audience = context.Configuration["AzureAd:ClientId"];
+            options.Authority = "https://fake-authority.local";
+            options.Audience = "debug-clientid";
             options.TokenValidationParameters.ValidateIssuer = false;
+            options.TokenValidationParameters.ValidateIssuerSigningKey = false;
+            options.TokenValidationParameters.SignatureValidator = delegate (string token, Microsoft.IdentityModel.Tokens.TokenValidationParameters parameters)
+            {
+                return new Microsoft.IdentityModel.JsonWebTokens.JsonWebToken(token);
+            };
         });
 #else
         services.AddAuthentication(sharedOptions =>
