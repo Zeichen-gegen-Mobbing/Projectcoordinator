@@ -35,15 +35,21 @@ builder.Services.AddHttpClient("GraphAPI",
                 string.Empty)))
     .AddHttpMessageHandler<GraphAuthorizationMessageHandler>();
 
-builder.Services.AddHttpClient<ITripService, TripService>().AddHttpMessageHandler(services =>
+
+#if DEBUG
+builder.Services.AddHttpClient<ITripService, TripService>(client =>
 {
-    var handler = services.GetRequiredService<AuthorizationMessageHandler>()
-        .ConfigureHandler(
-            authorizedUrls: ["http://localhost:4280"]);
-    return handler;
-});
+    client.BaseAddress = new Uri("http://localhost:4280");
+})
+    .AddHttpMessageHandler(services =>
+    {
+        var handler = new FakeAuthorizationMessageHandler();
+        return handler;
+    });
+#else
+builder.Services.AddHttpClient<ITripService, TripService>().AddHttpMessageHandler<AuthorizationMessageHandler>();
+#endif
 
 builder.Services.AddScoped<IUserService, FakeUserService>();
-builder.Services.AddScoped<ITripService, TripService>();
 
 await builder.Build().RunAsync();
