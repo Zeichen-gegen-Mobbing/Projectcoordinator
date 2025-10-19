@@ -70,7 +70,7 @@ for ($i = 0; $i -lt $RetryCount; $i++) {
 }
 
 if ($available) {
-    Write-Output "You can open https://localhost:8081/_explorer/index.html . You may need to import the emulator certificate into your trusted root certificate store."
+    Write-Output "You can open https://localhost:8081/_explorer/index.html . You may need to import the emulator certificate into your trusted root certificate store. You may need to create the Container."
 }
 else {
     Write-Error -Message "Failed to download emulator certificate after $RetryCount attempts." -Exception $Error[0].Exception

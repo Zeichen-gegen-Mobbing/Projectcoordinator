@@ -1,16 +1,18 @@
 using api;
 using api.Repositories;
 using api.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using Microsoft.Identity.Web;
 
 var host = new HostBuilder()
     .ConfigureFunctionsWebApplication()
-    .ConfigureServices(services =>
+    .ConfigureServices((context, services) =>
     {
         services.AddApplicationInsightsTelemetryWorkerService();
         services.ConfigureFunctionsApplicationInsights();
@@ -49,6 +51,23 @@ var host = new HostBuilder()
         services.AddScoped<IPlaceRepository, PlaceRepository>();
         services.AddScoped<IPlaceService, PlaceCosmosService>();
         services.AddScoped<ITripService, TripOpenRouteService>();
+        services.AddProblemDetails();
+#if DEBUG
+        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
+        {
+            options.Authority = context.Configuration["AzureAd:Instance"] + context.Configuration["AzureAd:TenantId"];
+            options.Audience = context.Configuration["AzureAd:ClientId"];
+            options.TokenValidationParameters.ValidateIssuer = false;
+        });
+#else
+        services.AddAuthentication(sharedOptions =>
+         {
+             sharedOptions.DefaultScheme = Microsoft.Identity.Web.Constants.Bearer;
+             sharedOptions.DefaultChallengeScheme = Microsoft.Identity.Web.Constants.Bearer;
+         })
+         .AddMicrosoftIdentityWebApi(context.Configuration);
+#endif
+
     })
     .Build();
 await host.RunAsync();
