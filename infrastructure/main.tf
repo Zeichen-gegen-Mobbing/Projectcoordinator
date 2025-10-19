@@ -16,7 +16,7 @@ locals {
   client_preview_domain_right = substr(azurerm_static_web_app.this.default_host_name, length(local.client_preview_domain_left) + 1, -1)
   client_preview_domains      = [for num in range(var.redirect_uris_number, var.redirect_uris_number + 100) : "https://${local.client_preview_domain_left}-${num}.${azurerm_static_web_app.this.location}.${local.client_preview_domain_right}/authentication/login-callback"]
 }
-  
+
 resource "azuread_application_registration" "client" {
   display_name = "Projectcoordinator-${var.environment}"
   description  = "Application to login to the Projectcoordinator application"
@@ -31,11 +31,11 @@ resource "azuread_application_api_access" "graph" {
 resource "azuread_application_redirect_uris" "static_site" {
   application_id = azuread_application_registration.client.id
   type           = "SPA"
-  redirect_uris  = concat(
-      ["https://${azurerm_static_web_app.this.default_host_name}/authentication/login-callback"],
-      var.redirect_uris,
-      local.client_preview_domains
-    )
+  redirect_uris = concat(
+    ["https://${azurerm_static_web_app.this.default_host_name}/authentication/login-callback"],
+    var.redirect_uris,
+    local.client_preview_domains
+  )
 }
 
 resource "azurerm_cosmosdb_sql_container" "places" {
