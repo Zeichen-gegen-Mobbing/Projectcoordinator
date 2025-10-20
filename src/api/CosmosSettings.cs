@@ -9,7 +9,7 @@ namespace api
     public record CosmosSettings
     {
         public required string ConnectionString { get; init; }
-        public required string DatabaseId { get; init; } = "Projectcoordinator";
-        public required string ContainerId { get; init; } = "Places";
+        public required string DatabaseId { get; init; } = "cosql-shared-free-zgm";
+        public required string ContainerId { get; init; } = "Projectcoordinator-Places";
     }
 }

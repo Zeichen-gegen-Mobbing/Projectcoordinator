@@ -6,6 +6,8 @@ The pwsh version is required to fail on non zero exit codes from docker.
 #>
 
 #Requires -Version 7.4.0
+#Requires -Modules CosmosDB
+
 [CmdletBinding()]
 param (
     # Number of times to try to reach the started Cosmos Emulator
@@ -75,3 +77,28 @@ if ($available) {
 else {
     Write-Error -Message "Failed to download emulator certificate after $RetryCount attempts." -Exception $Error[0].Exception
 }
+
+#region CosmosDB
+$cosmosDbId = "cosql-shared-free-zgm"
+$cosmosContainerId = "Projectcoordinator-Places"
+$cosmosDbContext = New-CosmosDbContext -Emulator
+try {
+    $null = Get-CosmosDbDatabase -Context $cosmosDbContext -Id $cosmosDbId
+    Write-Output "Database '$cosmosDbId' already exists."
+}
+catch {
+    Write-Output "Creating database '$cosmosDbId'."
+    $null = New-CosmosDbDatabase -Context $cosmosDbContext -Id $cosmosDbId
+}
+
+$cosmosDbContext = New-CosmosDbContext -Emulator -Database $cosmosDbId
+
+try {
+    $null = Get-CosmosDbCollection -Context $cosmosDbContext -Id $cosmosContainerId
+    Write-Output "Collection '$cosmosContainerId' already exists."
+}
+catch {
+    Write-Output "Creating collection '$cosmosContainerId' with 4000 RU/s throughput."
+    $null = New-CosmosDbCollection -Context $cosmosDbContext -Id $cosmosContainerId -PartitionKey id -OfferThroughput 4000
+}
+#endregion
