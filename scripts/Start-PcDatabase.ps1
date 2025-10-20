@@ -99,6 +99,6 @@ try {
 }
 catch {
     Write-Output "Creating collection '$cosmosContainerId' with 4000 RU/s throughput."
-    $null = New-CosmosDbCollection -Context $cosmosDbContext -Id $cosmosContainerId -PartitionKey id -OfferThroughput 4000
+    $null = New-CosmosDbCollection -Context $cosmosDbContext -Id $cosmosContainerId -PartitionKey userId -OfferThroughput 4000
 }
 #endregion
