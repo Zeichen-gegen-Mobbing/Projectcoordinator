@@ -32,7 +32,7 @@ namespace ZgM.Projectcoordinator.api
                 var (authenticationStatus, authenticationResponse) = await req.HttpContext.AuthenticateAzureFunctionAsync();
                 if (!authenticationStatus)
                 {
-                    _logger.LogWarning("Unauthenticated request: Authorization Header: {authHeader}", req.Headers.Authorization.ToString());
+                    _logger.LogWarning("Unauthenticated request: Authorization Header: {AuthHeader}", req.Headers.Authorization.ToString());
                     return authenticationResponse!;
                 }
 
