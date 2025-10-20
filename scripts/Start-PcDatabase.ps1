@@ -101,4 +101,19 @@ catch {
     Write-Output "Creating collection '$cosmosContainerId' with 4000 RU/s throughput."
     $null = New-CosmosDbCollection -Context $cosmosDbContext -Id $cosmosContainerId -PartitionKey userId -OfferThroughput 4000
 }
+
+$ResponseHeader = $null
+$documents = Get-CosmosDbDocument -Context $cosmosDbContext -CollectionId $cosmosContainerId -MaxItemCount 1 -ResponseHeader ([ref] $ResponseHeader)
+if (-not $documents) {
+    $userId = $([Guid]::NewGuid().ToString())
+    $document = @{
+        id        = $([Guid]::NewGuid().ToString())
+        userId    = $userId
+        name      = "Home"
+        latitude  = 52.5338
+        longitude = 13.3999
+
+    } | ConvertTo-Json
+    $null = New-CosmosDbDocument -Context $cosmosDbContext -CollectionId $cosmosContainerId -DocumentBody $document -Encoding 'UTF-8' -PartitionKey $userId
+}
 #endregion
