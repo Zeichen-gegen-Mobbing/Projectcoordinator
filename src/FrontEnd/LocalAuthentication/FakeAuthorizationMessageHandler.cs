@@ -12,14 +12,9 @@ namespace FrontEnd.Services
 {
     public class FakeAuthorizationMessageHandler : DelegatingHandler
     {
-        private readonly IConfiguration _config;
         private static readonly string _staticKey = "0123456789abcdef0123456789abcdef"; // 32 chars = 256 bits
         private static readonly string authority = "https://fake-authority.local";
         private static readonly string clientId = "debug-clientid";
-        public FakeAuthorizationMessageHandler(IConfiguration config)
-        {
-            _config = config;
-        }
 
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
