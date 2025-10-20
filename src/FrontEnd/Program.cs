@@ -41,11 +41,7 @@ builder.Services.AddHttpClient<ITripService, TripService>(client =>
 {
     client.BaseAddress = new Uri("http://localhost:4280");
 })
-    .AddHttpMessageHandler(services =>
-    {
-        var handler = new FakeAuthorizationMessageHandler(services.GetRequiredService<IConfiguration>());
-        return handler;
-    });
+    .AddHttpMessageHandler(_ => new FakeAuthorizationMessageHandler());
 #else
 builder.Services.AddHttpClient<ITripService, TripService>().AddHttpMessageHandler<AuthorizationMessageHandler>();
 #endif
