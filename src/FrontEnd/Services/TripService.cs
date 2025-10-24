@@ -10,7 +10,7 @@ namespace FrontEnd.Services
         {
             using (logger.BeginScope(nameof(GetTripsAsync)))
             {
-                logger.LogInformation(httpClient.BaseAddress?.ToString() ?? "No BaseAddress set");
+                Console.WriteLine(httpClient.BaseAddress?.ToString() ?? "No BaseAddress set");
                 var result = await httpClient.GetFromJsonAsync<IEnumerable<Trip>>(String.Format(new CultureInfo("en-US"), "api/trips?latitude={0}&longitude={1}", latitude, longitude));
                 if (result == null)
                 {
