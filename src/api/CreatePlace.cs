@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
-using ZgM.Projectcoordinator.api;
+using Microsoft.Identity.Web;
 
 namespace api
 {
@@ -26,6 +26,10 @@ namespace api
         {
             using (_logger.BeginScope(new Dictionary<string, object> { { "FunctionName", nameof(CreatePlace) } }))
             {
+                var (authenticationStatus, authenticationResponse) = await request.HttpContext.AuthenticateAzureFunctionAsync();
+                if (!authenticationStatus)
+                    return authenticationResponse!;
+
                 var placeRequest = await request.ReadFromJsonAsync<PlaceRequest>();
                 _logger.LogInformation("Read place from request");
                 try

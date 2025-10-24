@@ -4,6 +4,7 @@ using FrontEnd.LocalAuthentication;
 #endif
 using FrontEnd.Services;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using System.Globalization;
 
@@ -14,7 +15,7 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.Configuration["API_Prefix"] ?? builder.HostEnvironment.BaseAddress) });
 
 #if DEBUG
-    LocalAuthenticationProvider.AddLocalAuthentication(builder.Services);
+LocalAuthenticationProvider.AddLocalAuthentication(builder.Services);
 #else
     builder.Services.AddMsalAuthentication(options =>
     {
@@ -34,7 +35,17 @@ builder.Services.AddHttpClient("GraphAPI",
                 string.Empty)))
     .AddHttpMessageHandler<GraphAuthorizationMessageHandler>();
 
-builder.Services.AddScoped<IUserService,FakeUserService>();
-builder.Services.AddScoped<ITripService, TripService>();
+
+#if DEBUG
+builder.Services.AddHttpClient<ITripService, TripService>(client =>
+{
+    client.BaseAddress = new Uri("http://localhost:4280");
+})
+    .AddHttpMessageHandler(_ => new FakeAuthorizationMessageHandler());
+#else
+builder.Services.AddHttpClient<ITripService, TripService>().AddHttpMessageHandler<AuthorizationMessageHandler>();
+#endif
+
+builder.Services.AddScoped<IUserService, FakeUserService>();
 
 await builder.Build().RunAsync();

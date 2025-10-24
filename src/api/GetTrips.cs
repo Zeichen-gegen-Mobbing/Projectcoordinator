@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
+using Microsoft.Identity.Web;
 using ZgM.ProjectCoordinator.Shared;
 
 namespace ZgM.Projectcoordinator.api
@@ -28,6 +29,14 @@ namespace ZgM.Projectcoordinator.api
         {
             using (_logger.BeginScope(new Dictionary<string, object> { { "FunctionName", nameof(GetTrips) } }))
             {
+                var (authenticationStatus, authenticationResponse) = await req.HttpContext.AuthenticateAzureFunctionAsync();
+                if (!authenticationStatus)
+                {
+                    _logger.LogWarning("Unauthenticated request: Authorization Header: {AuthHeader}", req.Headers.Authorization.ToString());
+                    return authenticationResponse!;
+                }
+
+
                 if (!double.TryParse(req.Query["latitude"], CultureInfo.GetCultureInfo("en-US"), out double latitude) || !double.TryParse(req.Query["longitude"], CultureInfo.GetCultureInfo("en-US"), out double longitude))
                 {
                     return new BadRequestObjectResult(new ProblemDetails()
