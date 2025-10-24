@@ -12,7 +12,8 @@ namespace FrontEnd.Services
             {
                 try
                 {
-                    var result = await httpClient.GetFromJsonAsync<IEnumerable<Trip>>(String.Format(new CultureInfo("en-US"), "api/trips?latitude={0}&longitude={1}", latitude, longitude));
+                    var uri = string.Format(new CultureInfo("en-US"), "/api/trips?latitude={0}&longitude={1}", latitude, longitude);
+                    var result = await httpClient.GetFromJsonAsync<IEnumerable<Trip>>(uri);
                     if (result is null)
                     {
                         throw new InvalidOperationException("Received null, thats very unexpected");
