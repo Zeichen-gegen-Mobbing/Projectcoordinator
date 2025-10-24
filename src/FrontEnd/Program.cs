@@ -45,13 +45,7 @@ builder.Services.AddHttpClient<ITripService, TripService>(client =>
 #else
 builder.Services.AddHttpClient<ITripService, TripService>(client => {
     client.BaseAddress = new Uri("https://ambitious-island-0f6399d03-48.westeurope.1.azurestaticapps.net/");
-}).AddHttpMessageHandler(serviceProvider => {
-    var handler = serviceProvider.GetRequiredService<AuthorizationMessageHandler>();
-    handler.ConfigureHandler(
-      authorizedUrls: ["https://ambitious-island-0f6399d03-48.westeurope.1.azurestaticapps.net/"]
-    );
-    return handler;
-    });
+}).AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
 #endif
 
 builder.Services.AddScoped<IUserService, FakeUserService>();
