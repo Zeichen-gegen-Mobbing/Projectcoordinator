@@ -6,5 +6,5 @@ output "static_web_app_api_key" {
 
 output "client_id" {
   value       = azuread_application_registration.client.client_id
-  description = "Client Id to enter manually into src\FrontEnd\wwwroot\appsettings.json"
+  description = "Client Id to enter manually into src/FrontEnd/wwwroot/appsettings.json"
 }
