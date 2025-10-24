@@ -48,8 +48,7 @@ builder.Services.AddHttpClient<ITripService, TripService>(client => {
 }).AddHttpMessageHandler(serviceProvider => {
     var handler = serviceProvider.GetRequiredService<AuthorizationMessageHandler>();
     handler.ConfigureHandler(
-      authorizedUrls: ["https://ambitious-island-0f6399d03-48.westeurope.1.azurestaticapps.net/"],
-      scopes: ["User.ReadBasic.All"]
+      authorizedUrls: ["https://ambitious-island-0f6399d03-48.westeurope.1.azurestaticapps.net/"]
     );
     return handler;
     });
