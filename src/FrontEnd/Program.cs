@@ -43,7 +43,9 @@ builder.Services.AddHttpClient<ITripService, TripService>(client =>
 })
     .AddHttpMessageHandler(_ => new FakeAuthorizationMessageHandler());
 #else
-builder.Services.AddHttpClient<ITripService, TripService>().AddHttpMessageHandler<AuthorizationMessageHandler>();
+builder.Services.AddHttpClient<ITripService, TripService>(client => {
+    client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress);
+}).AddHttpMessageHandler<AuthorizationMessageHandler>();
 #endif
 
 builder.Services.AddScoped<IUserService, FakeUserService>();
