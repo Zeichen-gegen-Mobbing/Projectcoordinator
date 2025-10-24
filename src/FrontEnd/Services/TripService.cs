@@ -13,6 +13,8 @@ namespace FrontEnd.Services
                 try
                 {
                     var uri = new Uri(string.Format(new CultureInfo("en-US"), "https://ambitious-island-0f6399d03-48.westeurope.1.azurestaticapps.net/api/trips?latitude={0}&longitude={1}", latitude, longitude));
+                    uri = new Uri(string.Format(new CultureInfo("en-US"), "https://ambitious-island-0f6399d03-48.westeurope.1.azurestaticapps.net/api/trips"));
+
                     var result = await httpClient.GetFromJsonAsync<IEnumerable<Trip>>(uri);
                     if (result is null)
                     {
