@@ -10,15 +10,21 @@ namespace FrontEnd.Services
         {
             using (logger.BeginScope(nameof(GetTripsAsync)))
             {
-                Console.WriteLine(httpClient.BaseAddress?.ToString() ?? "No BaseAddress set");
-                var result = await httpClient.GetFromJsonAsync<IEnumerable<Trip>>(String.Format(new CultureInfo("en-US"), "api/trips?latitude={0}&longitude={1}", latitude, longitude));
-                if (result == null)
+                try
                 {
-                    throw new Exception("Received null");
+                    var result = await httpClient.GetFromJsonAsync<IEnumerable<Trip>>(String.Format(new CultureInfo("en-US"), "api/trips?latitude={0}&longitude={1}", latitude, longitude));
+                    if (result is null)
+                    {
+                        throw new InvalidOperationException("Received null, thats very unexpected");
+                    }
+                    else
+                    {
+                        return result;
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    return result;
+                    throw new InvalidOperationException(httpClient.BaseAddress?.ToString() ?? "Nothing", ex);
                 }
             }
         }
