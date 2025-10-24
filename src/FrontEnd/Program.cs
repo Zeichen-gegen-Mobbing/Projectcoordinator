@@ -49,7 +49,7 @@ builder.Services.AddHttpClient<ITripService, TripService>(client => {
     var handler = serviceProvider.GetRequiredService<AuthorizationMessageHandler>();
     handler.ConfigureHandler(
       authorizedUrls: ["https://ambitious-island-0f6399d03-48.westeurope.1.azurestaticapps.net/"],
-      scopes: ["user.read"]
+      scopes: ["User.ReadBasic.All"]
     );
     return handler;
     });
