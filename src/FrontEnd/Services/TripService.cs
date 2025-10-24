@@ -12,10 +12,10 @@ namespace FrontEnd.Services
             {
                 try
                 {
-                    var uri = new Uri(string.Format(new CultureInfo("en-US"), "https://ambitious-island-0f6399d03-48.westeurope.1.azurestaticapps.net/api/trips?latitude={0}&longitude={1}", latitude, longitude));
-                    uri = new Uri(string.Format(new CultureInfo("en-US"), "https://ambitious-island-0f6399d03-48.westeurope.1.azurestaticapps.net/api/trips"));
+                    // Use relative URI string (not Uri object) because HttpClient has BaseAddress configured
+                    var requestUri = string.Format(new CultureInfo("en-US"), "api/trips?latitude={0}&longitude={1}", latitude, longitude);
 
-                    var result = await httpClient.GetFromJsonAsync<IEnumerable<Trip>>(uri);
+                    var result = await httpClient.GetFromJsonAsync<IEnumerable<Trip>>(requestUri);
                     if (result is null)
                     {
                         throw new InvalidOperationException("Received null, thats very unexpected");
