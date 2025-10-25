@@ -17,8 +17,32 @@ locals {
   client_preview_domains      = [for num in range(var.redirect_uris_number, var.redirect_uris_number + 100) : "https://${local.client_preview_domain_left}-${num}.${azurerm_static_web_app.this.location}.${local.client_preview_domain_right}/authentication/login-callback"]
 }
 
+resource "random_uuid" "api_scope_id" {
+}
+
+resource "azuread_application_registration" "api" {
+  display_name = "Projectcoordinator-API-${var.environment}"
+  description  = "API application for Projectcoordinator backend"
+}
+
+resource "azuread_application_identifier_uri" "api" {
+  application_id = azuread_application_registration.api.id
+  identifier_uri = "api://${azuread_application_registration.api.client_id}"
+}
+
+resource "azuread_application_permission_scope" "api_access" {
+  application_id             = azuread_application_registration.api.id
+  scope_id                   = random_uuid.api_scope_id.result
+  value                      = "API.Access"
+  admin_consent_description  = "Allows the application to access the Projectcoordinator API on behalf of the signed-in user"
+  admin_consent_display_name = "Access Projectcoordinator API"
+  user_consent_description   = "Allows the application to access the Projectcoordinator API on your behalf"
+  user_consent_display_name  = "Access Projectcoordinator API"
+  type                       = "User"
+}
+
 resource "azuread_application_registration" "client" {
-  display_name = "Projectcoordinator-${var.environment}"
+  display_name = "Projectcoordinator-Client-${var.environment}"
   description  = "Application to login to the Projectcoordinator application"
 }
 
@@ -26,6 +50,12 @@ resource "azuread_application_api_access" "graph" {
   application_id = azuread_application_registration.client.id
   api_client_id  = data.azuread_service_principal.microsoft_graph.client_id
   scope_ids      = [data.azuread_service_principal.microsoft_graph.oauth2_permission_scope_ids["User.ReadBasic.All"]]
+}
+
+resource "azuread_application_api_access" "api" {
+  application_id = azuread_application_registration.client.id
+  api_client_id  = azuread_application_registration.api.client_id
+  scope_ids      = [azuread_application_permission_scope.api_access.scope_id]
 }
 
 resource "azuread_application_redirect_uris" "static_site" {

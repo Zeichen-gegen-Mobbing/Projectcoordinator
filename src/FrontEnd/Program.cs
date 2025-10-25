@@ -32,6 +32,7 @@ builder.Services.AddMsalAuthentication(options =>
 {
     builder.Configuration.Bind("AzureAd", options.ProviderOptions.Authentication);
     options.ProviderOptions.DefaultAccessTokenScopes.Add(authConfig.ApiScope);
+    options.ProviderOptions.Authentication.ClientId = authConfig.FrontEndClientId;
 });
 #endif
 

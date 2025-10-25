@@ -28,7 +28,7 @@ public class CustomAuthorizationMessageHandlerTests : IDisposable
 
         var tokenResult = new AccessTokenResult(AccessTokenResultStatus.Success, _accessToken, null!, null);
 
-        _tokenProviderMock.Setup(x => x.RequestAccessToken()).ReturnsAsync(tokenResult);
+        _tokenProviderMock.Setup(x => x.RequestAccessToken(It.IsAny<AccessTokenRequestOptions>())).ReturnsAsync(tokenResult);
     }
 
     public class SendAsyncMethod : CustomAuthorizationMessageHandlerTests
@@ -65,7 +65,7 @@ public class CustomAuthorizationMessageHandlerTests : IDisposable
         {
             // Arrange
             var tokenResult = new AccessTokenResult(AccessTokenResultStatus.RequiresRedirect, null!, "https://login.example.com", null);
-            _tokenProviderMock.Setup(x => x.RequestAccessToken()).ReturnsAsync(tokenResult);
+            _tokenProviderMock.Setup(x => x.RequestAccessToken(It.IsAny<AccessTokenRequestOptions>())).ReturnsAsync(tokenResult);
 
             var request = new HttpRequestMessage(HttpMethod.Get, $"{_authorizedUrl}trips");
 
