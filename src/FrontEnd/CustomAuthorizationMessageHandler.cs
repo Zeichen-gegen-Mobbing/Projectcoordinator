@@ -37,7 +37,7 @@ public class CustomAuthorizationMessageHandler : DelegatingHandler
 
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        if (_authorizedUris == null)
+        if (_authorizedUris.Count == 0)
         {
             throw new InvalidOperationException($"The '{nameof(CustomAuthorizationMessageHandler)}' is not configured. " +
                 $"Call '{nameof(ConfigureHandler)}' and provide a list of endpoint urls to attach the token to.");
