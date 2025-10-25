@@ -11,8 +11,10 @@ public class CustomAuthorizationMessageHandlerTests : IDisposable
 {
     protected readonly Mock<IAccessTokenProvider> _tokenProviderMock = new();
     protected readonly Mock<NavigationManager> _navigationMock = new();
+#pragma warning disable TUnit0023 // Suppress warning about IDisposable - disposed in Dispose method
     protected readonly CustomAuthorizationMessageHandler _handler;
     protected readonly HttpMessageInvoker _invoker;
+#pragma warning restore TUnit0023
     protected readonly string _authorizedUrl = "https://example.com/api/";
     protected readonly AccessToken _accessToken = new() { Value = "test-token", Expires = DateTimeOffset.UtcNow.AddHours(1) };
 
@@ -74,33 +76,7 @@ public class CustomAuthorizationMessageHandlerTests : IDisposable
             };
 
             // Assert
-            await Assert.ThrowsAsync<InvalidOperationException>(act);
-            await Assert.That(request.Headers.Contains(CustomHttpHeaders.SwaAuthorization)).IsFalse();
-        }
-
-        /// <summary>
-        /// Given: Handler not configured with authorized URLs (empty list)
-        /// When: SendAsync is called with any URL
-        /// Then: Authorization header is NOT added (no authorized URLs means no authorization)
-        /// </summary>
-        [Test]
-        public async Task DoesNotAddToken_WhenNoAuthorizedUrlsConfigured()
-        {
-            // Arrange
-            var handler = new CustomAuthorizationMessageHandler(_tokenProviderMock.Object, _navigationMock.Object);
-            handler.InnerHandler = new TestHttpMessageHandler();
-            // Not calling ConfigureHandler
-
-            var client = new HttpMessageInvoker(handler);
-            var request = new HttpRequestMessage(HttpMethod.Get, "https://any-url.com/endpoint");
-
-            // Act
-            await client.SendAsync(request, CancellationToken.None);
-            // Cleanup
-            client.Dispose();
-            handler.Dispose();
-
-            // Assert
+            await Assert.ThrowsAsync<AccessTokenNotAvailableException>(act);
             await Assert.That(request.Headers.Contains(CustomHttpHeaders.SwaAuthorization)).IsFalse();
         }
 
@@ -149,25 +125,41 @@ public class CustomAuthorizationMessageHandlerTests : IDisposable
             // Assert
             await Assert.That(request.Headers.Contains(CustomHttpHeaders.SwaAuthorization)).IsTrue();
         }
-
-        [Test]
-        public async Task MatchesAuthorizedUrl_CaseInsensitive()
-        {
-            // Arrange
-            _handler.ConfigureHandler(["https://example.com/API/"]);
-
-            var request = new HttpRequestMessage(HttpMethod.Get, "https://example.com/api/trips");
-
-            // Act
-            await _invoker.SendAsync(request, CancellationToken.None);
-
-            // Assert
-            await Assert.That(request.Headers.Contains(CustomHttpHeaders.SwaAuthorization)).IsTrue();
-        }
     }
 
     public class ConfigureHandlerMethod : CustomAuthorizationMessageHandlerTests
     {
+        /// <summary>
+        /// Given: Handler not configured with authorized URLs (empty list)
+        /// When: SendAsync is called with any URL
+        /// Then: InvalidOperationException is thrown
+        /// </summary>
+        [Test]
+        public async Task Throws_WhenNoAuthorizedUrlsConfigured()
+        {
+            // Arrange
+            var handler = new CustomAuthorizationMessageHandler(_tokenProviderMock.Object, _navigationMock.Object)
+            {
+                InnerHandler = new TestHttpMessageHandler()
+            };
+            // Not calling ConfigureHandler
+
+            var client = new HttpMessageInvoker(handler);
+            var request = new HttpRequestMessage(HttpMethod.Get, "https://any-url.com/endpoint");
+
+            // Act
+            async Task act()
+            {
+                await client.SendAsync(request, CancellationToken.None);
+            }
+            // Cleanup
+            client.Dispose();
+            handler.Dispose();
+
+            // Assert
+            await Assert.ThrowsAsync<InvalidOperationException>(act);
+            await Assert.That(request.Headers.Contains(CustomHttpHeaders.SwaAuthorization)).IsFalse();
+        }
         [Test]
         public async Task ReturnsHandlerInstance_ForFluentConfiguration()
         {

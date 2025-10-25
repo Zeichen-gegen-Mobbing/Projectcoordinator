@@ -30,28 +30,24 @@ public class CustomAuthorizationMessageHandler : DelegatingHandler
 
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        if (request.RequestUri != null && IsAuthorizedUrl(request.RequestUri))
+        if (_authorizedUris == null)
+        {
+            throw new InvalidOperationException($"The '{nameof(CustomAuthorizationMessageHandler)}' is not configured. " +
+                $"Call '{nameof(ConfigureHandler)}' and provide a list of endpoint urls to attach the token to.");
+        }
+        if (request.RequestUri != null && _authorizedUris.Any(uri => uri.IsBaseOf(request.RequestUri)))
         {
             var result = await _tokenProvider.RequestAccessToken();
             if (result.TryGetToken(out var token))
             {
                 request.Headers.TryAddWithoutValidation(CustomHttpHeaders.SwaAuthorization, $"Bearer {token.Value}");
             }
-        }
-
-        return await base.SendAsync(request, cancellationToken);
-    }
-
-    private bool IsAuthorizedUrl(Uri requestUri)
-    {
-        foreach (var authorizedUri in _authorizedUris)
-        {
-            if (requestUri.AbsoluteUri.StartsWith(authorizedUri.AbsoluteUri, StringComparison.OrdinalIgnoreCase))
+            else
             {
-                return true;
+                throw new AccessTokenNotAvailableException(_navigation, result, null);
             }
         }
 
-        return false;
+        return await base.SendAsync(request, cancellationToken);
     }
 }
