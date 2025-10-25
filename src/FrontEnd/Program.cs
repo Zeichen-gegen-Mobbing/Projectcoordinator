@@ -44,11 +44,12 @@ builder.Services.AddHttpClient<ITripService, TripService>(client =>
 })
     .AddHttpMessageHandler(_ => new FakeAuthorizationMessageHandler());
 #else
+var baseAddress = $"{builder.HostEnvironment.BaseAddress}api/";
 builder.Services.AddHttpClient<ITripService, TripService>(client => {
-    client.BaseAddress = new Uri("https://ambitious-island-0f6399d03-48.westeurope.1.azurestaticapps.net/");
+    client.BaseAddress = new Uri(baseAddress);
 }).AddHttpMessageHandler(sp => {
     var handler = sp.GetRequiredService<CustomAuthorizationMessageHandler>();
-    handler.ConfigureHandler(new[] { "https://ambitious-island-0f6399d03-48.westeurope.1.azurestaticapps.net/api/" });
+    handler.ConfigureHandler([baseAddress]);
     return handler;
 });
 #endif
