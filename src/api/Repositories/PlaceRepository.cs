@@ -1,10 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using api.Entities;
+using api.Options;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Logging;
@@ -17,13 +18,13 @@ namespace api.Repositories
         private readonly Task<Container> initContainer;
         private readonly ILogger<PlaceRepository> logger;
 
-        public PlaceRepository(CosmosClient client, IOptions<CosmosSettings> options, ILogger<PlaceRepository> logger)
+        public PlaceRepository(CosmosClient client, IOptions<CosmosOptions> options, ILogger<PlaceRepository> logger)
         {
             this.logger = logger;
             initContainer = Init(options.Value, client);
         }
 
-        private async Task<Container> Init(CosmosSettings settings, CosmosClient client)
+        private async Task<Container> Init(CosmosOptions settings, CosmosClient client)
         {
             logger.LogDebug("Initializing Container");
             var container = client.GetContainer(settings.DatabaseId, settings.ContainerId);

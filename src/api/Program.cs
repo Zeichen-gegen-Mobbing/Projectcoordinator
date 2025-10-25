@@ -1,5 +1,5 @@
-using api;
 using api.Middleware;
+using api.Options;
 using api.Repositories;
 using api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -9,10 +9,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-using Microsoft.Identity.Web;
+
 
 var host = new HostBuilder()
-    .ConfigureFunctionsWebApplication(worker => 
+    .ConfigureFunctionsWebApplication(worker =>
     {
         worker.UseMiddleware<AuthorizationHeaderMiddleware>();
     })
@@ -20,14 +20,19 @@ var host = new HostBuilder()
     {
         services.AddApplicationInsightsTelemetryWorkerService();
         services.ConfigureFunctionsApplicationInsights();
-        services.AddOptionsWithValidateOnStart<CosmosSettings>().Configure<IConfiguration>((settings, configuration) =>
+        services.AddOptionsWithValidateOnStart<CosmosOptions>().Configure<IConfiguration>((settings, configuration) =>
         {
-            configuration.GetSection("Cosmos").Bind(settings);
+            configuration.GetSection(settings.Title).Bind(settings);
         }).ValidateDataAnnotations();
 
         services.AddOptionsWithValidateOnStart<OpenRouteServiceOptions>().Configure<IConfiguration>((settings, configuration) =>
         {
             configuration.GetSection(settings.Title).Bind(settings);
+        }).ValidateDataAnnotations();
+
+        services.AddOptionsWithValidateOnStart<AuthenticationOptions>().Configure<IConfiguration>((settings, configuration) =>
+        {
+            configuration.GetSection("Authentication").Bind(settings);
         }).ValidateDataAnnotations();
 
         SocketsHttpHandler socketsHttpHandler = new SocketsHttpHandler();
@@ -46,7 +51,7 @@ var host = new HostBuilder()
                     PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase,
                 }
             };
-            var cosmosSettings = provider.GetRequiredService<IOptions<CosmosSettings>>();
+            var cosmosSettings = provider.GetRequiredService<IOptions<CosmosOptions>>();
             return new CosmosClient(cosmosSettings.Value.ConnectionString, options);
         });
 

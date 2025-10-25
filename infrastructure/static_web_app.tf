@@ -8,9 +8,11 @@ resource "azurerm_static_web_app" "this" {
     "Cosmos__ContainerId"                   = azurerm_cosmosdb_sql_container.places.name
     "OpenRouteService__ApiKey"              = var.open_route_service_api_key
     "APPLICATIONINSIGHTS_CONNECTION_STRING" = azurerm_application_insights.this.connection_string
-    "AzureAd__ClientId"                     = azuread_application_registration.client.client_id
+    "AzureAd__ClientId"                     = azuread_application_registration.api.client_id
     "AzureAd__Instance"                     = "https://login.microsoftonline.com/"
     "AzureAd__TenantId"                     = data.azuread_client_config.current.tenant_id
+    "Authentication__FrontEndClientId"      = azuread_application_registration.client.client_id
+    "Authentication__ApiScope"              = "api://${azuread_application_registration.api.client_id}/API.Access"
   }
 
   lifecycle {
