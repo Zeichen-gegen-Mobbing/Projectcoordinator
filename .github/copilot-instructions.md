@@ -37,13 +37,7 @@
    ```
    - Build typically takes 15-50 seconds depending on cache
    - Always run `dotnet restore` after `dotnet clean` to avoid missing dependencies
-
-2. **Full Solution Build**:
-   ```powershell
-   dotnet build Projectcoordinator.sln
-   ```
-
-3. **Test Execution**:
+2. **Test Execution**:
    ```powershell
    dotnet test
    ```
@@ -234,10 +228,11 @@ Located in `.github/workflows/`:
 ### Validation Steps for Changes
 **Before submitting PRs, always:**
 1. Run `dotnet build` to ensure compilation
-2. Run `dotnet test` to ensure all tests pass
-3. Write unit tests for any new functionality or bug fixes
-4. Test SWA CLI startup if modifying frontend configuration
-5. Check that infrastructure plans apply cleanly if modifying Terraform
+2. Run `dotnet build -c Release` to ensure Release build succeeds
+3. Run `dotnet test` to ensure all tests pass
+4. Write unit tests for any new functionality or bug fixes
+5. Test SWA CLI startup if modifying frontend configuration
+6. Check that infrastructure plans apply cleanly if modifying Terraform
 
 ## Development Patterns and Conventions
 
