@@ -187,6 +187,130 @@ public class CustomAuthorizationMessageHandlerTests : IDisposable
             await Assert.That(requestToOld.Headers.Contains(CustomHttpHeaders.SwaAuthorization)).IsFalse();
             await Assert.That(requestToNew.Headers.Contains(CustomHttpHeaders.SwaAuthorization)).IsTrue();
         }
+
+        /// <summary>
+        /// Given: Handler configured with scopes
+        /// When: Request is sent to authorized URL
+        /// Then: AccessTokenRequestOptions with scopes is passed to token provider
+        /// </summary>
+        [Test]
+        public async Task PassesScopesToTokenProvider_WhenScopesConfigured()
+        {
+            // Arrange
+            var scopes = new[] { "api://app-id/access", "openid", "profile" };
+            AccessTokenRequestOptions? capturedOptions = null;
+            
+            var accessToken = new AccessToken { Value = "test-token", Expires = DateTimeOffset.UtcNow.AddHours(1) };
+            var tokenResult = new AccessTokenResult(AccessTokenResultStatus.Success, accessToken, null!, null);
+            
+            _tokenProviderMock
+                .Setup(x => x.RequestAccessToken(It.IsAny<AccessTokenRequestOptions>()))
+                .Callback<AccessTokenRequestOptions>(options => capturedOptions = options)
+                .ReturnsAsync(tokenResult);
+            
+            var handler = new CustomAuthorizationMessageHandler(_tokenProviderMock.Object, _navigationMock.Object);
+            handler.InnerHandler = new TestHttpMessageHandler();
+            handler.ConfigureHandler(new[] { "https://example.com/api/" }, scopes);
+            
+            var client = new HttpMessageInvoker(handler);
+            var request = new HttpRequestMessage(HttpMethod.Get, "https://example.com/api/data");
+
+            // Act
+            await client.SendAsync(request, CancellationToken.None);
+
+            // Assert
+            await Assert.That(capturedOptions).IsNotNull();
+            await Assert.That(capturedOptions!.Scopes).IsNotNull();
+            await Assert.That(capturedOptions.Scopes!.Count()).IsEqualTo(3);
+            await Assert.That(capturedOptions.Scopes).Contains("api://app-id/access");
+            await Assert.That(capturedOptions.Scopes).Contains("openid");
+            await Assert.That(capturedOptions.Scopes).Contains("profile");
+            
+            // Cleanup
+            client.Dispose();
+            handler.Dispose();
+        }
+
+        /// <summary>
+        /// Given: Handler configured without scopes
+        /// When: Request is sent to authorized URL
+        /// Then: AccessTokenRequestOptions with empty scopes is passed to token provider
+        /// </summary>
+        [Test]
+        public async Task PassesEmptyScopes_WhenNoScopesConfigured()
+        {
+            // Arrange
+            AccessTokenRequestOptions? capturedOptions = null;
+            
+            var accessToken = new AccessToken { Value = "test-token", Expires = DateTimeOffset.UtcNow.AddHours(1) };
+            var tokenResult = new AccessTokenResult(AccessTokenResultStatus.Success, accessToken, null!, null);
+            
+            _tokenProviderMock
+                .Setup(x => x.RequestAccessToken(It.IsAny<AccessTokenRequestOptions>()))
+                .Callback<AccessTokenRequestOptions>(options => capturedOptions = options)
+                .ReturnsAsync(tokenResult);
+            
+            var handler = new CustomAuthorizationMessageHandler(_tokenProviderMock.Object, _navigationMock.Object);
+            handler.InnerHandler = new TestHttpMessageHandler();
+            handler.ConfigureHandler(new[] { "https://example.com/api/" });
+            
+            var client = new HttpMessageInvoker(handler);
+            var request = new HttpRequestMessage(HttpMethod.Get, "https://example.com/api/data");
+
+            // Act
+            await client.SendAsync(request, CancellationToken.None);
+
+            // Assert
+            await Assert.That(capturedOptions).IsNotNull();
+            await Assert.That(capturedOptions!.Scopes).IsNotNull();
+            await Assert.That(capturedOptions.Scopes!.Count()).IsEqualTo(0);
+            
+            // Cleanup
+            client.Dispose();
+            handler.Dispose();
+        }
+
+        /// <summary>
+        /// Given: Handler configured with scopes, then reconfigured with different scopes
+        /// When: Request is sent to authorized URL
+        /// Then: Latest scopes are used
+        /// </summary>
+        [Test]
+        public async Task ClearsPreviousScopes_WhenReconfigured()
+        {
+            // Arrange
+            AccessTokenRequestOptions? capturedOptions = null;
+            
+            var accessToken = new AccessToken { Value = "test-token", Expires = DateTimeOffset.UtcNow.AddHours(1) };
+            var tokenResult = new AccessTokenResult(AccessTokenResultStatus.Success, accessToken, null!, null);
+            
+            _tokenProviderMock
+                .Setup(x => x.RequestAccessToken(It.IsAny<AccessTokenRequestOptions>()))
+                .Callback<AccessTokenRequestOptions>(options => capturedOptions = options)
+                .ReturnsAsync(tokenResult);
+            
+            var handler = new CustomAuthorizationMessageHandler(_tokenProviderMock.Object, _navigationMock.Object);
+            handler.InnerHandler = new TestHttpMessageHandler();
+            handler.ConfigureHandler(new[] { "https://example.com/api/" }, new[] { "old-scope" });
+            handler.ConfigureHandler(new[] { "https://example.com/api/" }, new[] { "new-scope" });
+            
+            var client = new HttpMessageInvoker(handler);
+            var request = new HttpRequestMessage(HttpMethod.Get, "https://example.com/api/data");
+
+            // Act
+            await client.SendAsync(request, CancellationToken.None);
+
+            // Assert
+            await Assert.That(capturedOptions).IsNotNull();
+            await Assert.That(capturedOptions!.Scopes).IsNotNull();
+            await Assert.That(capturedOptions.Scopes!.Count()).IsEqualTo(1);
+            await Assert.That(capturedOptions.Scopes).Contains("new-scope");
+            await Assert.That(capturedOptions.Scopes).DoesNotContain("old-scope");
+            
+            // Cleanup
+            client.Dispose();
+            handler.Dispose();
+        }
     }
 
     private class TestHttpMessageHandler : HttpMessageHandler
