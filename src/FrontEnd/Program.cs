@@ -49,18 +49,15 @@ builder.Services.AddHttpClient("GraphAPI",
                 string.Empty)))
     .AddHttpMessageHandler<GraphAuthorizationMessageHandler>();
 
-
-#if DEBUG
+var baseAddress = $"{builder.HostEnvironment.BaseAddress}api/";
 builder.Services.AddHttpClient<ITripService, TripService>(client =>
 {
-    client.BaseAddress = new Uri("http://localhost:4280");
+    client.BaseAddress = new Uri(baseAddress);
 })
+#if DEBUG
     .AddHttpMessageHandler(_ => new FakeAuthorizationMessageHandler());
 #else
-var baseAddress = $"{builder.HostEnvironment.BaseAddress}api/";
-builder.Services.AddHttpClient<ITripService, TripService>(client => {
-    client.BaseAddress = new Uri(baseAddress);
-}).AddHttpMessageHandler(sp => {
+.AddHttpMessageHandler(sp => {
     var handler = sp.GetRequiredService<CustomAuthorizationMessageHandler>();
     handler.ConfigureHandler([baseAddress], [authConfig.ApiScope]);
     return handler;
