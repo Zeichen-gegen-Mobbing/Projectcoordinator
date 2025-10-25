@@ -25,15 +25,15 @@ public class AuthorizationHeaderMiddleware : IFunctionsWorkerMiddleware
     {
         if (headers.TryGetValues(CustomHttpHeaders.SwaAuthorization, out var swaAuthValues))
         {
-            var swaAuthValue = swaAuthValues?.FirstOrDefault();
-            
+            var swaAuthValue = swaAuthValues.FirstOrDefault();
+
             if (!string.IsNullOrWhiteSpace(swaAuthValue))
             {
                 if (headers.Contains(AuthorizationHeader))
                 {
                     headers.Remove(AuthorizationHeader);
                 }
-                
+
                 headers.Add(AuthorizationHeader, swaAuthValue);
             }
         }
