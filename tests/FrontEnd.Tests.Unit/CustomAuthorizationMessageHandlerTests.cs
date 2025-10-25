@@ -3,158 +3,105 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using Moq;
 using TUnit.Assertions.Extensions;
+using ZgM.ProjectCoordinator.Shared;
 
 namespace FrontEnd.Tests.Unit;
 
-public class CustomAuthorizationMessageHandlerTests
+public class CustomAuthorizationMessageHandlerTests : IDisposable
 {
-    public class SendAsync
+    protected readonly Mock<IAccessTokenProvider> _tokenProviderMock = new();
+    protected readonly Mock<NavigationManager> _navigationMock = new();
+    protected readonly CustomAuthorizationMessageHandler _handler;
+    protected readonly HttpMessageInvoker _invoker;
+    protected readonly string _authorizedUrl = "https://example.com/api/";
+    protected readonly AccessToken _accessToken = new() { Value = "test-token", Expires = DateTimeOffset.UtcNow.AddHours(1) };
+
+    public CustomAuthorizationMessageHandlerTests()
     {
-        /// <summary>
-        /// Given: Request URI matches configured authorized URL
-        /// When: SendAsync is called
-        /// Then: ZgM-SWA-Authorization header is added with Bearer token
-        /// </summary>
+        _handler = new CustomAuthorizationMessageHandler(_tokenProviderMock.Object, _navigationMock.Object);
+        _handler.InnerHandler = new TestHttpMessageHandler();
+        _handler.ConfigureHandler([_authorizedUrl]);
+
+        _invoker = new HttpMessageInvoker(_handler);
+
+        var tokenResult = new AccessTokenResult(AccessTokenResultStatus.Success, _accessToken, null!, null);
+
+        _tokenProviderMock.Setup(x => x.RequestAccessToken()).ReturnsAsync(tokenResult);
+    }
+
+    public class SendAsyncMethod : CustomAuthorizationMessageHandlerTests
+    {
         [Test]
         public async Task AddsAuthorizationHeader_WhenRequestUriIsAuthorized()
         {
             // Arrange
-            var tokenProviderMock = new Mock<IAccessTokenProvider>();
-            var navigationMock = new Mock<NavigationManager>();
-            var handler = new CustomAuthorizationMessageHandler(tokenProviderMock.Object, navigationMock.Object);
-            
-            handler.ConfigureHandler(new[] { "https://example.com/api/" });
-            
-            var accessToken = new AccessToken { Value = "test-token", Expires = DateTimeOffset.UtcNow.AddHours(1) };
-            var tokenResultMock = new Mock<AccessTokenResult>();
-            tokenResultMock.Setup(x => x.Status).Returns(AccessTokenResultStatus.Success);
-            tokenResultMock.Setup(x => x.TryGetToken(out It.Ref<AccessToken?>.IsAny))
-                .Returns(new TryGetTokenDelegate((out AccessToken? token) =>
-                {
-                    token = accessToken;
-                    return true;
-                }));
-            
-            tokenProviderMock.Setup(x => x.RequestAccessToken()).ReturnsAsync(tokenResultMock.Object);
-            
-            handler.InnerHandler = new TestHttpMessageHandler();
-            
-            var client = new HttpClient(handler);
-            var request = new HttpRequestMessage(HttpMethod.Get, "https://example.com/api/trips");
-            
+            var request = new HttpRequestMessage(HttpMethod.Get, $"{_authorizedUrl}trips");
+
             // Act
-            await client.SendAsync(request);
-            
+            await _invoker.SendAsync(request, CancellationToken.None);
+
             // Assert
-            await Assert.That(request.Headers.Contains("ZgM-SWA-Authorization")).IsTrue();
-            await Assert.That(request.Headers.GetValues("ZgM-SWA-Authorization").First()).IsEqualTo("Bearer test-token");
+            await Assert.That(request.Headers.Contains(CustomHttpHeaders.SwaAuthorization)).IsTrue();
+            await Assert.That(request.Headers.GetValues(CustomHttpHeaders.SwaAuthorization).First()).IsEqualTo($"Bearer {_accessToken.Value}");
         }
 
         [Test]
         public async Task DoesNotAddAuthorizationHeader_WhenRequestUriIsNotAuthorized()
         {
             // Arrange
-            var tokenProviderMock = new Mock<IAccessTokenProvider>();
-            var navigationMock = new Mock<NavigationManager>();
-            var handler = new CustomAuthorizationMessageHandler(tokenProviderMock.Object, navigationMock.Object);
-            
-            handler.ConfigureHandler(new[] { "https://example.com/api/" });
-            
-            var accessToken = new AccessToken { Value = "test-token", Expires = DateTimeOffset.UtcNow.AddHours(1) };
-            var tokenResultMock = new Mock<AccessTokenResult>();
-            tokenResultMock.Setup(x => x.Status).Returns(AccessTokenResultStatus.Success);
-            tokenResultMock.Setup(x => x.TryGetToken(out It.Ref<AccessToken?>.IsAny))
-                .Returns(new TryGetTokenDelegate((out AccessToken? token) =>
-                {
-                    token = accessToken;
-                    return true;
-                }));
-            
-            tokenProviderMock.Setup(x => x.RequestAccessToken()).ReturnsAsync(tokenResultMock.Object);
-            
-            handler.InnerHandler = new TestHttpMessageHandler();
-            
-            var client = new HttpClient(handler);
             var request = new HttpRequestMessage(HttpMethod.Get, "https://example.com/other/endpoint");
-            
+
             // Act
-            await client.SendAsync(request);
-            
+            await _invoker.SendAsync(request, CancellationToken.None);
+
             // Assert
-            await Assert.That(request.Headers.Contains("ZgM-SWA-Authorization")).IsFalse();
+            await Assert.That(request.Headers.Contains(CustomHttpHeaders.SwaAuthorization)).IsFalse();
         }
 
         [Test]
-        public async Task DoesNotAddAuthorizationHeader_WhenTokenRequestFails()
+        public async Task Throws_WhenTokenRequestFails()
         {
             // Arrange
-            var tokenProviderMock = new Mock<IAccessTokenProvider>();
-            var navigationMock = new Mock<NavigationManager>();
-            var handler = new CustomAuthorizationMessageHandler(tokenProviderMock.Object, navigationMock.Object);
-            
-            handler.ConfigureHandler(new[] { "https://example.com/api/" });
-            
-            var tokenResultMock = new Mock<AccessTokenResult>();
-            tokenResultMock.Setup(x => x.Status).Returns(AccessTokenResultStatus.RequiresRedirect);
-            tokenResultMock.Setup(x => x.TryGetToken(out It.Ref<AccessToken?>.IsAny))
-                .Returns(new TryGetTokenDelegate((out AccessToken? token) =>
-                {
-                    token = null;
-                    return false;
-                }));
-            
-            tokenProviderMock.Setup(x => x.RequestAccessToken()).ReturnsAsync(tokenResultMock.Object);
-            
-            handler.InnerHandler = new TestHttpMessageHandler();
-            
-            var client = new HttpClient(handler);
-            var request = new HttpRequestMessage(HttpMethod.Get, "https://example.com/api/trips");
-            
+            var tokenResult = new AccessTokenResult(AccessTokenResultStatus.RequiresRedirect, null!, "https://login.example.com", null);
+            _tokenProviderMock.Setup(x => x.RequestAccessToken()).ReturnsAsync(tokenResult);
+
+            var request = new HttpRequestMessage(HttpMethod.Get, $"{_authorizedUrl}trips");
+
             // Act
-            await client.SendAsync(request);
-            
+            var act = async () =>
+            {
+                await _invoker.SendAsync(request, CancellationToken.None);
+            };
+
             // Assert
-            await Assert.That(request.Headers.Contains("ZgM-SWA-Authorization")).IsFalse();
+            await Assert.ThrowsAsync<InvalidOperationException>(act);
+            await Assert.That(request.Headers.Contains(CustomHttpHeaders.SwaAuthorization)).IsFalse();
         }
 
         /// <summary>
         /// Given: Handler not configured with authorized URLs (empty list)
         /// When: SendAsync is called with any URL
-        /// Then: Authorization header is added to all requests
+        /// Then: Authorization header is NOT added (no authorized URLs means no authorization)
         /// </summary>
         [Test]
-        public async Task AddsTokenToAllRequests_WhenNoAuthorizedUrlsConfigured()
+        public async Task DoesNotAddToken_WhenNoAuthorizedUrlsConfigured()
         {
             // Arrange
-            var tokenProviderMock = new Mock<IAccessTokenProvider>();
-            var navigationMock = new Mock<NavigationManager>();
-            var handler = new CustomAuthorizationMessageHandler(tokenProviderMock.Object, navigationMock.Object);
-            
-            // Not calling ConfigureHandler, so no authorized URLs
-            
-            var accessToken = new AccessToken { Value = "test-token", Expires = DateTimeOffset.UtcNow.AddHours(1) };
-            var tokenResultMock = new Mock<AccessTokenResult>();
-            tokenResultMock.Setup(x => x.Status).Returns(AccessTokenResultStatus.Success);
-            tokenResultMock.Setup(x => x.TryGetToken(out It.Ref<AccessToken?>.IsAny))
-                .Returns(new TryGetTokenDelegate((out AccessToken? token) =>
-                {
-                    token = accessToken;
-                    return true;
-                }));
-            
-            tokenProviderMock.Setup(x => x.RequestAccessToken()).ReturnsAsync(tokenResultMock.Object);
-            
+            var handler = new CustomAuthorizationMessageHandler(_tokenProviderMock.Object, _navigationMock.Object);
             handler.InnerHandler = new TestHttpMessageHandler();
-            
-            var client = new HttpClient(handler);
+            // Not calling ConfigureHandler
+
+            var client = new HttpMessageInvoker(handler);
             var request = new HttpRequestMessage(HttpMethod.Get, "https://any-url.com/endpoint");
-            
+
             // Act
-            await client.SendAsync(request);
-            
+            await client.SendAsync(request, CancellationToken.None);
+            // Cleanup
+            client.Dispose();
+            handler.Dispose();
+
             // Assert
-            await Assert.That(request.Headers.Contains("ZgM-SWA-Authorization")).IsTrue();
-            await Assert.That(request.Headers.GetValues("ZgM-SWA-Authorization").First()).IsEqualTo("Bearer test-token");
+            await Assert.That(request.Headers.Contains(CustomHttpHeaders.SwaAuthorization)).IsFalse();
         }
 
         /// <summary>
@@ -163,126 +110,112 @@ public class CustomAuthorizationMessageHandlerTests
         /// Then: Authorization header is added only to matching URLs
         /// </summary>
         [Test]
-        public async Task AddsTokenOnlyToMatchingUrls_WhenMultipleAuthorizedUrls()
+        [Arguments("https://api1.example.com/data", true)]
+        [Arguments("https://api2.example.com/api/trips", true)]
+        [Arguments("https://other.example.com/data", false)]
+        public async Task AddsTokenOnlyToMatchingUrls_WhenMultipleAuthorizedUrls(string url, Boolean expectedToHaveToken)
         {
             // Arrange
-            var tokenProviderMock = new Mock<IAccessTokenProvider>();
-            var navigationMock = new Mock<NavigationManager>();
-            var handler = new CustomAuthorizationMessageHandler(tokenProviderMock.Object, navigationMock.Object);
-            
-            handler.ConfigureHandler(new[] { 
-                "https://api1.example.com/",
-                "https://api2.example.com/api/" 
-            });
-            
-            var accessToken = new AccessToken { Value = "test-token", Expires = DateTimeOffset.UtcNow.AddHours(1) };
-            var tokenResultMock = new Mock<AccessTokenResult>();
-            tokenResultMock.Setup(x => x.Status).Returns(AccessTokenResultStatus.Success);
-            tokenResultMock.Setup(x => x.TryGetToken(out It.Ref<AccessToken?>.IsAny))
-                .Returns(new TryGetTokenDelegate((out AccessToken? token) =>
-                {
-                    token = accessToken;
-                    return true;
-                }));
-            
-            tokenProviderMock.Setup(x => x.RequestAccessToken()).ReturnsAsync(tokenResultMock.Object);
-            
+            var handler = new CustomAuthorizationMessageHandler(_tokenProviderMock.Object, _navigationMock.Object);
             handler.InnerHandler = new TestHttpMessageHandler();
-            
-            var client = new HttpClient(handler);
-            
-            // Act & Assert - First authorized URL
-            var request1 = new HttpRequestMessage(HttpMethod.Get, "https://api1.example.com/data");
-            await client.SendAsync(request1);
-            await Assert.That(request1.Headers.Contains("ZgM-SWA-Authorization")).IsTrue();
-            
-            // Act & Assert - Second authorized URL
-            var request2 = new HttpRequestMessage(HttpMethod.Get, "https://api2.example.com/api/trips");
-            await client.SendAsync(request2);
-            await Assert.That(request2.Headers.Contains("ZgM-SWA-Authorization")).IsTrue();
-            
-            // Act & Assert - Unauthorized URL
-            var request3 = new HttpRequestMessage(HttpMethod.Get, "https://other.example.com/data");
-            await client.SendAsync(request3);
-            await Assert.That(request3.Headers.Contains("ZgM-SWA-Authorization")).IsFalse();
+            handler.ConfigureHandler(new[] {
+                "https://api1.example.com/",
+                "https://api2.example.com/api/"
+            });
+
+            var client = new HttpMessageInvoker(handler);
+            var request = new HttpRequestMessage(HttpMethod.Get, url);
+
+            // Act
+            await client.SendAsync(request, CancellationToken.None);
+
+            // Cleanup
+            client.Dispose();
+            handler.Dispose();
+
+            // Assert
+            await Assert.That(request.Headers.Contains(CustomHttpHeaders.SwaAuthorization)).IsEqualTo(expectedToHaveToken);
         }
 
         [Test]
         public async Task AddsToken_WhenUrlMatchesPrefix()
         {
             // Arrange
-            var tokenProviderMock = new Mock<IAccessTokenProvider>();
-            var navigationMock = new Mock<NavigationManager>();
-            var handler = new CustomAuthorizationMessageHandler(tokenProviderMock.Object, navigationMock.Object);
-            
-            handler.ConfigureHandler(new[] { "https://example.com/api/" });
-            
-            var accessToken = new AccessToken { Value = "test-token", Expires = DateTimeOffset.UtcNow.AddHours(1) };
-            var tokenResultMock = new Mock<AccessTokenResult>();
-            tokenResultMock.Setup(x => x.Status).Returns(AccessTokenResultStatus.Success);
-            tokenResultMock.Setup(x => x.TryGetToken(out It.Ref<AccessToken?>.IsAny))
-                .Returns(new TryGetTokenDelegate((out AccessToken? token) =>
-                {
-                    token = accessToken;
-                    return true;
-                }));
-            
-            tokenProviderMock.Setup(x => x.RequestAccessToken()).ReturnsAsync(tokenResultMock.Object);
-            
-            handler.InnerHandler = new TestHttpMessageHandler();
-            
-            var client = new HttpClient(handler);
-            var request = new HttpRequestMessage(HttpMethod.Get, "https://example.com/api/v1/trips/123");
-            
+            var request = new HttpRequestMessage(HttpMethod.Get, $"{_authorizedUrl}v1/trips/123");
+
             // Act
-            await client.SendAsync(request);
-            
+            await _invoker.SendAsync(request, CancellationToken.None);
+
             // Assert
-            await Assert.That(request.Headers.Contains("ZgM-SWA-Authorization")).IsTrue();
+            await Assert.That(request.Headers.Contains(CustomHttpHeaders.SwaAuthorization)).IsTrue();
         }
 
         [Test]
         public async Task MatchesAuthorizedUrl_CaseInsensitive()
         {
             // Arrange
-            var tokenProviderMock = new Mock<IAccessTokenProvider>();
-            var navigationMock = new Mock<NavigationManager>();
-            var handler = new CustomAuthorizationMessageHandler(tokenProviderMock.Object, navigationMock.Object);
-            
-            handler.ConfigureHandler(new[] { "https://example.com/API/" });
-            
-            var accessToken = new AccessToken { Value = "test-token", Expires = DateTimeOffset.UtcNow.AddHours(1) };
-            var tokenResultMock = new Mock<AccessTokenResult>();
-            tokenResultMock.Setup(x => x.Status).Returns(AccessTokenResultStatus.Success);
-            tokenResultMock.Setup(x => x.TryGetToken(out It.Ref<AccessToken?>.IsAny))
-                .Returns(new TryGetTokenDelegate((out AccessToken? token) =>
-                {
-                    token = accessToken;
-                    return true;
-                }));
-            
-            tokenProviderMock.Setup(x => x.RequestAccessToken()).ReturnsAsync(tokenResultMock.Object);
-            
-            handler.InnerHandler = new TestHttpMessageHandler();
-            
-            var client = new HttpClient(handler);
+            _handler.ConfigureHandler(["https://example.com/API/"]);
+
             var request = new HttpRequestMessage(HttpMethod.Get, "https://example.com/api/trips");
-            
+
             // Act
-            await client.SendAsync(request);
-            
+            await _invoker.SendAsync(request, CancellationToken.None);
+
             // Assert
-            await Assert.That(request.Headers.Contains("ZgM-SWA-Authorization")).IsTrue();
+            await Assert.That(request.Headers.Contains(CustomHttpHeaders.SwaAuthorization)).IsTrue();
         }
     }
 
-    private delegate bool TryGetTokenDelegate(out AccessToken? token);
+    public class ConfigureHandlerMethod : CustomAuthorizationMessageHandlerTests
+    {
+        [Test]
+        public async Task ReturnsHandlerInstance_ForFluentConfiguration()
+        {
+            // Act
+            var result = _handler.ConfigureHandler(["https://example.com/"]);
+
+            // Assert
+            await Assert.That(result == _handler).IsTrue();
+        }
+
+        [Test]
+        public async Task ClearsPreviousUrls_WhenCalledMultipleTimes()
+        {
+            // Arrange
+            var newAuthorizedUri = "https://new.example.com/";
+            _handler.ConfigureHandler([newAuthorizedUri]);
+            var requestToOld = new HttpRequestMessage(HttpMethod.Get, _authorizedUrl);
+            var requestToNew = new HttpRequestMessage(HttpMethod.Get, newAuthorizedUri);
+
+            // Act
+            await _invoker.SendAsync(requestToOld, CancellationToken.None);
+            await _invoker.SendAsync(requestToNew, CancellationToken.None);
+
+            // Assert
+            await Assert.That(requestToOld.Headers.Contains(CustomHttpHeaders.SwaAuthorization)).IsFalse();
+            await Assert.That(requestToNew.Headers.Contains(CustomHttpHeaders.SwaAuthorization)).IsTrue();
+        }
+    }
 
     private class TestHttpMessageHandler : HttpMessageHandler
     {
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             return Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.OK));
+        }
+    }
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+    protected virtual void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _invoker.Dispose();
+            _handler.Dispose();
         }
     }
 }
