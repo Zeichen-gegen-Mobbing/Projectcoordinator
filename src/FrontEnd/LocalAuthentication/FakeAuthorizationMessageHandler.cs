@@ -7,6 +7,7 @@ using System.IdentityModel.Tokens.Jwt;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 using System.Text;
+using ZgM.ProjectCoordinator.Shared;
 
 namespace FrontEnd.Services
 {
@@ -30,7 +31,7 @@ namespace FrontEnd.Services
             );
             var token = tokenHandler.WriteToken(jwt);
 
-            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            request.Headers.TryAddWithoutValidation(CustomHttpHeaders.SwaAuthorization, $"Bearer {token}");
             return base.SendAsync(request, cancellationToken);
         }
     }

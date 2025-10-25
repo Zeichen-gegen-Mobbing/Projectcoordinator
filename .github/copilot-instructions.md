@@ -43,10 +43,12 @@
    dotnet build Projectcoordinator.sln
    ```
 
-3. **Test Execution** (currently no tests exist):
+3. **Test Execution**:
    ```powershell
    dotnet test
    ```
+   - Tests use **TUnit** framework with **Moq** for mocking
+   - Test projects located in `tests/` directory
 
 ### Local Development Setup
 
@@ -172,11 +174,70 @@ Located in `.github/workflows/`:
 - **SonarLint**: Connected mode configured for "zeichen-gegen-mobbing" organization
 - **No explicit linting rules**: No .editorconfig, stylecop, or custom rulesets found
 
+### Testing Standards and Guidelines
+
+**Test Framework and Tools**:
+- **Test Framework**: TUnit (version 0.5.x or later)
+- **Mocking Framework**: Moq (version 4.x or later)
+- All new functionality **must** have unit tests
+
+**Test Project Organization**:
+- **Project Naming**: `<ProjectName>.Tests.Unit` (e.g., `FrontEnd.Tests.Unit`, `api.Tests.Unit`)
+- **Location**: `tests/<ProjectName>.Tests.Unit/` directory
+- **File Naming**: `<ClassName>Tests.cs` (e.g., `CustomAuthorizationMessageHandlerTests.cs`)
+
+**Test Structure**:
+- **Use nested classes**: Group tests by method under test using nested classes
+  ```csharp
+  public class CustomAuthorizationMessageHandlerTests
+  {
+      public class SendAsync  // Nested class per method under test
+      {
+          [Test]
+          public async Task AddsAuthorizationHeader_WhenRequestUriIsAuthorized() { }
+          
+          [Test]
+          public async Task DoesNotAddAuthorizationHeader_WhenRequestUriIsNotAuthorized() { }
+      }
+      
+      public class ConfigureHandler
+      {
+          [Test]
+          public void ClearsExistingUrls_WhenCalledMultipleTimes() { }
+      }
+  }
+  ```
+
+**Test Naming Conventions**:
+- **Format**: `<Action>_When<Condition>` or `<ExpectedBehavior>_When<Condition>`
+- **Examples**:
+  - `AddsAuthorizationHeader_WhenRequestUriIsAuthorized`
+  - `ThrowsException_WhenParameterIsNull`
+  - `ReturnsEmptyList_WhenNoDataExists`
+- Keep names concise; the nested class provides context
+- **Documentation**: When the test name isn't crystal clear, add XML doc comments using Given/When/Then pattern:
+  ```csharp
+  /// <summary>
+  /// Given: Handler not configured with authorized URLs (empty list)
+  /// When: SendAsync is called with any URL
+  /// Then: Authorization header is added to all requests
+  /// </summary>
+  [Test]
+  public async Task AddsTokenToAllRequests_WhenNoAuthorizedUrlsConfigured() { }
+  ```
+
+**Test Organization**:
+- Use `// Arrange`, `// Act`, `// Assert` comments to clearly separate test phases
+- Keep setup code minimal and focused on the test scenario
+- Extract common setup to helper methods or base classes when appropriate
+
 ### Validation Steps for Changes
 **Before submitting PRs, always:**
 1. Run `dotnet build` to ensure compilation
-2. Test SWA CLI startup if modifying frontend configuration
-3. Check that infrastructure plans apply cleanly if modifying Terraform
+2. Run `dotnet test` to ensure all tests pass
+3. Write unit tests for any new functionality or bug fixes
+4. Test SWA CLI startup if modifying frontend configuration
+5. Check that infrastructure plans apply cleanly if modifying Terraform
 
 ## Development Patterns and Conventions
 

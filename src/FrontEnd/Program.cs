@@ -24,6 +24,7 @@ LocalAuthenticationProvider.AddLocalAuthentication(builder.Services);
 #endif
 
 builder.Services.AddTransient<GraphAuthorizationMessageHandler>();
+builder.Services.AddTransient<CustomAuthorizationMessageHandler>();
 
 builder.Services.AddHttpClient("GraphAPI",
         client => client.BaseAddress = new Uri(
@@ -45,7 +46,11 @@ builder.Services.AddHttpClient<ITripService, TripService>(client =>
 #else
 builder.Services.AddHttpClient<ITripService, TripService>(client => {
     client.BaseAddress = new Uri("https://ambitious-island-0f6399d03-48.westeurope.1.azurestaticapps.net/");
-}).AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
+}).AddHttpMessageHandler(sp => {
+    var handler = sp.GetRequiredService<CustomAuthorizationMessageHandler>();
+    handler.ConfigureHandler(new[] { "https://ambitious-island-0f6399d03-48.westeurope.1.azurestaticapps.net/api/" });
+    return handler;
+});
 #endif
 
 builder.Services.AddScoped<IUserService, FakeUserService>();

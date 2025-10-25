@@ -1,4 +1,5 @@
 using api;
+using api.Middleware;
 using api.Repositories;
 using api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -11,7 +12,10 @@ using Microsoft.Extensions.Options;
 using Microsoft.Identity.Web;
 
 var host = new HostBuilder()
-    .ConfigureFunctionsWebApplication()
+    .ConfigureFunctionsWebApplication(worker => 
+    {
+        worker.UseMiddleware<AuthorizationHeaderMiddleware>();
+    })
     .ConfigureServices((context, services) =>
     {
         services.AddApplicationInsightsTelemetryWorkerService();
@@ -51,6 +55,7 @@ var host = new HostBuilder()
         services.AddScoped<IPlaceRepository, PlaceRepository>();
         services.AddScoped<IPlaceService, PlaceCosmosService>();
         services.AddScoped<ITripService, TripOpenRouteService>();
+        services.AddScoped<AuthorizationHeaderMiddleware>();
         services.AddProblemDetails();
 #if DEBUG
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
