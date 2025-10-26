@@ -64,6 +64,10 @@ builder.Services.AddHttpClient<ITripService, TripService>(client =>
 });
 #endif
 
+#if DEBUG
 builder.Services.AddScoped<IUserService, FakeUserService>();
+#else
+builder.Services.AddScoped<IUserService, GraphUserService>();
+#endif
 
 await builder.Build().RunAsync();
