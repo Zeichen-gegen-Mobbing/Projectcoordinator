@@ -109,7 +109,7 @@ jobs:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
             SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          ./.sonar/scanner/dotnet-sonarscanner begin /k:"Zeichen-gegen-Mobbing_Projectcoordinator" /o:"zeichen-gegen-mobbing" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.sources="src" /d:sonar.tests="tests" /d:sonar.coverage.exclusions="tests/**/*,**/Program.cs" /d:sonar.exclusions="**/obj/**,**/bin/**,**/wwwroot/lib/**" /d:sonar.cs.vstest.reportsPaths="**/TestResults/**/*.trx" /d:sonar.cs.vscoveragexml.reportsPaths="**/TestResults/*.xml"
+          ./.sonar/scanner/dotnet-sonarscanner begin /k:"Zeichen-gegen-Mobbing_Projectcoordinator" /o:"zeichen-gegen-mobbing" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.sources="src" /d:sonar.tests="tests" /d:sonar.exclusions="**/obj/**,**/bin/**,**/wwwroot/lib/**" /d:sonar.cs.vstest.reportsPaths="**/TestResults/**/*.trx" /d:sonar.cs.vscoveragexml.reportsPaths="**/TestResults/*.xml"
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.x.x'
