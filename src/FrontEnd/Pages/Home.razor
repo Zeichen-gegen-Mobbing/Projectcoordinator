@@ -73,7 +73,16 @@ else
 
     private async Task loadUser(TripViewModel trip)
     {
-        trip.User = await UserService.GetUserAsync(trip.Place.UserId);
+        try
+        {
+            trip.User = await UserService.GetUserAsync(trip.Place.UserId);
+        }
+        catch (Exception ex)
+        {
+            trip.User ??= new User(trip.Place.UserId);
+            trip.User.DisplayName = $"Error loading name ({trip.Place.UserId})";
+            Console.WriteLine($"Error loading user {trip.Place.UserId}: {ex}");
+        }
         StateHasChanged();
         await Task.Yield();
     }

@@ -16,6 +16,9 @@ public class GetAuthenticationConfiguration(ILogger<GetAuthenticationConfigurati
     {
         using (logger.BeginScope(new Dictionary<string, object> { { "FunctionName", nameof(GetAuthenticationConfiguration) } }))
         {
+#if DEBUG
+            logger.LogWarning($"{nameof(GetAuthenticationConfiguration)} invoked with Debug configuration");
+#endif
             logger.LogTrace($"{nameof(GetAuthenticationConfiguration)} invoked");
             return new OkObjectResult(authOptions.Value.ToSharedOptions());
         }
