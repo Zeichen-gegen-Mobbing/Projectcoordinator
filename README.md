@@ -4,7 +4,7 @@ App um die Arbeit der Projektkoordination zu erleichtern
 
 ## Architecture
 
-The FrontEnd is a Blazor WASM Application to be run in Azure Static Website. The BackEnd is a C# Azure Functions implementation intended to run as a Managed Api inside of the Static Web App. The data will be persisted in CosmosDB. Using these srvices allows us to run this app for free.
+The FrontEnd is a Blazor WASM Application to be run in Azure Static Website. The BackEnd is a C# Azure Functions implementation intended to run as a Managed Api inside of the Static Web App. The data will be persisted in CosmosDB. Using these services allows us to run this app for free.
 
 ### Authentication
 
@@ -18,37 +18,40 @@ The deployment of the infrastructure uses OpenTofu (see `./infrastructure`). The
 
 On every PR the site is pushed to a preview environment. As this is a different URL, the application must contain the Redirect URI. To allow this the parameter `redirect_uris_number` configures from which number 100 PRs are added as redirect URIs. Update this number when you have almost reached 100.
 
-## Configuration
-
-Following configurations are required:
-
-- `Cosmos__ConnectionString`
-- `OpenRouteService__ApiKey`
-
 ## Local Development
 
 The suggested Local Development Environment is using Visual Studio Code. To run Front- and Backend together use [static web app cli](https://learn.microsoft.com/en-us/azure/static-web-apps/local-development) `swa start`
 
-### FrontEnd
-
-The FrontEnd can be run without the backend thanks to the `FakeServices`. To enable the FakeServices you need to Change the `Program.cs`(src\FrontEnd\Program.cs) to load the FakeService Implementations eg.
-
-```C#
-builder.Services.AddScoped<IUserService,FakeUserService>();
-builder.Services.AddScoped<IPlaceService, FakePlaceService>();
-```
-
-### BackEnd
-
 To run the backend you need the Azure Function Core Tools. Furthermore you need the [Azure Cosmos Emulator](https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-develop-emulator?tabs=docker-windows%2Ccsharp&pivots=api-nosql). You can run `pwsh ./scripts/Start-PcDatabase.ps1` if you have PowerShell and docker installed.
 
-Configure the required Configurations in `local.settings.json`. Furthermore you may disable CORS for local development:
+Configure the required Configurations in `src\api\local.settings.json`.
 
 ```json
-"Host": {
-    "CORS": "*"
+{
+    "IsEncrypted": false,
+    "Values": {
+        "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+        "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
+        "AzureWebJobsFeatureFlags": "EnableActionResultHandling",
+        "Cosmos__ConnectionString": "AccountEndpoint=https://localhost:8081/;AccountKey=C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==",
+        "OpenRouteService__ApiKey": "<ApiKey>"
+    }
 }
 ```
+
+This is enough to run the application in `Debug` as there the authentication and authorization is disabled using Fake services.
+
+If you want to run the app with authN & AuthZ to test Graph or be more like the deployed version, you need to configure the auth Settings. Add to the `src\api\local.settings.json`
+
+```
+"AzureAd__ClientId": "<ApiClientId>",
+"AzureAd__Instance": "https://login.microsoftonline.com/",
+"AzureAd__TenantId": "<TenantId>",
+"Authentication__FrontEndClientId": "<FrontEndClientId>",
+"Authentication__ApiScope": "api://<ApiClientId>/API.Access"
+```
+
+After configured use `swa start --run "dotnet watch run -c Release"` to run in Release mode to use the real Services.
 
 #### Add Places
 
