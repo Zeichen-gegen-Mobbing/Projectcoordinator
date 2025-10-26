@@ -44,3 +44,10 @@ variable "key_vault_name" {
   type        = string
   description = "Name of the Key Vault."
 }
+
+variable "custom_domain" {
+  type        = string
+  description = "Custom domain for the static web app. Set to null to disable."
+  default     = "projectcoordinator.z-g-m.de"
+  nullable    = true
+}
