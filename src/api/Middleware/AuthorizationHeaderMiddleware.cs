@@ -18,18 +18,13 @@ public class AuthorizationHeaderMiddleware : IFunctionsWorkerMiddleware
     public async Task Invoke(FunctionContext context, FunctionExecutionDelegate next)
     {
         var httpRequestData = await context.GetHttpRequestDataAsync();
-
-        if (httpRequestData is not null)
-        {
-            ReplaceAuthorizationHeader(httpRequestData.Headers);
-        }
-
+        ReplaceAuthorizationHeader(httpRequestData?.Headers);
         await next(context);
     }
 
-    public static void ReplaceAuthorizationHeader(HttpHeadersCollection headers)
+    public static void ReplaceAuthorizationHeader(HttpHeadersCollection? headers)
     {
-        if (headers.TryGetValues(CustomHttpHeaders.SwaAuthorization, out var swaAuthValues))
+        if (headers?.TryGetValues(CustomHttpHeaders.SwaAuthorization, out var swaAuthValues) == true)
         {
             var swaAuthValue = swaAuthValues.FirstOrDefault();
 
