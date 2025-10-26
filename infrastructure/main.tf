@@ -41,6 +41,11 @@ resource "azuread_application_permission_scope" "api_access" {
   type                       = "User"
 }
 
+resource "azuread_service_principal" "api" {
+  client_id = azuread_application_registration.api.client_id
+  owners    = [data.azuread_client_config.current.object_id]
+}
+
 resource "azuread_application_registration" "client" {
   display_name = "Projectcoordinator-Client-${var.environment}"
   description  = "Application to login to the Projectcoordinator application"
@@ -66,6 +71,10 @@ resource "azuread_application_redirect_uris" "static_site" {
     var.redirect_uris,
     local.client_preview_domains
   )
+}
+resource "azuread_service_principal" "client" {
+  client_id = azuread_application_registration.client.client_id
+  owners    = [data.azuread_client_config.current.object_id]
 }
 
 resource "azurerm_cosmosdb_sql_container" "places" {
