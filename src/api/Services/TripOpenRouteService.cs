@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using api.Entities;
 using api.Exceptions;
 using api.Models;
+using api.Options;
 using api.Repositories;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;

@@ -42,13 +42,17 @@ else {
 }
 
 [string[]]$logs = docker logs $containerId
-$tries = 0
-while (!$logs -or $logs[-1] -ne "Started") {
-    Start-Sleep -Seconds 1
-    $tries++
-    Write-Progress -Activity "Waiting for emulator to start..." -Status "Attempt $tries"
-    Write-Output "Waiting for emulator to start..."
+for ($i = $RetryCount; $i -ge 0; $i--) {  
+    if ($logs -and $logs[-1] -eq "Started") {
+        break
+    }
+    Write-Progress -Activity "Waiting for emulator to start..." -Status "Attempt $($RetryCount - $i + 1)" -PercentComplete ((($RetryCount - $i) / $RetryCount) * 100)
+    Start-Sleep -Seconds $i
     $logs = docker logs $containerId
+}
+
+if ($logs -and $logs[-1] -ne "Started") {
+    throw "Emulator failed to start. Last log line: $($logs[-1])"
 }
 
 $parameters = @{
@@ -59,15 +63,15 @@ $parameters = @{
 }
 
 $available = $false
-for ($i = 0; $i -lt $RetryCount; $i++) {
+for ($i = $RetryCount; $i -ge 0; $i--) {
     try {
-        Start-Sleep -Seconds 1
         Invoke-WebRequest @parameters
         $available = $true
         break
     }
     catch {
-        Write-Progress -Activity "Downloading emulator certificate" -Status "Attempt $i of $RetryCount"
+        Write-Progress -Activity "Downloading emulator certificate" -Status $_.Exception.Message -PercentComplete ((($RetryCount - $i) / $RetryCount) * 100)
+        Start-Sleep -Seconds $i
     }
 }
 
@@ -75,7 +79,7 @@ if ($available) {
     Write-Output "You can open https://localhost:8081/_explorer/index.html . You may need to import the emulator certificate into your trusted root certificate store. You may need to create the Container."
 }
 else {
-    Write-Error -Message "Failed to download emulator certificate after $RetryCount attempts." -Exception $Error[0].Exception
+    Write-Error -Message "Failed to download emulator certificate after $RetryCount attempts."
 }
 
 #region CosmosDB
