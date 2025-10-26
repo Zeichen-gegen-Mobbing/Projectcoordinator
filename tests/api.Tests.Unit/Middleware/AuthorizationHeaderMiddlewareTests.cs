@@ -10,37 +10,53 @@ public class AuthorizationHeaderMiddlewareTests
     public class ReplaceAuthorizationHeaderMethod
     {
         [Test]
+        public async Task DoesNothingWhenHeadersAreNull()
+        {
+            // Arrange
+            HttpHeadersCollection? headers = null;
+
+            // Act
+            AuthorizationHeaderMiddleware.ReplaceAuthorizationHeader(headers);
+
+            // Assert
+            await Assert.That(headers).IsNull();
+        }
+
+        [Test]
         public async Task OverwritesExistingAuthorizationHeader()
         {
             // Arrange
-            var headers = new HttpHeadersCollection();
-            
-            headers.Add(CustomHttpHeaders.SwaAuthorization, "Bearer test-token-from-swa");
-            headers.Add("Authorization", "Bearer original-token");
-            
+            var headers = new HttpHeadersCollection
+            {
+                { CustomHttpHeaders.SwaAuthorization, "Bearer test-token-from-swa" },
+                { "Authorization", "Bearer original-token" }
+            };
+
             // Act
             AuthorizationHeaderMiddleware.ReplaceAuthorizationHeader(headers);
-            
+
             // Assert
             await Assert.That(headers.GetValues("Authorization").First()).IsEqualTo("Bearer test-token-from-swa");
         }
-        
+
         [Test]
         public async Task AddsAuthorizationHeaderWhenMissing()
         {
             // Arrange
-            var headers = new HttpHeadersCollection();
-            
-            headers.Add(CustomHttpHeaders.SwaAuthorization, "Bearer test-token-from-swa");
-            
+            var swaAuthValue = "Bearer test-token-from-swa";
+            var headers = new HttpHeadersCollection
+            {
+                { CustomHttpHeaders.SwaAuthorization, swaAuthValue }
+            };
+
             // Act
             AuthorizationHeaderMiddleware.ReplaceAuthorizationHeader(headers);
-            
+
             // Assert
             await Assert.That(headers.Contains("Authorization")).IsTrue();
-            await Assert.That(headers.GetValues("Authorization").First()).IsEqualTo("Bearer test-token-from-swa");
+            await Assert.That(headers.GetValues("Authorization").First()).IsEqualTo(swaAuthValue);
         }
-        
+
         /// <summary>
         /// Given no ZgM-SWA-Authorization header present
         /// When ReplaceAuthorizationHeader is called
@@ -50,15 +66,17 @@ public class AuthorizationHeaderMiddlewareTests
         public async Task PreservesAuthorizationHeaderWhenSwaHeaderMissing()
         {
             // Arrange
-            var headers = new HttpHeadersCollection();
-            
-            headers.Add("Authorization", "Bearer original-token");
-            
+            var authorizationValue = "Bearer original-token";
+            var headers = new HttpHeadersCollection
+            {
+                { "Authorization", authorizationValue }
+            };
+
             // Act
             AuthorizationHeaderMiddleware.ReplaceAuthorizationHeader(headers);
-            
+
             // Assert
-            await Assert.That(headers.GetValues("Authorization").First()).IsEqualTo("Bearer original-token");
+            await Assert.That(headers.GetValues("Authorization").First()).IsEqualTo(authorizationValue);
         }
     }
 }
