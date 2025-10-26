@@ -16,6 +16,7 @@ resource "azuread_application_api_access" "client_graph" {
 }
 
 resource "azuread_service_principal_delegated_permission_grant" "client_graph" {
+  count                                = var.permission_grant ? 1 : 0
   service_principal_object_id          = azuread_service_principal.client.object_id
   resource_service_principal_object_id = data.azuread_service_principal.microsoft_graph.object_id
 
@@ -29,6 +30,7 @@ resource "azuread_application_api_access" "client_api" {
 }
 
 resource "azuread_service_principal_delegated_permission_grant" "client_api" {
+  count                                = var.permission_grant ? 1 : 0
   service_principal_object_id          = azuread_service_principal.client.object_id
   resource_service_principal_object_id = azuread_service_principal.api.object_id
 

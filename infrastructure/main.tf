@@ -19,53 +19,7 @@ module "application_registrations" {
     var.redirect_uris,
     local.client_preview_domains
   )
-}
-moved {
-  from = random_uuid.api_scope_id
-  to   = module.application_registrations.random_uuid.api_scope_id
-}
-
-moved {
-  from = azuread_application_registration.api
-  to   = module.application_registrations.azuread_application_registration.api
-}
-
-moved {
-  from = azuread_application_identifier_uri.api
-  to   = module.application_registrations.azuread_application_identifier_uri.api
-}
-moved {
-  from = azuread_application_permission_scope.api_access
-  to   = module.application_registrations.azuread_application_permission_scope.api_access
-}
-
-moved {
-  from = azuread_service_principal.api
-  to   = module.application_registrations.azuread_service_principal.api
-}
-moved {
-  from = azuread_application_registration.client
-  to   = module.application_registrations.azuread_application_registration.client
-}
-
-moved {
-  from = azuread_application_api_access.graph
-  to   = module.application_registrations.azuread_application_api_access.client_graph
-}
-
-moved {
-  from = azuread_application_api_access.api
-  to   = module.application_registrations.azuread_application_api_access.client_api
-}
-
-moved {
-  from = azuread_application_redirect_uris.static_site
-  to   = module.application_registrations.azuread_application_redirect_uris.client
-}
-
-moved {
-  from = azuread_service_principal.client
-  to   = module.application_registrations.azuread_service_principal.client
+  permission_grant = false
 }
 
 resource "azurerm_cosmosdb_sql_container" "places" {
