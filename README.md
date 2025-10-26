@@ -51,7 +51,16 @@ If you want to run the app with authN & AuthZ to test Graph or be more like the 
 "Authentication__ApiScope": "api://<ApiClientId>/API.Access"
 ```
 
-After configured use `swa start --run "dotnet watch run -c Release"` to run in Release mode to use the real Services.
+If you need to create the app registrations run the following:
+
+```pwsh
+cd infrastructure/modules/application_registrations
+echo 'provider "azuread" { }' > provider.tf
+tofu init
+tofu apply -var="environment=<devsomename>" -var='redirect_uris=["http://localhost:4280/authentication/login-callback"]'
+```
+
+After configured run the Task `Start SWA (with Backend) in Release`.
 
 #### Add Places
 

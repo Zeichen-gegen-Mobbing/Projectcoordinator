@@ -1,0 +1,34 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build API in Release",
+            "type": "shell",
+            "command": "dotnet build -c Release src/api/api.csproj"
+        },
+        {
+            "label": "Start Api in Release",
+            "type": "shell",
+            "command": "func start --no-build --prefix src/api/bin/Release/net9.0/",
+            "isBackground": true,
+            "dependsOn": [
+                "Build API in Release"
+            ],
+            "problemMatcher": [
+                "$func-dotnet-watch"
+            ]
+        },
+        {
+            "label": "Start SWA (with Backend) in Release",
+            "type": "shell",
+            "command": "swa start --api-location http://localhost:7071 --run 'dotnet watch run -c Release'",
+            "dependsOn": [
+                "Start Api in Release"
+            ],
+            "problemMatcher": [
+                "$swa-watch"
+            ],
+            "isBackground": true
+        }
+    ]
+}
