@@ -8,18 +8,31 @@ resource "azuread_application_identifier_uri" "api" {
   identifier_uri = "api://${azuread_application_registration.api.client_id}"
 }
 
+locals {
+  api_scopes = {
+    "Trips.Calculate" = {
+      consent_display_name = "Calculate Trips"
+      consent_description  = "Allows to calculate trips to all places of all users."
+    }
+    "Places.CreateOnBehalfOf" = {
+      consent_display_name = "Create Places on Behalf of User"
+      consent_description  = "Allows to create places on behalf of another user."
+    }
+  }
+}
 resource "random_uuid" "api_scope_id" {
+  for_each = local.api_scopes
 }
 
-
 resource "azuread_application_permission_scope" "api_access" {
+  for_each                   = local.api_scopes
   application_id             = azuread_application_registration.api.id
-  scope_id                   = random_uuid.api_scope_id.result
-  value                      = "API.Access"
-  admin_consent_description  = "Allows the application to access the Projectcoordinator API on behalf of the signed-in user"
-  admin_consent_display_name = "Access Projectcoordinator API"
-  user_consent_description   = "Allows the application to access the Projectcoordinator API on your behalf"
-  user_consent_display_name  = "Access Projectcoordinator API"
+  scope_id                   = random_uuid.api_scope_id[each.key].result
+  value                      = each.key
+  admin_consent_description  = each.value.consent_description
+  admin_consent_display_name = each.value.consent_display_name
+  user_consent_description   = each.value.consent_description
+  user_consent_display_name  = each.value.consent_display_name
   type                       = "User"
 }
 

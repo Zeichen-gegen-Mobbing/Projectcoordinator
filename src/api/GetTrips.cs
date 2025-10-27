@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using Microsoft.Identity.Web;
+using Microsoft.Identity.Web.Resource;
 using ZgM.ProjectCoordinator.Shared;
 
 namespace ZgM.Projectcoordinator.api
@@ -25,6 +26,7 @@ namespace ZgM.Projectcoordinator.api
         /// </summary>
         [Function(nameof(GetTrips))]
         [ProducesResponseType(200, Type = typeof(IEnumerable<Trip>))]
+        [RequiredScope("Trips.GetAll")]
         public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Function, "get", Route = "trips")] HttpRequest req)
         {
             using (_logger.BeginScope(new Dictionary<string, object> { { "FunctionName", nameof(GetTrips) } }))

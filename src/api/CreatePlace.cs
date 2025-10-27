@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using Microsoft.Identity.Web;
+using Microsoft.Identity.Web.Resource;
 
 namespace api
 {
@@ -22,6 +23,7 @@ namespace api
         }
 
         [Function(nameof(CreatePlace))]
+        [RequiredScope("Places.CreateOnBehalfOf")]
         public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Function, "post", Route = "places")] HttpRequest request)
         {
             using (_logger.BeginScope(new Dictionary<string, object> { { "FunctionName", nameof(CreatePlace) } }))
