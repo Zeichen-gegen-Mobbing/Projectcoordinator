@@ -1,11 +1,10 @@
 using System.Globalization;
+using api.Extensions;
 using api.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
-using Microsoft.Identity.Web;
-using Microsoft.Identity.Web.Resource;
 using ZgM.ProjectCoordinator.Shared;
 
 namespace ZgM.Projectcoordinator.api
@@ -26,15 +25,16 @@ namespace ZgM.Projectcoordinator.api
         /// </summary>
         [Function(nameof(GetTrips))]
         [ProducesResponseType(200, Type = typeof(IEnumerable<Trip>))]
-        [RequiredScopeOrAppPermission(AcceptedScope = new[] { "Trips.GetAll" }, AcceptedAppPermission = new[] { "projectcoordination" })]
         public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Function, "get", Route = "trips")] HttpRequest req)
         {
             using (_logger.BeginScope(new Dictionary<string, object> { { "FunctionName", nameof(GetTrips) } }))
             {
-                var (authenticationStatus, authenticationResponse) = await req.HttpContext.AuthenticateAzureFunctionAsync();
-                if (!authenticationStatus)
+                var (authorized, authenticationResponse) = await req.HttpContext.AuthorizeAzureFunctionAsync(
+                    scopes: ["Trips.Calculate"],
+                    roles: ["projectcoordination"]);
+                if (!authorized)
                 {
-                    _logger.LogWarning("Unauthenticated request: Authorization Header: {AuthHeader}", req.Headers.Authorization.ToString());
+                    _logger.LogWarning("Unauthenticated request: {response}", authenticationResponse!.ToString());
                     return authenticationResponse!;
                 }
 

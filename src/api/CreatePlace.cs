@@ -1,5 +1,6 @@
 using api.Entities;
 using api.Exceptions;
+using api.Extensions;
 using api.Models;
 using api.Services;
 using Microsoft.AspNetCore.Http;
@@ -23,14 +24,19 @@ namespace api
         }
 
         [Function(nameof(CreatePlace))]
-        [RequiredScope("Places.CreateOnBehalfOf")]
         public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Function, "post", Route = "places")] HttpRequest request)
         {
             using (_logger.BeginScope(new Dictionary<string, object> { { "FunctionName", nameof(CreatePlace) } }))
             {
-                var (authenticationStatus, authenticationResponse) = await request.HttpContext.AuthenticateAzureFunctionAsync();
-                if (!authenticationStatus)
+                var (authorized, authenticationResponse) = await request.HttpContext.AuthorizeAzureFunctionAsync(
+                    scopes: ["Places.CreateOnBehalfOf"],
+                    roles: ["admin"]);
+                if (!authorized)
+                {
+                    _logger.LogWarning("Unauthenticated request: {response}", authenticationResponse!.ToString());
                     return authenticationResponse!;
+                }
+
 
                 var placeRequest = await request.ReadFromJsonAsync<PlaceRequest>();
                 _logger.LogInformation("Read place from request");

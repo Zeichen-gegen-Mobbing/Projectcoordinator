@@ -18,7 +18,7 @@ public class GetUserRoles(ILogger<GetUserRoles> logger)
             var (authenticationStatus, authenticationResponse) = await req.HttpContext.AuthenticateAzureFunctionAsync();
             if (!authenticationStatus)
             {
-                logger.LogWarning("Unauthenticated request: Authorization Header: {AuthHeader}", req.Headers.Authorization.ToString());
+                logger.LogWarning("Unauthenticated request: {response}", authenticationResponse!.ToString());
                 return authenticationResponse!;
             }
 
