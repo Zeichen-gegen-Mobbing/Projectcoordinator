@@ -23,9 +23,15 @@ namespace FrontEnd.Services
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_staticKey));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
+            var claims = new[]
+            {
+                new Claim(ClaimTypes.Role, "projectcoordination")
+            };
+
             var jwt = new JwtSecurityToken(
                 issuer: authority,
                 audience: clientId,
+                claims: claims,
                 expires: DateTime.UtcNow.AddHours(1),
                 signingCredentials: creds
             );

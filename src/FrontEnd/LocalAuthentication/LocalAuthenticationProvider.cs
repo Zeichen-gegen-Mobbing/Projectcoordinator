@@ -11,7 +11,8 @@ namespace FrontEnd.LocalAuthentication
     {
         static ClaimsPrincipal _projectCoordination = new(new ClaimsIdentity(new[]
             {
-                new Claim(ClaimTypes.Name, "TEST Projectcoordination")
+                new Claim(ClaimTypes.Name, "TEST Projectcoordination"),
+                new Claim(ClaimTypes.Role, "projectcoordination")
         }, "LocalAuthentication"));
 
         static ClaimsPrincipal _user = new(new ClaimsIdentity(new[]
