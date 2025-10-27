@@ -9,6 +9,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using api.Entities;
 using api.Exceptions;
+using api.Extensions;
 using api.Models;
 using api.Options;
 using api.Repositories;
@@ -33,11 +34,7 @@ namespace api.Services
 
         public TripOpenRouteService(IPlaceRepository repository, IOptions<OpenRouteServiceOptions> options, IHttpClientFactory clientFactory, ILogger<TripOpenRouteService> logger)
         {
-            client = clientFactory.CreateClient();
-            client.BaseAddress = new Uri(options.Value.BaseUrl);
-            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", options.Value.ApiKey);
-            client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-
+            client = clientFactory.CreateClient().ConfigureForOpenRouteService(options.Value);
             this.repository = repository;
             this.logger = logger;
         }
