@@ -31,7 +31,10 @@ if (authConfig == null)
 builder.Services.AddMsalAuthentication(options =>
 {
     builder.Configuration.Bind("AzureAd", options.ProviderOptions.Authentication);
-    options.ProviderOptions.DefaultAccessTokenScopes.Add(authConfig.ApiScope);
+    foreach (var scope in authConfig.ApiScopes)
+    {
+        options.ProviderOptions.DefaultAccessTokenScopes.Add(scope);
+    }
     options.ProviderOptions.Authentication.ClientId = authConfig.FrontEndClientId;
 });
 #endif
@@ -59,7 +62,7 @@ builder.Services.AddHttpClient<ITripService, TripService>(client =>
 #else
 .AddHttpMessageHandler(sp => {
     var handler = sp.GetRequiredService<CustomAuthorizationMessageHandler>();
-    handler.ConfigureHandler([baseAddress], [authConfig.ApiScope]);
+    handler.ConfigureHandler([baseAddress], authConfig.ApiScopes);
     return handler;
 });
 #endif
