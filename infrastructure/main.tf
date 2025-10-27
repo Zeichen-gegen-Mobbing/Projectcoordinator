@@ -19,7 +19,7 @@ module "application_registrations" {
     ["https://${azurerm_static_web_app.this.default_host_name}${local.redirect_path}"],
     var.redirect_uris,
     local.client_preview_domains,
-    var.custom_domain != null ? "https://${var.custom_domain}${local.redirect_path}" : []
+    var.custom_domain != null ? ["https://${var.custom_domain}${local.redirect_path}"] : []
   )
   permission_grant = false
 }
