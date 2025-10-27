@@ -20,7 +20,10 @@ resource "azurerm_static_web_app" "this" {
   }
 }
 
-
+import {
+  to = azurerm_static_web_app_custom_domain.this[0]
+  id = "/subscriptions/36fd3843-f200-408f-a432-9bd04c5af9be/resourceGroups/rg-ProjectCoordinator-prd/providers/Microsoft.Web/staticSites/stapp-ProjectCoordinator-prd/customDomains/projectcoordinator.z-g-m.de"
+}
 resource "azurerm_static_web_app_custom_domain" "this" {
   count             = var.custom_domain != null ? 1 : 0
   static_web_app_id = azurerm_static_web_app.this.id
