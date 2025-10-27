@@ -1,6 +1,11 @@
 ﻿@page "/"
 @using Microsoft.AspNetCore.Authorization
+@using FrontEnd.Services
+@using Microsoft.AspNetCore.Components
 @attribute [Authorize]
+
+@inject IRoleService RoleService
+@inject NavigationManager NavigationManager
 
 <PageTitle>Home</PageTitle>
 
@@ -13,3 +18,21 @@
 <p>
     Use the navigation menu to access different features of the application.
 </p>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var roles = await RoleService.GetUserRolesAsync();
+            if (roles.Contains("projectcoordination", StringComparer.OrdinalIgnoreCase))
+            {
+                NavigationManager.NavigateTo("/trips");
+            }
+        }
+        catch
+        {
+            // If role check fails, stay on home page
+        }
+    }
+}
