@@ -33,10 +33,23 @@ namespace FrontEnd.Services
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_staticKey));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
+            var claims = new List<Claim>();
+            foreach (var claim in user.Claims)
+            {
+                if (claim.Type == ClaimTypes.Role)
+                {
+                    claims.Add(new Claim("roles", claim.Value));
+                }
+                else
+                {
+                    claims.Add(claim);
+                }
+            }
+
             var jwt = new JwtSecurityToken(
                 issuer: authority,
                 audience: clientId,
-                claims: user.Claims,
+                claims: claims,
                 expires: DateTime.UtcNow.AddHours(1),
                 signingCredentials: creds
             );
