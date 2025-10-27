@@ -29,6 +29,15 @@
                 "$swa-watch"
             ],
             "isBackground": true
+        },
+        {
+            "label": "Start SWA (with Backend) in Debug",
+            "type": "shell",
+            "command": "swa start",
+            "problemMatcher": [
+                "$swa-watch"
+            ],
+            "isBackground": true
         }
     ]
 }
