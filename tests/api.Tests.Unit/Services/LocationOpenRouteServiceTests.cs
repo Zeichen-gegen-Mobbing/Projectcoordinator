@@ -13,11 +13,11 @@ using TUnit.Assertions.Extensions;
 
 namespace api.Tests.Unit.Services;
 
-public class LocationSearchOpenRouteServiceTests
+public class LocationOpenRouteServiceTests
 {
     private Mock<IOptions<OpenRouteServiceOptions>> mockOptions = null!;
     private Mock<IHttpClientFactory> mockHttpClientFactory = null!;
-    private Mock<ILogger<LocationSearchOpenRouteService>> mockLogger = null!;
+    private Mock<ILogger<LocationOpenRouteService>> mockLogger = null!;
     private Mock<HttpMessageHandler> mockHttpMessageHandler = null!;
     private HttpClient httpClient = null!;
 
@@ -33,7 +33,7 @@ public class LocationSearchOpenRouteServiceTests
         });
 
         mockHttpClientFactory = new Mock<IHttpClientFactory>();
-        mockLogger = new Mock<ILogger<LocationSearchOpenRouteService>>();
+        mockLogger = new Mock<ILogger<LocationOpenRouteService>>();
         mockHttpMessageHandler = new Mock<HttpMessageHandler>();
 
         httpClient = new HttpClient(mockHttpMessageHandler.Object);
@@ -100,7 +100,7 @@ public class LocationSearchOpenRouteServiceTests
 
         SetupMockResponse(features);
 
-        var service = new LocationSearchOpenRouteService(mockOptions.Object, mockHttpClientFactory.Object, mockLogger.Object);
+        var service = new LocationOpenRouteService(mockOptions.Object, mockHttpClientFactory.Object, mockLogger.Object);
 
         // Act
         var results = (await service.SearchAsync(query)).ToList();
@@ -126,7 +126,7 @@ public class LocationSearchOpenRouteServiceTests
         
         SetupMockResponse(Array.Empty<OpenRouteServiceGeocodeResponse.Feature>());
 
-        var service = new LocationSearchOpenRouteService(mockOptions.Object, mockHttpClientFactory.Object, mockLogger.Object);
+        var service = new LocationOpenRouteService(mockOptions.Object, mockHttpClientFactory.Object, mockLogger.Object);
 
         // Act
         var results = await service.SearchAsync(query);
@@ -143,7 +143,7 @@ public class LocationSearchOpenRouteServiceTests
         
         SetupMockResponse(Array.Empty<OpenRouteServiceGeocodeResponse.Feature>());
 
-        var service = new LocationSearchOpenRouteService(mockOptions.Object, mockHttpClientFactory.Object, mockLogger.Object);
+        var service = new LocationOpenRouteService(mockOptions.Object, mockHttpClientFactory.Object, mockLogger.Object);
 
         // Act
         var results = await service.SearchAsync(query);
@@ -169,7 +169,7 @@ public class LocationSearchOpenRouteServiceTests
                 Content = new StringContent("Bad Request", Encoding.UTF8, "text/plain")
             });
 
-        var service = new LocationSearchOpenRouteService(mockOptions.Object, mockHttpClientFactory.Object, mockLogger.Object);
+        var service = new LocationOpenRouteService(mockOptions.Object, mockHttpClientFactory.Object, mockLogger.Object);
 
         // Act & Assert
         await Assert.That(async () => await service.SearchAsync(query)).ThrowsExactly<ProblemDetailsException>();
@@ -192,7 +192,7 @@ public class LocationSearchOpenRouteServiceTests
                 Content = new StringContent("Invalid JSON", Encoding.UTF8, "application/json")
             });
 
-        var service = new LocationSearchOpenRouteService(mockOptions.Object, mockHttpClientFactory.Object, mockLogger.Object);
+        var service = new LocationOpenRouteService(mockOptions.Object, mockHttpClientFactory.Object, mockLogger.Object);
 
         // Act & Assert
         await Assert.That(async () => await service.SearchAsync(query)).ThrowsExactly<ProblemDetailsException>();
@@ -221,7 +221,7 @@ public class LocationSearchOpenRouteServiceTests
             });
 
         httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", "test-api-key");
-        var service = new LocationSearchOpenRouteService(mockOptions.Object, mockHttpClientFactory.Object, mockLogger.Object);
+        var service = new LocationOpenRouteService(mockOptions.Object, mockHttpClientFactory.Object, mockLogger.Object);
 
         // Act
         await service.SearchAsync(query);
@@ -252,7 +252,7 @@ public class LocationSearchOpenRouteServiceTests
                 Content = new StringContent(testDataJson, Encoding.UTF8, "application/json")
             });
 
-        var service = new LocationSearchOpenRouteService(mockOptions.Object, mockHttpClientFactory.Object, mockLogger.Object);
+        var service = new LocationOpenRouteService(mockOptions.Object, mockHttpClientFactory.Object, mockLogger.Object);
 
         // Act
         var results = (await service.SearchAsync(query)).ToList();

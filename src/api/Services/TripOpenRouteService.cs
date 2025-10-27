@@ -91,39 +91,5 @@ namespace api.Services
                 return [];
             }
         }
-
-        public async Task<bool> ValidateAsync(double latitude, double longitude)
-        {
-            var response = await client.PostAsJsonAsync("v2/snap/driving-car", new
-            {
-                locations = new[] { new[] { longitude, latitude } },
-                radius = 350
-            });
-            string responseBody = await response.Content.ReadAsStringAsync();
-
-            if (response.StatusCode == System.Net.HttpStatusCode.OK)
-            {
-                logger.LogDebug("Response from API: {Response}", responseBody);
-                var result = JsonSerializer.Deserialize<OpenRouteServiceSnapResponse>(responseBody, _serializeOptions);
-                return result.Locations.SingleOrDefault() != null;
-            }
-            else
-            {
-                logger.LogError("Something went wrong while getting Snap from ORS {Status}: {Content}", response.StatusCode, responseBody);
-                throw new ProblemDetailsException(System.Net.HttpStatusCode.InternalServerError, "Internal Server Error", "Something went wrong while getting Snap from ORS");
-            }
-
-        }
-        public struct OpenRouteServiceSnapResponse
-        {
-            [Required]
-
-            public required OrsLocation?[] Locations { get; set; }
-
-            public struct OrsLocation
-            {
-                public required double[] Location { get; set; }
-            }
-        }
     }
 }

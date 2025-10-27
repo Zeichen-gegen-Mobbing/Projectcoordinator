@@ -12,12 +12,12 @@ using ZgM.ProjectCoordinator.Shared;
 
 namespace api.Services
 {
-    public sealed class PlaceCosmosService(IPlaceRepository repository, ITripService tripService) : IPlaceService
+    public sealed class PlaceCosmosService(IPlaceRepository repository, ILocationService locationService) : IPlaceService
     {
 
         public async Task<Place> AddPlace(PlaceRequest placeRequest)
         {
-            var coordinatesValid = await tripService.ValidateAsync(placeRequest.Latitude, placeRequest.Longitude);
+            var coordinatesValid = await locationService.ValidateAsync(placeRequest.Latitude, placeRequest.Longitude);
             if (coordinatesValid)
             {
                 var place = new PlaceEntity()

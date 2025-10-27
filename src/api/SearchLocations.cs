@@ -11,12 +11,12 @@ namespace api
     public class SearchLocations
     {
         private readonly ILogger<SearchLocations> _logger;
-        private readonly ILocationSearchService _locationSearchService;
+        private readonly ILocationService _locationService;
 
-        public SearchLocations(ILogger<SearchLocations> logger, ILocationSearchService locationSearchService)
+        public SearchLocations(ILogger<SearchLocations> logger, ILocationService locationService)
         {
             _logger = logger;
-            _locationSearchService = locationSearchService;
+            _locationService = locationService;
         }
 
         [Function(nameof(SearchLocations))]
@@ -37,7 +37,7 @@ namespace api
                 _logger.LogInformation("Searching for locations with query: {Query}", query);
                 try
                 {
-                    var results = await _locationSearchService.SearchAsync(query);
+                    var results = await _locationService.SearchAsync(query);
                     return new OkObjectResult(results);
                 }
                 catch (ProblemDetailsException ex)
