@@ -68,6 +68,21 @@ builder.Services.AddHttpClient<ITripService, TripService>(client =>
 });
 #endif
 
+builder.Services.AddHttpClient<IRoleService, RoleService>(client =>
+{
+    client.BaseAddress = new Uri(baseAddress);
+})
+#if DEBUG
+    .AddHttpMessageHandler(sp => new FakeAuthorizationMessageHandler(sp.GetRequiredService<AuthenticationStateProvider>()));
+builder.Services.AddScoped<IRoleService, FakeRoleService>();
+#else
+.AddHttpMessageHandler(sp => {
+    var handler = sp.GetRequiredService<CustomAuthorizationMessageHandler>();
+    handler.ConfigureHandler([baseAddress], authConfig.ApiScopes);
+    return handler;
+});
+#endif
+
 #if DEBUG
 builder.Services.AddScoped<IUserService, FakeUserService>();
 #else

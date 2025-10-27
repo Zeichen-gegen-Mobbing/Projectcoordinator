@@ -1,98 +1,15 @@
 ﻿@page "/"
-@using System.Globalization
-@using System.ComponentModel.DataAnnotations
-@using FrontEnd.Models
-@using FrontEnd.Services
-@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
-@using Microsoft.AspNetCore.Components.QuickGrid
 @using Microsoft.AspNetCore.Authorization
-@using ZgM.ProjectCoordinator.Shared
 @attribute [Authorize]
-
-@inject IUserService UserService;
-@inject ITripService TripService;
 
 <PageTitle>Home</PageTitle>
 
-<FrontEnd.Components.LocationSelector Disabled=LocationSelected OnLocationSelected=LoadTrips />
+<h1>Welcome to Project Coordinator</h1>
 
-@if (trips.Any())
-{
-    <QuickGrid Items="trips.AsQueryable()" Class="table table-hover table-bordered table-striped">
-        <PropertyColumn Property="@(t => t.UserDisplayName)" Sortable="true" />
-        <PropertyColumn Property="@(t => t.Place)" Sortable="false" />
-        <PropertyColumn Property="@(t => t.Time)" Format="" Sortable="true" IsDefaultSortColumn="true" />
-        <PropertyColumn Property="@(t => t.Cost)" Format="C2" Sortable="true" />
-    </QuickGrid>
-    <small>Time & Distance provided by © openrouteservice.org by HeiGIT | Map data © OpenStreetMap contributors</small>
-}
-else
-{
-    <b>@status</b>
-}
+<p>
+    This application helps you coordinate your projects and calculate trips to different locations.
+</p>
 
-
-@code {
-    private readonly ICollection<TripViewModel> trips = new List<TripViewModel>();
-    private bool LocationSelected = false;
-    private string status = "Loading Site";
-
-
-    protected override void OnInitialized()
-    {
-        status = "Waiting for coordinates";
-        Console.WriteLine("Initialization finished");
-    }
-
-    private async Task LoadTrips(double latitude, double longitude)
-    {
-        status = "Loading Trips";
-        LocationSelected = true;
-        trips.Clear();
-        StateHasChanged();
-        await Task.Yield();
-        Console.WriteLine("Start getting trips");
-        foreach (Trip t in (await TripService.GetTripsAsync(latitude, longitude)))
-        {
-            var trip = new TripViewModel()
-            {
-                Place = t.Place,
-                Time = t.Time,
-                Cost = (decimal)t.Cost / 100
-            };
-            trips.Add(trip);
-            StateHasChanged();
-            await Task.Yield();
-            _ = loadUser(trip);
-        }
-        LocationSelected = false;
-        status = trips.Any() ? "Finished loading trips" : "No trips found. Probably no Places are saved.";
-        StateHasChanged();
-        await Task.Yield();
-    }
-
-    private async Task loadUser(TripViewModel trip)
-    {
-        try
-        {
-            trip.User = await UserService.GetUserAsync(trip.Place.UserId);
-        }
-        catch (Exception ex)
-        {
-            trip.User ??= new User(trip.Place.UserId);
-            trip.User.DisplayName = $"Error loading name ({trip.Place.UserId})";
-            Console.WriteLine($"Error loading user {trip.Place.UserId}: {ex}");
-        }
-        StateHasChanged();
-        await Task.Yield();
-    }
-
-    private sealed class TripViewModel
-    {
-        public User? User { get; set; }
-        public string UserDisplayName => User?.DisplayName ?? "Loading Name";
-        public required Place Place { get; set; }
-        public required TimeSpan Time { get; set; }
-        public decimal Cost { get; set; }
-    }
-}
+<p>
+    Use the navigation menu to access different features of the application.
+</p>
