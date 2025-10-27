@@ -1,6 +1,7 @@
 using FrontEnd;
 #if DEBUG
 using FrontEnd.LocalAuthentication;
+using Microsoft.AspNetCore.Components.Authorization;
 #endif
 using FrontEnd.Services;
 using Microsoft.AspNetCore.Components.Web;
@@ -58,7 +59,7 @@ builder.Services.AddHttpClient<ITripService, TripService>(client =>
     client.BaseAddress = new Uri(baseAddress);
 })
 #if DEBUG
-    .AddHttpMessageHandler(_ => new FakeAuthorizationMessageHandler());
+    .AddHttpMessageHandler(sp => new FakeAuthorizationMessageHandler(sp.GetRequiredService<AuthenticationStateProvider>()));
 #else
 .AddHttpMessageHandler(sp => {
     var handler = sp.GetRequiredService<CustomAuthorizationMessageHandler>();
