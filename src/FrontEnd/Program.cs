@@ -74,7 +74,6 @@ builder.Services.AddHttpClient<IRoleService, RoleService>(client =>
 })
 #if DEBUG
     .AddHttpMessageHandler(sp => new FakeAuthorizationMessageHandler(sp.GetRequiredService<AuthenticationStateProvider>()));
-builder.Services.AddScoped<IRoleService, FakeRoleService>();
 #else
 .AddHttpMessageHandler(sp => {
     var handler = sp.GetRequiredService<CustomAuthorizationMessageHandler>();
