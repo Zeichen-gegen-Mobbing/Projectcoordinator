@@ -1,0 +1,283 @@
+@page "/places"
+@using ZgM.ProjectCoordinator.Shared
+@inject FrontEnd.Services.IPlaceService PlaceService
+@inject ILogger<Places> Logger
+
+<PageTitle>My Places</PageTitle>
+
+<h1>My Places</h1>
+
+<p>Manage your places for trip coordination.</p>
+
+@if (errorMessage != null)
+{
+    <div class="alert alert-danger" role="alert">
+        @errorMessage
+        <button type="button" class="btn-close" @onclick="() => errorMessage = null"></button>
+    </div>
+}
+
+@if (places == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="mb-3">
+        <button class="btn btn-primary" @onclick="ShowCreateForm">
+            <span class="bi bi-plus-circle"></span> Create New Place
+        </button>
+    </div>
+
+    @if (showCreateForm)
+    {
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5>Create New Place</h5>
+            </div>
+            <div class="card-body">
+                <EditForm Model="newPlace" OnValidSubmit="HandleCreatePlace">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Name</label>
+                        <InputText class="form-control" @bind-Value="newPlace.Name" />
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Latitude</label>
+                        <InputNumber class="form-control" @bind-Value="newPlace.Latitude" />
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Longitude</label>
+                        <InputNumber class="form-control" @bind-Value="newPlace.Longitude" />
+                    </div>
+                    
+                    <div class="btn-group">
+                        <button type="submit" class="btn btn-success" disabled="@isSubmitting">
+                            @if (isSubmitting)
+                            {
+                                <span class="spinner-border spinner-border-sm" role="status"></span>
+                                <span> Creating...</span>
+                            }
+                            else
+                            {
+                                <span>Create</span>
+                            }
+                        </button>
+                        <button type="button" class="btn btn-secondary" @onclick="CancelCreate">Cancel</button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    }
+
+    @if (places.Any())
+    {
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var place in places)
+                {
+                    <tr>
+                        <td>
+                            @if (editingPlaceId == place.Id)
+                            {
+                                <EditForm Model="editPlace" OnValidSubmit="HandleUpdatePlace">
+                                    <DataAnnotationsValidator />
+                                    <ValidationSummary />
+                                    
+                                    <div class="row g-2">
+                                        <div class="col-md-4">
+                                            <InputText class="form-control" @bind-Value="editPlace.Name" placeholder="Name" />
+                                        </div>
+                                        <div class="col-md-3">
+                                            <InputNumber class="form-control" @bind-Value="editPlace.Latitude" placeholder="Latitude" />
+                                        </div>
+                                        <div class="col-md-3">
+                                            <InputNumber class="form-control" @bind-Value="editPlace.Longitude" placeholder="Longitude" />
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="btn-group">
+                                                <button type="submit" class="btn btn-success btn-sm" disabled="@isSubmitting">Save</button>
+                                                <button type="button" class="btn btn-secondary btn-sm" @onclick="CancelEdit">Cancel</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </EditForm>
+                            }
+                            else
+                            {
+                                @place.Name
+                            }
+                        </td>
+                        <td>
+                            @if (editingPlaceId != place.Id)
+                            {
+                                <div class="btn-group">
+                                    <button class="btn btn-sm btn-primary" @onclick="() => StartEdit(place)">
+                                        <span class="bi bi-pencil"></span> Edit
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" @onclick="() => HandleDeletePlace(place.Id)" disabled="@isSubmitting">
+                                        <span class="bi bi-trash"></span> Delete
+                                    </button>
+                                </div>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p><em>No places found. Create your first place to get started!</em></p>
+    }
+}
+
+@code {
+    private List<Place>? places;
+    private bool showCreateForm = false;
+    private bool isSubmitting = false;
+    private string? errorMessage;
+    private PlaceId? editingPlaceId;
+
+    private PlaceFormModel newPlace = new();
+    private PlaceFormModel editPlace = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPlaces();
+    }
+
+    private async Task LoadPlaces()
+    {
+        try
+        {
+            var result = await PlaceService.GetAllPlacesAsync();
+            places = result.ToList();
+            errorMessage = null;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to load places");
+            errorMessage = "Failed to load places. Please try again.";
+        }
+    }
+
+    private void ShowCreateForm()
+    {
+        showCreateForm = true;
+        newPlace = new PlaceFormModel();
+    }
+
+    private void CancelCreate()
+    {
+        showCreateForm = false;
+        newPlace = new PlaceFormModel();
+    }
+
+    private async Task HandleCreatePlace()
+    {
+        isSubmitting = true;
+        try
+        {
+            await PlaceService.CreatePlaceAsync(newPlace.Name, newPlace.Latitude, newPlace.Longitude);
+            await LoadPlaces();
+            showCreateForm = false;
+            newPlace = new PlaceFormModel();
+            errorMessage = null;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to create place");
+            errorMessage = "Failed to create place. Please check the coordinates are valid.";
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private void StartEdit(Place place)
+    {
+        editingPlaceId = place.Id;
+        editPlace = new PlaceFormModel
+        {
+            Name = place.Name,
+            Latitude = 0,
+            Longitude = 0
+        };
+    }
+
+    private void CancelEdit()
+    {
+        editingPlaceId = null;
+        editPlace = new PlaceFormModel();
+    }
+
+    private async Task HandleUpdatePlace()
+    {
+        if (editingPlaceId == null) return;
+
+        isSubmitting = true;
+        try
+        {
+            await PlaceService.UpdatePlaceAsync(editingPlaceId.Value, editPlace.Name, editPlace.Latitude, editPlace.Longitude);
+            await LoadPlaces();
+            editingPlaceId = null;
+            editPlace = new PlaceFormModel();
+            errorMessage = null;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to update place");
+            errorMessage = "Failed to update place. Please check the coordinates are valid.";
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private async Task HandleDeletePlace(PlaceId placeId)
+    {
+        if (!await ConfirmDelete()) return;
+
+        isSubmitting = true;
+        try
+        {
+            await PlaceService.DeletePlaceAsync(placeId);
+            await LoadPlaces();
+            errorMessage = null;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to delete place");
+            errorMessage = "Failed to delete place. Please try again.";
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private Task<bool> ConfirmDelete()
+    {
+        return Task.FromResult(true);
+    }
+
+    private class PlaceFormModel
+    {
+        public string Name { get; set; } = string.Empty;
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
+    }
+}

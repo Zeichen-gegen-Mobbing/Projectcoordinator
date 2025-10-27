@@ -10,6 +10,7 @@ using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using ZgM.ProjectCoordinator.Shared;
 
 namespace api.Repositories
 {
@@ -64,6 +65,39 @@ namespace api.Repositories
                 }
             }
             return list;
+        }
+
+        public async Task<IEnumerable<PlaceEntity>> GetByUserIdAsync(UserId userId)
+        {
+            logger.LogDebug("Get places for user {UserId} from CosmosDB", userId);
+            var container = await initContainer;
+            var list = new List<PlaceEntity>();
+            using FeedIterator<PlaceEntity> iterator = container.GetItemLinqQueryable<PlaceEntity>()
+                .Where(p => p.UserId == userId)
+                .ToFeedIterator();
+
+            while (iterator.HasMoreResults)
+            {
+                FeedResponse<PlaceEntity> response = await iterator.ReadNextAsync(default);
+
+                foreach (PlaceEntity sampleObject in response)
+                {
+                    list.Add(sampleObject);
+                }
+            }
+            return list;
+        }
+
+        public async Task<PlaceEntity> UpdateAsync(PlaceEntity entity)
+        {
+            var container = await initContainer;
+            return await container.ReplaceItemAsync(entity, entity.Id.Value, new PartitionKey(entity.UserId.Value.ToString()));
+        }
+
+        public async Task DeleteAsync(PlaceId placeId, UserId userId)
+        {
+            var container = await initContainer;
+            await container.DeleteItemAsync<PlaceEntity>(placeId.Value, new PartitionKey(userId.Value.ToString()));
         }
     }
 }

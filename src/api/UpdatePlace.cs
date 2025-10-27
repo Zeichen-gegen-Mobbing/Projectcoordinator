@@ -7,24 +7,25 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using Microsoft.Identity.Web;
+using ZgM.ProjectCoordinator.Shared;
 
 namespace api
 {
-    public class CreatePlace
+    public class UpdatePlace
     {
-        private readonly ILogger<CreatePlace> _logger;
+        private readonly ILogger<UpdatePlace> _logger;
         private readonly IPlaceService _placeService;
 
-        public CreatePlace(ILogger<CreatePlace> logger, IPlaceService placeService)
+        public UpdatePlace(ILogger<UpdatePlace> logger, IPlaceService placeService)
         {
             _logger = logger;
             _placeService = placeService;
         }
 
-        [Function(nameof(CreatePlace))]
-        public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Function, "post", Route = "users/{userId}/places")] HttpRequest request, string userId)
+        [Function(nameof(UpdatePlace))]
+        public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Function, "put", Route = "users/{userId}/places/{placeId}")] HttpRequest request, string userId, string placeId)
         {
-            using (_logger.BeginScope(new Dictionary<string, object> { { "FunctionName", nameof(CreatePlace) } }))
+            using (_logger.BeginScope(new Dictionary<string, object> { { "FunctionName", nameof(UpdatePlace) } }))
             {
                 var (authenticationStatus, authenticationResponse) = await request.HttpContext.AuthenticateAzureFunctionAsync();
                 if (!authenticationStatus)
@@ -35,11 +36,11 @@ namespace api
                     return errorResult!;
 
                 var placeRequest = await request.ReadFromJsonAsync<PlaceRequest>();
-                _logger.LogInformation("Creating place for user {UserId}", authenticatedUserId);
+                _logger.LogInformation("Updating place {PlaceId} for user {UserId}", placeId, authenticatedUserId);
                 try
                 {
-                    await _placeService.AddPlace(placeRequest);
-                    return new CreatedResult();
+                    var updatedPlace = await _placeService.UpdatePlace(new PlaceId(placeId), placeRequest);
+                    return new OkObjectResult(updatedPlace);
                 }
                 catch (ProblemDetailsException ex)
                 {
