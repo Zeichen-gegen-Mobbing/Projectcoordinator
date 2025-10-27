@@ -26,7 +26,7 @@ namespace ZgM.Projectcoordinator.api
         /// </summary>
         [Function(nameof(GetTrips))]
         [ProducesResponseType(200, Type = typeof(IEnumerable<Trip>))]
-        [RequiredScope("Trips.GetAll")]
+        [RequiredScopeOrAppPermission(AcceptedScope = new[] { "Trips.GetAll" }, AcceptedAppPermission = new[] { "projectcoordination" })]
         public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Function, "get", Route = "trips")] HttpRequest req)
         {
             using (_logger.BeginScope(new Dictionary<string, object> { { "FunctionName", nameof(GetTrips) } }))

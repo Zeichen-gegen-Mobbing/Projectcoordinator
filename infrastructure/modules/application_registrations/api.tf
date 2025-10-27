@@ -19,6 +19,12 @@ locals {
       consent_description  = "Allows to create places on behalf of another user."
     }
   }
+  api_roles = {
+    "projectcoordination" = {
+      display_name = "Project Coordination"
+      description  = "Allows access to project coordination features including trip planning."
+    }
+  }
 }
 resource "random_uuid" "api_scope_id" {
   for_each = local.api_scopes
@@ -34,6 +40,20 @@ resource "azuread_application_permission_scope" "api_access" {
   user_consent_description   = each.value.consent_description
   user_consent_display_name  = each.value.consent_display_name
   type                       = "User"
+}
+
+resource "random_uuid" "api_role_id" {
+  for_each = local.api_roles
+}
+
+resource "azuread_application_app_role" "api" {
+  for_each            = local.api_roles
+  application_id      = azuread_application_registration.api.id
+  role_id             = random_uuid.api_role_id[each.key].result
+  value               = each.key
+  display_name        = each.value.display_name
+  description         = each.value.description
+  allowed_member_types = ["User"]
 }
 
 resource "azuread_service_principal" "api" {
