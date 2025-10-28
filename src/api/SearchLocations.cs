@@ -28,7 +28,7 @@ namespace api
                 if (!authenticationStatus)
                     return authenticationResponse!;
 
-                var text = request.Query["text"].ToString();
+                var text = request.Query["text"].ToString().Replace("\r", "").Replace("\n", "").Replace(Environment.NewLine, "");
                 if (string.IsNullOrWhiteSpace(text))
                 {
                     return new BadRequestObjectResult(new { error = "Query parameter 'text' is required" });
