@@ -1,4 +1,4 @@
-using api.Models;
+using ZgM.ProjectCoordinator.Shared;
 
 namespace api.Services
 {

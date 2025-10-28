@@ -7,6 +7,7 @@ using api.Models;
 using api.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using ZgM.ProjectCoordinator.Shared;
 
 namespace api.Services
 {
@@ -28,8 +29,10 @@ namespace api.Services
         public async Task<IEnumerable<LocationSearchResult>> SearchAsync(string query)
         {
             var requestUri = $"geocode/search?text={Uri.EscapeDataString(query)}&boundary.country=DEU";
+            logger.LogInformation("Requesting Geocode from ORS: {RequestUri}", requestUri);
             var response = await client.GetAsync(requestUri);
             string responseBody = await response.Content.ReadAsStringAsync();
+            logger.LogInformation("Received Geocode response from ORS: {ResponseBody}", responseBody);
 
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {

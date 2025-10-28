@@ -15,14 +15,14 @@ namespace api.Tests.Unit.Services;
 
 public class LocationOpenRouteServiceTests
 {
-    private Mock<IOptions<OpenRouteServiceOptions>> mockOptions = null!;
-    private Mock<IHttpClientFactory> mockHttpClientFactory = null!;
-    private Mock<ILogger<LocationOpenRouteService>> mockLogger = null!;
-    private Mock<HttpMessageHandler> mockHttpMessageHandler = null!;
-    private HttpClient httpClient = null!;
+    private readonly Mock<IOptions<OpenRouteServiceOptions>> mockOptions;
+    private readonly Mock<IHttpClientFactory> mockHttpClientFactory;
+    private readonly Mock<ILogger<LocationOpenRouteService>> mockLogger;
+    private readonly Mock<HttpMessageHandler> mockHttpMessageHandler;
+    private readonly HttpClient httpClient;
+    private readonly LocationOpenRouteService service;
 
-    [Before(Test)]
-    public void Setup()
+    public LocationOpenRouteServiceTests()
     {
         mockOptions = new Mock<IOptions<OpenRouteServiceOptions>>();
         mockOptions.Setup(o => o.Value).Returns(new OpenRouteServiceOptions
@@ -38,6 +38,8 @@ public class LocationOpenRouteServiceTests
 
         httpClient = new HttpClient(mockHttpMessageHandler.Object);
         mockHttpClientFactory.Setup(f => f.CreateClient(It.IsAny<string>())).Returns(httpClient);
+
+        service = new LocationOpenRouteService(mockOptions.Object, mockHttpClientFactory.Object, mockLogger.Object);
     }
 
     [After(Test)]
@@ -70,6 +72,24 @@ public class LocationOpenRouteServiceTests
             });
     }
 
+    private void VerifyQueryParameter(string parameterName, string expectedValue, Times? times = null)
+    {
+        Verify(req =>
+            req.RequestUri != null &&
+            req.RequestUri.Query.Contains($"{parameterName}={expectedValue}"),
+            times);
+    }
+
+    private void Verify(System.Linq.Expressions.Expression<Func<HttpRequestMessage, bool>> match, Times? times = null)
+    {
+        // Verify query parameter was added to request
+        mockHttpMessageHandler.Protected().Verify(
+            "SendAsync",
+            times ?? Times.Once(),
+            ItExpr.Is<HttpRequestMessage>(match),
+            ItExpr.IsAny<CancellationToken>());
+    }
+
     [Test]
     public async Task ReturnsLocations_WhenApiReturnsSuccess()
     {
@@ -100,8 +120,6 @@ public class LocationOpenRouteServiceTests
 
         SetupMockResponse(features);
 
-        var service = new LocationOpenRouteService(mockOptions.Object, mockHttpClientFactory.Object, mockLogger.Object);
-
         // Act
         var results = (await service.SearchAsync(query)).ToList();
 
@@ -119,34 +137,43 @@ public class LocationOpenRouteServiceTests
     }
 
     [Test]
-    public async Task EscapesQueryParameter_WhenQueryContainsSpecialCharacters()
+    [Arguments("Ää", "%C3%84%C3%A4")]
+    [Arguments("ß", "%C3%9F")]
+    [Arguments("S p a c e", "S%20p%20a%20c%20e")]
+    [Arguments("A&B", "A%26B")]
+    public async Task EscapesQueryParameter_WhenQueryContainsSpecialCharacters(string query, string expected)
     {
         // Arrange
-        var query = "Berlin & München";
-        
         SetupMockResponse(Array.Empty<OpenRouteServiceGeocodeResponse.Feature>());
 
-        var service = new LocationOpenRouteService(mockOptions.Object, mockHttpClientFactory.Object, mockLogger.Object);
+        // Act
+        _ = await service.SearchAsync(query);
+
+        // Verify query parameter was added with proper encoding
+        VerifyQueryParameter("text", expected);
+    }
+
+    [Test]
+    public async Task LimitsToGermany()
+    {
+        // Arrange
+        SetupMockResponse(Array.Empty<OpenRouteServiceGeocodeResponse.Feature>());
 
         // Act
-        var results = await service.SearchAsync(query);
+        _ = await service.SearchAsync("anything");
 
-        // Assert
-        await Assert.That(results).IsEmpty();
+        // Verify country parameter was added
+        VerifyQueryParameter("boundary.country", "DE");
     }
 
     [Test]
     public async Task ReturnsEmptyList_WhenNoResultsFound()
     {
         // Arrange
-        var query = "NonExistentLocation12345";
-        
         SetupMockResponse(Array.Empty<OpenRouteServiceGeocodeResponse.Feature>());
 
-        var service = new LocationOpenRouteService(mockOptions.Object, mockHttpClientFactory.Object, mockLogger.Object);
-
         // Act
-        var results = await service.SearchAsync(query);
+        var results = await service.SearchAsync("anything");
 
         // Assert
         await Assert.That(results).IsEmpty();
@@ -169,8 +196,6 @@ public class LocationOpenRouteServiceTests
                 Content = new StringContent("Bad Request", Encoding.UTF8, "text/plain")
             });
 
-        var service = new LocationOpenRouteService(mockOptions.Object, mockHttpClientFactory.Object, mockLogger.Object);
-
         // Act & Assert
         await Assert.That(async () => await service.SearchAsync(query)).ThrowsExactly<ProblemDetailsException>();
     }
@@ -192,8 +217,6 @@ public class LocationOpenRouteServiceTests
                 Content = new StringContent("Invalid JSON", Encoding.UTF8, "application/json")
             });
 
-        var service = new LocationOpenRouteService(mockOptions.Object, mockHttpClientFactory.Object, mockLogger.Object);
-
         // Act & Assert
         await Assert.That(async () => await service.SearchAsync(query)).ThrowsExactly<ProblemDetailsException>();
     }
@@ -203,8 +226,27 @@ public class LocationOpenRouteServiceTests
     {
         // Arrange
         var query = "Berlin";
-        
+
         SetupMockResponse(Array.Empty<OpenRouteServiceGeocodeResponse.Feature>());
+
+        // Act
+        await service.SearchAsync(query);
+
+        // Assert
+        Verify(req =>
+                req.Headers.Authorization != null &&
+                req.Headers.Authorization.Scheme == "Bearer" &&
+                req.Headers.Authorization.Parameter == mockOptions.Object.Value.ApiKey
+        );
+    }
+
+    [Test]
+    public async Task ParsesRealTestData_WhenProvidedWithActualORSResponse()
+    {
+        // Arrange
+        var query = "Gesamtschule Alterteichweg";
+        var testDataPath = Path.Combine("TestData", "ors__geocode_search_get_1761571663311.json");
+        var testDataJson = await File.ReadAllTextAsync(testDataPath);
 
         HttpRequestMessage? capturedRequest = null;
 
@@ -217,49 +259,15 @@ public class LocationOpenRouteServiceTests
             .ReturnsAsync(new HttpResponseMessage
             {
                 StatusCode = HttpStatusCode.OK,
-                Content = new StringContent("{\"features\":[]}", Encoding.UTF8, "application/json")
-            });
-
-        httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", "test-api-key");
-        var service = new LocationOpenRouteService(mockOptions.Object, mockHttpClientFactory.Object, mockLogger.Object);
-
-        // Act
-        await service.SearchAsync(query);
-
-        // Assert
-        await Assert.That(capturedRequest).IsNotNull();
-        await Assert.That(capturedRequest!.Headers.Authorization).IsNotNull();
-        await Assert.That(capturedRequest.Headers.Authorization!.Scheme).IsEqualTo("Bearer");
-        await Assert.That(capturedRequest.Headers.Authorization.Parameter).IsEqualTo("test-api-key");
-    }
-
-    [Test]
-    public async Task ParsesRealTestData_WhenProvidedWithActualORSResponse()
-    {
-        // Arrange
-        var query = "Gesamtschule Alterteichweg";
-        var testDataPath = Path.Combine("TestData", "ors__geocode_search_get_1761571663311.json");
-        var testDataJson = await File.ReadAllTextAsync(testDataPath);
-
-        mockHttpMessageHandler.Protected()
-            .Setup<Task<HttpResponseMessage>>(
-                "SendAsync",
-                ItExpr.IsAny<HttpRequestMessage>(),
-                ItExpr.IsAny<CancellationToken>())
-            .ReturnsAsync(new HttpResponseMessage
-            {
-                StatusCode = HttpStatusCode.OK,
                 Content = new StringContent(testDataJson, Encoding.UTF8, "application/json")
             });
-
-        var service = new LocationOpenRouteService(mockOptions.Object, mockHttpClientFactory.Object, mockLogger.Object);
 
         // Act
         var results = (await service.SearchAsync(query)).ToList();
 
         // Assert
         await Assert.That(results).HasCount().EqualTo(10);
-        
+
         // Verify first result (Gesamtschule Ebsdorfergrund)
         await Assert.That(results[0].Label).IsEqualTo("Gesamtschule Ebsdorfergrund, Ebsdorfergrund, HE, Germany");
         await Assert.That(results[0].Name).IsEqualTo("Gesamtschule Ebsdorfergrund");

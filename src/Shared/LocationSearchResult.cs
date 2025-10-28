@@ -1,4 +1,4 @@
-namespace api.Models
+namespace ZgM.ProjectCoordinator.Shared
 {
     public struct LocationSearchResult
     {

@@ -39,7 +39,7 @@ Configure the required Configurations in `src\api\local.settings.json`.
 }
 ```
 
-This is enough to run the application in `Debug` as there the authentication and authorization is disabled using Fake services.
+This is enough to run the application in `Debug` as there the authentication and authorization is disabled using Fake services. If you need to see or logs you can add `"AzureFunctionsJobHost__logging__LogLevel__Function.*.User": "Debug"`
 
 If you want to run the app with authN & AuthZ to test Graph or be more like the deployed version, you need to configure the auth Settings. Add to the `src\api\local.settings.json`
 

@@ -20,7 +20,7 @@ namespace api
         }
 
         [Function(nameof(SearchLocations))]
-        public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Function, "get", Route = "locations/{text}")] HttpRequest request, string text)
+        public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Function, "get", Route = "locations")] HttpRequest request)
         {
             using (_logger.BeginScope(new Dictionary<string, object> { { "FunctionName", nameof(SearchLocations) } }))
             {
@@ -28,9 +28,10 @@ namespace api
                 if (!authenticationStatus)
                     return authenticationResponse!;
 
+                var text = request.Query["text"].ToString();
                 if (string.IsNullOrWhiteSpace(text))
                 {
-                    return new BadRequestObjectResult(new { error = "Path parameter 'text' is required" });
+                    return new BadRequestObjectResult(new { error = "Query parameter 'text' is required" });
                 }
 
                 _logger.LogInformation("Searching for locations with query: {Query}", text);
