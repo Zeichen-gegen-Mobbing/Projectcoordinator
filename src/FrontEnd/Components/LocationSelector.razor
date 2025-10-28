@@ -45,18 +45,22 @@
 						<tr>
 							<td>@result.Label</td>
 							<td>
-								@if (!string.IsNullOrEmpty(result.Street))
-								{
-									<div>@result.Street @result.HouseNumber</div>
+								@{
+									var parts = new List<string>();
+									if (!string.IsNullOrEmpty(result.Street))
+									{
+										parts.Add($"{result.Street} {result.HouseNumber}".Trim());
+									}
+									if (!string.IsNullOrEmpty(result.PostalCode) || !string.IsNullOrEmpty(result.Locality))
+									{
+										parts.Add($"{result.PostalCode} {result.Locality}".Trim());
+									}
+									if (!string.IsNullOrEmpty(result.Country))
+									{
+										parts.Add(result.Country);
+									}
 								}
-								@if (!string.IsNullOrEmpty(result.PostalCode) || !string.IsNullOrEmpty(result.Locality))
-								{
-									<div>@result.PostalCode @result.Locality</div>
-								}
-								@if (!string.IsNullOrEmpty(result.Country))
-								{
-									<div>@result.Country</div>
-								}
+								@string.Join(", ", parts)
 							</td>
 							<td>
 								<button disabled="@Disabled" @onclick="() => SelectLocation(result)" class="btn btn-sm btn-success">
