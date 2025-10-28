@@ -1,6 +1,7 @@
 using FrontEnd;
 #if DEBUG
 using FrontEnd.LocalAuthentication;
+using Microsoft.AspNetCore.Components.Authorization;
 #endif
 using FrontEnd.Services;
 using Microsoft.AspNetCore.Components.Web;
@@ -9,15 +10,16 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using System.Globalization;
 using System.Net.Http.Json;
 using ZgM.ProjectCoordinator.Shared;
+using Microsoft.Authentication.WebAssembly.Msal.Models;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.Configuration["API_Prefix"] ?? builder.HostEnvironment.BaseAddress) });
-
 #if DEBUG
-LocalAuthenticationProvider.AddLocalAuthentication(builder.Services);
+builder.Services.AddScoped<AuthenticationStateProvider, LocalAuthenticationProvider>();
+builder.Services.AddRemoteAuthentication<RemoteAuthenticationState, RemoteUserAccount, MsalProviderOptions>();
 #else
 // Load authentication configuration from API
 using var httpClient = new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) };
@@ -31,7 +33,10 @@ if (authConfig == null)
 builder.Services.AddMsalAuthentication(options =>
 {
     builder.Configuration.Bind("AzureAd", options.ProviderOptions.Authentication);
-    options.ProviderOptions.DefaultAccessTokenScopes.Add(authConfig.ApiScope);
+    foreach (var scope in authConfig.ApiScopes)
+    {
+        options.ProviderOptions.DefaultAccessTokenScopes.Add(scope);
+    }
     options.ProviderOptions.Authentication.ClientId = authConfig.FrontEndClientId;
 });
 #endif
@@ -55,11 +60,35 @@ builder.Services.AddHttpClient<ITripService, TripService>(client =>
     client.BaseAddress = new Uri(baseAddress);
 })
 #if DEBUG
-    .AddHttpMessageHandler(_ => new FakeAuthorizationMessageHandler());
+    .AddHttpMessageHandler(sp =>
+    {
+        var handler = sp.GetRequiredService<CustomAuthorizationMessageHandler>();
+        handler.ConfigureHandler([baseAddress]);
+        return handler;
+    });
 #else
 .AddHttpMessageHandler(sp => {
     var handler = sp.GetRequiredService<CustomAuthorizationMessageHandler>();
-    handler.ConfigureHandler([baseAddress], [authConfig.ApiScope]);
+    handler.ConfigureHandler([baseAddress], authConfig.ApiScopes);
+    return handler;
+});
+#endif
+
+builder.Services.AddHttpClient<IRoleService, RoleService>(client =>
+{
+    client.BaseAddress = new Uri(baseAddress);
+})
+#if DEBUG
+    .AddHttpMessageHandler(sp =>
+    {
+        var handler = sp.GetRequiredService<CustomAuthorizationMessageHandler>();
+        handler.ConfigureHandler([baseAddress]);
+        return handler;
+    });
+#else
+.AddHttpMessageHandler(sp => {
+    var handler = sp.GetRequiredService<CustomAuthorizationMessageHandler>();
+    handler.ConfigureHandler([baseAddress], authConfig.ApiScopes);
     return handler;
 });
 #endif

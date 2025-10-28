@@ -26,7 +26,7 @@ resource "azuread_service_principal_delegated_permission_grant" "client_graph" {
 resource "azuread_application_api_access" "client_api" {
   application_id = azuread_application_registration.client.id
   api_client_id  = azuread_application_registration.api.client_id
-  scope_ids      = [azuread_application_permission_scope.api_access.scope_id]
+  scope_ids      = [for x in azuread_application_permission_scope.api_access : x.scope_id]
 }
 
 resource "azuread_service_principal_delegated_permission_grant" "client_api" {
@@ -34,7 +34,7 @@ resource "azuread_service_principal_delegated_permission_grant" "client_api" {
   service_principal_object_id          = azuread_service_principal.client.object_id
   resource_service_principal_object_id = azuread_service_principal.api.object_id
 
-  claim_values = [azuread_application_permission_scope.api_access.value]
+  claim_values = [for x in azuread_application_permission_scope.api_access : x.value]
 }
 
 resource "azuread_application_redirect_uris" "client" {

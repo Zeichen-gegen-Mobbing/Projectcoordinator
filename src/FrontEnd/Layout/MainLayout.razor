@@ -7,23 +7,9 @@
     </div>
 
     <main>
-
-        @{
-#pragma warning disable
-#if DEBUG
-        Console.WriteLine("Debug Mode");
-
-                <div class="top-row px-4 auth">
-            <FrontEnd.LocalAuthentication.LocalIdentitySwitcher />
-        </div>
-#else
-		Console.WriteLine("Not Debug Mode");  
-
-            <div class="top-row px-4 auth">
+        <div class="top-row px-4 auth">
             <LoginDisplay />
-            </div>
-#endif
-            }
+        </div>
         
         <article class="content px-4">
             @Body

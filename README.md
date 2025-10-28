@@ -24,20 +24,7 @@ The suggested Local Development Environment is using Visual Studio Code. To run 
 
 To run the backend you need the Azure Function Core Tools. Furthermore you need the [Azure Cosmos Emulator](https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-develop-emulator?tabs=docker-windows%2Ccsharp&pivots=api-nosql). You can run `pwsh ./scripts/Start-PcDatabase.ps1` if you have PowerShell and docker installed.
 
-Configure the required Configurations in `src\api\local.settings.json`.
-
-```json
-{
-    "IsEncrypted": false,
-    "Values": {
-        "AzureWebJobsStorage": "UseDevelopmentStorage=true",
-        "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
-        "AzureWebJobsFeatureFlags": "EnableActionResultHandling",
-        "Cosmos__ConnectionString": "AccountEndpoint=https://localhost:8081/;AccountKey=C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==",
-        "OpenRouteService__ApiKey": "<ApiKey>"
-    }
-}
-```
+Replace the empty Configurations in `src\api\local.settings.json`.
 
 This is enough to run the application in `Debug` as there the authentication and authorization is disabled using Fake services. If you need to see or logs you can add `"AzureFunctionsJobHost__logging__LogLevel__Function.*.User": "Debug"`
 

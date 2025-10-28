@@ -1,5 +1,6 @@
 using api.Entities;
 using api.Exceptions;
+using api.Extensions;
 using api.Models;
 using api.Services;
 using Microsoft.AspNetCore.Http;
@@ -7,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using Microsoft.Identity.Web;
+using Microsoft.Identity.Web.Resource;
 
 namespace api
 {
@@ -26,9 +28,9 @@ namespace api
         {
             using (_logger.BeginScope(new Dictionary<string, object> { { "FunctionName", nameof(CreatePlace) } }))
             {
-                var (authenticationStatus, authenticationResponse) = await request.HttpContext.AuthenticateAzureFunctionAsync();
-                if (!authenticationStatus)
-                    return authenticationResponse!;
+                await request.HttpContext.AuthorizeAzureFunctionAsync(
+                    scopes: ["Places.CreateOnBehalfOf"],
+                    roles: ["admin"]);
 
                 var placeRequest = await request.ReadFromJsonAsync<PlaceRequest>();
                 _logger.LogInformation("Read place from request");
