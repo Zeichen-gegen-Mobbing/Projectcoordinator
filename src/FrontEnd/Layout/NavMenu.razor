@@ -2,6 +2,7 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @inject IRoleService RoleService
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@implements IDisposable
 
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
@@ -52,23 +53,49 @@
 
     protected override async Task OnInitializedAsync()
     {
+        AuthenticationStateProvider.AuthenticationStateChanged += OnAuthenticationStateChanged;
+        await CheckRoles();
+    }
+
+    private async void OnAuthenticationStateChanged(Task<AuthenticationState> task)
+    {
+        await CheckRoles();
+        StateHasChanged();
+    }
+
+    private async Task CheckRoles()
+    {
+        Console.WriteLine("Checking roles in NavMenu...");
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        Console.WriteLine($"User {authState.User.Identity?.Name} is authenticated: {authState.User.Identity?.IsAuthenticated}");
         if (authState.User.Identity?.IsAuthenticated == true)
         {
             try
             {
+                Console.WriteLine("Fetching user roles...");
                 var roles = await RoleService.GetUserRolesAsync();
                 hasProjectCoordinationRole = roles.Contains("projectcoordination", StringComparer.OrdinalIgnoreCase);
+                Console.WriteLine($"User has projectcoordination role: {hasProjectCoordinationRole}");
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine($"Error fetching roles: {ex.ToString()} {ex.Message}");
                 hasProjectCoordinationRole = false;
             }
+        }
+        else
+        {
+            hasProjectCoordinationRole = false;
         }
     }
 
     private void ToggleNavMenu()
     {
         collapseNavMenu = !collapseNavMenu;
+    }
+
+    public void Dispose()
+    {
+        AuthenticationStateProvider.AuthenticationStateChanged -= OnAuthenticationStateChanged;
     }
 }

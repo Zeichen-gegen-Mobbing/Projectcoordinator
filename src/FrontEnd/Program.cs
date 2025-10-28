@@ -10,15 +10,16 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using System.Globalization;
 using System.Net.Http.Json;
 using ZgM.ProjectCoordinator.Shared;
+using Microsoft.Authentication.WebAssembly.Msal.Models;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.Configuration["API_Prefix"] ?? builder.HostEnvironment.BaseAddress) });
-
 #if DEBUG
-LocalAuthenticationProvider.AddLocalAuthentication(builder.Services);
+builder.Services.AddScoped<AuthenticationStateProvider, LocalAuthenticationProvider>();
+builder.Services.AddRemoteAuthentication<RemoteAuthenticationState, RemoteUserAccount, MsalProviderOptions>();
 #else
 // Load authentication configuration from API
 using var httpClient = new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) };
@@ -59,7 +60,8 @@ builder.Services.AddHttpClient<ITripService, TripService>(client =>
     client.BaseAddress = new Uri(baseAddress);
 })
 #if DEBUG
-    .AddHttpMessageHandler(sp => {
+    .AddHttpMessageHandler(sp =>
+    {
         var handler = sp.GetRequiredService<CustomAuthorizationMessageHandler>();
         handler.ConfigureHandler([baseAddress]);
         return handler;
@@ -77,7 +79,8 @@ builder.Services.AddHttpClient<IRoleService, RoleService>(client =>
     client.BaseAddress = new Uri(baseAddress);
 })
 #if DEBUG
-    .AddHttpMessageHandler(sp => {
+    .AddHttpMessageHandler(sp =>
+    {
         var handler = sp.GetRequiredService<CustomAuthorizationMessageHandler>();
         handler.ConfigureHandler([baseAddress]);
         return handler;
