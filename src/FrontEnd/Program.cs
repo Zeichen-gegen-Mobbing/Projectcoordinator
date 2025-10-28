@@ -44,16 +44,6 @@ builder.Services.AddMsalAuthentication(options =>
 builder.Services.AddTransient<GraphAuthorizationMessageHandler>();
 builder.Services.AddTransient<CustomAuthorizationMessageHandler>();
 
-builder.Services.AddHttpClient("GraphAPI",
-        client => client.BaseAddress = new Uri(
-            string.Join("/",
-                builder.Configuration.GetSection("MicrosoftGraph")["BaseUrl"] ??
-                    "https://graph.microsoft.com",
-                builder.Configuration.GetSection("MicrosoftGraph")["Version"] ??
-                    "v1.0",
-                string.Empty)))
-    .AddHttpMessageHandler<GraphAuthorizationMessageHandler>();
-
 var baseAddress = $"{builder.HostEnvironment.BaseAddress}api/";
 builder.Services.AddHttpClient<ITripService, TripService>(client =>
 {
@@ -98,11 +88,16 @@ builder.Services.AddHttpClient<ILocationService, LocationService>(client =>
     client.BaseAddress = new Uri(baseAddress);
 })
 #if DEBUG
-    .AddHttpMessageHandler(_ => new FakeAuthorizationMessageHandler());
+    .AddHttpMessageHandler(sp =>
+    {
+        var handler = sp.GetRequiredService<CustomAuthorizationMessageHandler>();
+        handler.ConfigureHandler([baseAddress]);
+        return handler;
+    });
 #else
 .AddHttpMessageHandler(sp => {
     var handler = sp.GetRequiredService<CustomAuthorizationMessageHandler>();
-    handler.ConfigureHandler([baseAddress], [authConfig.ApiScope]);
+    handler.ConfigureHandler([baseAddress], [authConfig.ApiScopes]);
     return handler;
 });
 #endif
@@ -110,6 +105,15 @@ builder.Services.AddHttpClient<ILocationService, LocationService>(client =>
 #if DEBUG
 builder.Services.AddScoped<IUserService, FakeUserService>();
 #else
+builder.Services.AddHttpClient("GraphAPI",
+        client => client.BaseAddress = new Uri(
+            string.Join("/",
+                builder.Configuration.GetSection("MicrosoftGraph")["BaseUrl"] ??
+                    "https://graph.microsoft.com",
+                builder.Configuration.GetSection("MicrosoftGraph")["Version"] ??
+                    "v1.0",
+                string.Empty)))
+    .AddHttpMessageHandler<GraphAuthorizationMessageHandler>();
 builder.Services.AddScoped<IUserService, GraphUserService>();
 #endif
 
