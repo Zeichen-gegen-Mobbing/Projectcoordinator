@@ -14,6 +14,7 @@ using Microsoft.Identity.Web;
 var host = new HostBuilder()
     .ConfigureFunctionsWebApplication(worker =>
     {
+        worker.UseMiddleware<ExceptionHandlingMiddleware>();
         worker.UseMiddleware<AuthorizationHeaderMiddleware>();
     })
     .ConfigureServices((context, services) =>
