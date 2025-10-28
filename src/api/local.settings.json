@@ -5,6 +5,8 @@
         "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
         "AzureWebJobsFeatureFlags": "EnableActionResultHandling",
         "Cosmos__ConnectionString": "",
-        "OpenRouteService__ApiKey": ""
+        "OpenRouteService__ApiKey": "",
+        "Authentication__ApiClientId": "9d3b26c6-df97-4045-9523-fcc0ad530e6c",
+        "Authentication__FrontEndClientId": "fed078f9-9910-423e-aa32-1e67f8b955f3"
     }
 }

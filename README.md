@@ -35,7 +35,7 @@ If you want to run the app with authN & AuthZ to test Graph or be more like the 
 "AzureAd__Instance": "https://login.microsoftonline.com/",
 "AzureAd__TenantId": "<TenantId>",
 "Authentication__FrontEndClientId": "<FrontEndClientId>",
-"Authentication__ApiScope": "api://<ApiClientId>/API.Access"
+"Authentication__ApiClientId": "<Same as AzureAd__ClientId>"
 ```
 
 If you need to create the app registrations run the following:
