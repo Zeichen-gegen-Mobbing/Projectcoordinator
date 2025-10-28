@@ -29,10 +29,7 @@ builder.Services.AddRemoteAuthentication<RemoteAuthenticationState, RemoteUserAc
 builder.Services.AddMsalAuthentication(options =>
 {
     builder.Configuration.Bind("AzureAd", options.ProviderOptions.Authentication);
-    foreach (var scope in authConfig.ApiScopes)
-    {
-        options.ProviderOptions.DefaultAccessTokenScopes.Add(scope);
-    }
+    options.ProviderOptions.DefaultAccessTokenScopes.Add($"api://{authConfig.ApiClientId}/.default");
     options.ProviderOptions.Authentication.ClientId = authConfig.FrontEndClientId;
 });
 #endif
@@ -75,7 +72,7 @@ builder.Services.AddScoped<IUserService, FakeUserService>();
 #else
 builder.Services.AddHttpClient<IUserService, GraphUserService>(client => 
     client.BaseAddress = new Uri("https://graph.microsoft.com/v1.0"))
-    .AddHttpMessageHandler<AuthorizationMessageHandler>(sp => {
+    .AddHttpMessageHandler(sp => {
         return sp.GetRequiredService<AuthorizationMessageHandler>()
             .ConfigureHandler(
                 authorizedUrls: ["https://graph.microsoft.com/"],
