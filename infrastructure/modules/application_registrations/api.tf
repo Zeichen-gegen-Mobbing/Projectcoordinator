@@ -47,12 +47,12 @@ resource "random_uuid" "api_role_id" {
 }
 
 resource "azuread_application_app_role" "api" {
-  for_each            = local.api_roles
-  application_id      = azuread_application_registration.api.id
-  role_id             = random_uuid.api_role_id[each.key].result
-  value               = each.key
-  display_name        = each.value.display_name
-  description         = each.value.description
+  for_each             = local.api_roles
+  application_id       = azuread_application_registration.api.id
+  role_id              = random_uuid.api_role_id[each.key].result
+  value                = each.key
+  display_name         = each.value.display_name
+  description          = each.value.description
   allowed_member_types = ["User"]
 }
 
