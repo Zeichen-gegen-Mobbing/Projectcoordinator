@@ -28,15 +28,9 @@ namespace api
         {
             using (_logger.BeginScope(new Dictionary<string, object> { { "FunctionName", nameof(CreatePlace) } }))
             {
-                var (authorized, authenticationResponse) = await request.HttpContext.AuthorizeAzureFunctionAsync(
+                await request.HttpContext.AuthorizeAzureFunctionAsync(
                     scopes: ["Places.CreateOnBehalfOf"],
                     roles: ["admin"]);
-                if (!authorized)
-                {
-                    _logger.LogWarning("Unauthenticated request: {response}", authenticationResponse!.ToString());
-                    return authenticationResponse!;
-                }
-
 
                 var placeRequest = await request.ReadFromJsonAsync<PlaceRequest>();
                 _logger.LogInformation("Read place from request");

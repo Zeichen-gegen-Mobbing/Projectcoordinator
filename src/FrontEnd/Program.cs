@@ -59,7 +59,11 @@ builder.Services.AddHttpClient<ITripService, TripService>(client =>
     client.BaseAddress = new Uri(baseAddress);
 })
 #if DEBUG
-    .AddHttpMessageHandler(sp => new FakeAuthorizationMessageHandler(sp.GetRequiredService<AuthenticationStateProvider>()));
+    .AddHttpMessageHandler(sp => {
+        var handler = sp.GetRequiredService<CustomAuthorizationMessageHandler>();
+        handler.ConfigureHandler([baseAddress]);
+        return handler;
+    });
 #else
 .AddHttpMessageHandler(sp => {
     var handler = sp.GetRequiredService<CustomAuthorizationMessageHandler>();
@@ -73,7 +77,11 @@ builder.Services.AddHttpClient<IRoleService, RoleService>(client =>
     client.BaseAddress = new Uri(baseAddress);
 })
 #if DEBUG
-    .AddHttpMessageHandler(sp => new FakeAuthorizationMessageHandler(sp.GetRequiredService<AuthenticationStateProvider>()));
+    .AddHttpMessageHandler(sp => {
+        var handler = sp.GetRequiredService<CustomAuthorizationMessageHandler>();
+        handler.ConfigureHandler([baseAddress]);
+        return handler;
+    });
 #else
 .AddHttpMessageHandler(sp => {
     var handler = sp.GetRequiredService<CustomAuthorizationMessageHandler>();

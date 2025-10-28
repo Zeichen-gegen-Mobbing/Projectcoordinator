@@ -1,13 +1,12 @@
 using api.Extensions;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Identity.Web;
-using Microsoft.Identity.Web.Resource;
 using Moq;
+using System.Security.Authentication;
 using System.Security.Claims;
 using TUnit.Assertions.Extensions;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace api.Tests.Unit.Extensions;
 
@@ -16,121 +15,110 @@ public class HttpContextAuthenticationExtensionsTests
     public class AuthorizeAzureFunctionAsyncMethod
     {
         [Test]
-        public async Task ReturnsUnauthorized_WhenAuthenticationFails()
+        public async Task ThrowsAuthenticationException_WhenAuthenticationFails()
         {
             // Arrange
             var httpContext = CreateMockHttpContext(isAuthenticated: false);
 
-            // Act
-            var (isAuthenticated, response) = await httpContext.AuthorizeAzureFunctionAsync();
-
-            // Assert
-            await Assert.That(isAuthenticated).IsFalse();
-            await Assert.That(response).IsNotNull();
+            // Act & Assert
+            await Assert.ThrowsAsync<AuthenticationException>(async () =>
+                await httpContext.AuthorizeAzureFunctionAsync());
         }
 
         [Test]
-        public async Task ReturnsSuccess_WhenAuthenticationSucceedsWithoutScopesAndRoles()
+        public async Task Succeeds_WhenAuthenticationSucceedsWithoutScopesAndRoles()
         {
             // Arrange
             var httpContext = CreateMockHttpContext(isAuthenticated: true);
 
-            // Act
-            var (isAuthenticated, response) = await httpContext.AuthorizeAzureFunctionAsync(
-                scopes: null,
-                roles: null);
-
-            // Assert
-            await Assert.That(isAuthenticated).IsTrue();
-            await Assert.That(response).IsNull();
+            // Act & Assert - should not throw
+            await httpContext.AuthorizeAzureFunctionAsync(scopes: null, roles: null);
         }
 
         [Test]
-        public async Task ReturnsSuccess_WhenAuthenticationSucceedsWithValidScope()
+        public async Task Succeeds_WhenAuthenticationSucceedsWithValidScope()
         {
             // Arrange
             var httpContext = CreateMockHttpContext(
                 isAuthenticated: true,
                 scopes: ["Trips.Calculate"]);
 
-            // Act
-            var (isAuthenticated, response) = await httpContext.AuthorizeAzureFunctionAsync(
-                scopes: ["Trips.Calculate"]);
-
-            // Assert
-            await Assert.That(isAuthenticated).IsTrue();
-            await Assert.That(response).IsNull();
+            // Act & Assert - should not throw
+            await httpContext.AuthorizeAzureFunctionAsync(scopes: ["Trips.Calculate"]);
         }
 
         [Test]
-        public async Task ReturnsForbidden_WhenScopeValidationFails()
+        public async Task ThrowsUnauthorizedAccessException_WhenScopeValidationFails()
         {
             // Arrange
             var httpContext = CreateMockHttpContext(
                 isAuthenticated: true,
                 scopes: ["Other.Scope"]);
 
-            // Act
-            var (isAuthenticated, response) = await httpContext.AuthorizeAzureFunctionAsync(
-                scopes: ["Trips.Calculate"]);
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<UnauthorizedAccessException>(async () =>
+                await httpContext.AuthorizeAzureFunctionAsync(scopes: ["Trips.Calculate"]));
 
-            // Assert
-            await Assert.That(isAuthenticated).IsFalse();
-            await Assert.That(response).IsNotNull();
-            await Assert.That(response).IsTypeOf<UnauthorizedObjectResult>();
-
-            var objectResult = (UnauthorizedObjectResult)response!;
-            await Assert.That(objectResult.Value).IsTypeOf<ProblemDetails>();
-
-            var problemDetails = (ProblemDetails)objectResult.Value!;
-            await Assert.That(problemDetails.Title).IsEqualTo("Insufficient Scope");
-            await Assert.That(problemDetails.Status).IsEqualTo(StatusCodes.Status403Forbidden);
+            await Assert.That(exception!.Message).Contains("Trips.Calculate");
         }
 
         [Test]
-        public async Task ReturnsSuccess_WhenAuthenticationSucceedsWithValidRole()
+        public async Task ThrowsUnauthorizedAccessException_WhenNoScopesInClaims()
+        {
+            // Arrange
+            var httpContext = CreateMockHttpContext(isAuthenticated: true);
+
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<UnauthorizedAccessException>(async () =>
+                await httpContext.AuthorizeAzureFunctionAsync(scopes: ["Trips.Calculate"]));
+
+            // When no claims exist, the validation detects user as unauthenticated
+            await Assert.That(exception!.Message).Contains("unauthenticated");
+        }
+
+        [Test]
+        public async Task Succeeds_WhenAuthenticationSucceedsWithValidRole()
         {
             // Arrange
             var httpContext = CreateMockHttpContext(
                 isAuthenticated: true,
                 roles: ["projectcoordination"]);
 
-            // Act
-            var (isAuthenticated, response) = await httpContext.AuthorizeAzureFunctionAsync(
-                roles: ["projectcoordination"]);
-
-            // Assert
-            await Assert.That(isAuthenticated).IsTrue();
-            await Assert.That(response).IsNull();
+            // Act & Assert - should not throw
+            await httpContext.AuthorizeAzureFunctionAsync(roles: ["projectcoordination"]);
         }
 
         [Test]
-        public async Task ReturnsForbidden_WhenRoleValidationFails()
+        public async Task ThrowsUnauthorizedAccessException_WhenRoleValidationFails()
         {
             // Arrange
             var httpContext = CreateMockHttpContext(
                 isAuthenticated: true,
                 roles: ["other-role"]);
 
-            // Act
-            var (isAuthenticated, response) = await httpContext.AuthorizeAzureFunctionAsync(
-                roles: ["projectcoordination"]);
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<UnauthorizedAccessException>(async () =>
+                await httpContext.AuthorizeAzureFunctionAsync(roles: ["projectcoordination"]));
 
-            // Assert
-            await Assert.That(isAuthenticated).IsFalse();
-            await Assert.That(response).IsNotNull();
-            await Assert.That(response).IsTypeOf<UnauthorizedObjectResult>();
-
-            var objectResult = (UnauthorizedObjectResult)response!;
-            await Assert.That(objectResult.Value).IsTypeOf<ProblemDetails>();
-
-            var problemDetails = (ProblemDetails)objectResult.Value!;
-            await Assert.That(problemDetails.Title).IsEqualTo("Insufficient Role");
-            await Assert.That(problemDetails.Status).IsEqualTo(StatusCodes.Status403Forbidden);
+            await Assert.That(exception!.Message).Contains("projectcoordination");
         }
 
         [Test]
-        public async Task ReturnsSuccess_WhenBothScopeAndRoleAreValid()
+        public async Task ThrowsUnauthorizedAccessException_WhenNoRolesInClaims()
+        {
+            // Arrange
+            var httpContext = CreateMockHttpContext(isAuthenticated: true);
+
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<UnauthorizedAccessException>(async () =>
+                await httpContext.AuthorizeAzureFunctionAsync(roles: ["projectcoordination"]));
+
+            // When no claims exist, the validation detects user as unauthenticated
+            await Assert.That(exception!.Message).Contains("unauthenticated");
+        }
+
+        [Test]
+        public async Task Succeeds_WhenBothScopeAndRoleAreValid()
         {
             // Arrange
             var httpContext = CreateMockHttpContext(
@@ -138,18 +126,14 @@ public class HttpContextAuthenticationExtensionsTests
                 scopes: ["Trips.Calculate"],
                 roles: ["projectcoordination"]);
 
-            // Act
-            var (isAuthenticated, response) = await httpContext.AuthorizeAzureFunctionAsync(
+            // Act & Assert - should not throw
+            await httpContext.AuthorizeAzureFunctionAsync(
                 scopes: ["Trips.Calculate"],
                 roles: ["projectcoordination"]);
-
-            // Assert
-            await Assert.That(isAuthenticated).IsTrue();
-            await Assert.That(response).IsNull();
         }
 
         [Test]
-        public async Task ReturnsForbidden_WhenScopeIsValidButRoleIsNot()
+        public async Task ThrowsUnauthorizedAccessException_WhenScopeIsValidButRoleIsNot()
         {
             // Arrange
             var httpContext = CreateMockHttpContext(
@@ -157,23 +141,17 @@ public class HttpContextAuthenticationExtensionsTests
                 scopes: ["Trips.Calculate"],
                 roles: ["other-role"]);
 
-            // Act
-            var (isAuthenticated, response) = await httpContext.AuthorizeAzureFunctionAsync(
-                scopes: ["Trips.Calculate"],
-                roles: ["projectcoordination"]);
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<UnauthorizedAccessException>(async () =>
+                await httpContext.AuthorizeAzureFunctionAsync(
+                    scopes: ["Trips.Calculate"],
+                    roles: ["projectcoordination"]));
 
-            // Assert
-            await Assert.That(isAuthenticated).IsFalse();
-            await Assert.That(response).IsNotNull();
-            await Assert.That(response).IsTypeOf<UnauthorizedObjectResult>();
-
-            var objectResult = (UnauthorizedObjectResult)response!;
-            var problemDetails = (ProblemDetails)objectResult.Value!;
-            await Assert.That(problemDetails.Title).IsEqualTo("Insufficient Role");
+            await Assert.That(exception!.Message).Contains("role");
         }
 
         [Test]
-        public async Task ReturnsForbidden_WhenRoleIsValidButScopeIsNot()
+        public async Task ThrowsUnauthorizedAccessException_WhenRoleIsValidButScopeIsNot()
         {
             // Arrange
             var httpContext = CreateMockHttpContext(
@@ -181,53 +159,65 @@ public class HttpContextAuthenticationExtensionsTests
                 scopes: ["Other.Scope"],
                 roles: ["projectcoordination"]);
 
-            // Act
-            var (isAuthenticated, response) = await httpContext.AuthorizeAzureFunctionAsync(
-                scopes: ["Trips.Calculate"],
-                roles: ["projectcoordination"]);
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<UnauthorizedAccessException>(async () =>
+                await httpContext.AuthorizeAzureFunctionAsync(
+                    scopes: ["Trips.Calculate"],
+                    roles: ["projectcoordination"]));
 
-            // Assert
-            await Assert.That(isAuthenticated).IsFalse();
-            await Assert.That(response).IsNotNull();
-            await Assert.That(response).IsTypeOf<UnauthorizedObjectResult>();
-
-            var objectResult = (UnauthorizedObjectResult)response!;
-            var problemDetails = (ProblemDetails)objectResult.Value!;
-            await Assert.That(problemDetails.Title).IsEqualTo("Insufficient Scope");
+            await Assert.That(exception!.Message).Contains("scope");
         }
 
         [Test]
-        public async Task ReturnsSuccess_WhenUserHasOneOfMultipleRequiredScopes()
+        public async Task Succeeds_WhenUserHasOneOfMultipleRequiredScopes()
         {
             // Arrange
             var httpContext = CreateMockHttpContext(
                 isAuthenticated: true,
                 scopes: ["Trips.Calculate"]);
 
-            // Act
-            var (isAuthenticated, response) = await httpContext.AuthorizeAzureFunctionAsync(
-                scopes: ["Trips.Calculate", "Trips.Read"]);
-
-            // Assert
-            await Assert.That(isAuthenticated).IsTrue();
-            await Assert.That(response).IsNull();
+            // Act & Assert - should not throw
+            await httpContext.AuthorizeAzureFunctionAsync(scopes: ["Trips.Calculate", "Trips.Read"]);
         }
 
         [Test]
-        public async Task ReturnsSuccess_WhenUserHasOneOfMultipleRequiredRoles()
+        public async Task Succeeds_WhenUserHasMultipleScopesInSingleClaim()
+        {
+            // Arrange
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimConstants.Scp, "Trips.Calculate Trips.Read Places.Create")
+            };
+            var httpContext = CreateMockHttpContext(isAuthenticated: true, claims: claims);
+
+            // Act & Assert - should not throw
+            await httpContext.AuthorizeAzureFunctionAsync(scopes: ["Places.Create"]);
+        }
+
+        [Test]
+        public async Task Succeeds_WhenUserHasOneOfMultipleRequiredRoles()
         {
             // Arrange
             var httpContext = CreateMockHttpContext(
                 isAuthenticated: true,
                 roles: ["projectcoordination"]);
 
-            // Act
-            var (isAuthenticated, response) = await httpContext.AuthorizeAzureFunctionAsync(
-                roles: ["projectcoordination", "admin"]);
+            // Act & Assert - should not throw
+            await httpContext.AuthorizeAzureFunctionAsync(roles: ["projectcoordination", "admin"]);
+        }
 
-            // Assert
-            await Assert.That(isAuthenticated).IsTrue();
-            await Assert.That(response).IsNull();
+        [Test]
+        public async Task Succeeds_WhenUserHasMultipleRolesInSingleClaim()
+        {
+            // Arrange
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimConstants.Roles, "projectcoordination admin")
+            };
+            var httpContext = CreateMockHttpContext(isAuthenticated: true, claims: claims);
+
+            // Act & Assert - should not throw
+            await httpContext.AuthorizeAzureFunctionAsync(roles: ["admin"]);
         }
 
         /// <summary>
@@ -241,13 +231,8 @@ public class HttpContextAuthenticationExtensionsTests
             // Arrange
             var httpContext = CreateMockHttpContext(isAuthenticated: true);
 
-            // Act
-            var (isAuthenticated, response) = await httpContext.AuthorizeAzureFunctionAsync(
-                scopes: []);
-
-            // Assert
-            await Assert.That(isAuthenticated).IsTrue();
-            await Assert.That(response).IsNull();
+            // Act & Assert - should not throw
+            await httpContext.AuthorizeAzureFunctionAsync(scopes: []);
         }
 
         /// <summary>
@@ -261,100 +246,116 @@ public class HttpContextAuthenticationExtensionsTests
             // Arrange
             var httpContext = CreateMockHttpContext(isAuthenticated: true);
 
-            // Act
-            var (isAuthenticated, response) = await httpContext.AuthorizeAzureFunctionAsync(
-                roles: []);
-
-            // Assert
-            await Assert.That(isAuthenticated).IsTrue();
-            await Assert.That(response).IsNull();
+            // Act & Assert - should not throw
+            await httpContext.AuthorizeAzureFunctionAsync(roles: []);
         }
 
         [Test]
-        public async Task IncludesRequiredScopeInErrorMessage_WhenScopeValidationFails()
+        public async Task ThrowsUnauthorizedAccessException_WhenUserHasNoClaimsAndScopeRequired()
         {
             // Arrange
-            var httpContext = CreateMockHttpContext(
-                isAuthenticated: true,
-                scopes: ["Other.Scope"]);
+            var claims = new List<Claim>(); // Empty claims
+            var httpContext = CreateMockHttpContext(isAuthenticated: true, claims: claims);
 
-            // Act
-            var (_, response) = await httpContext.AuthorizeAzureFunctionAsync(
-                scopes: ["Trips.Calculate"]);
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<UnauthorizedAccessException>(async () =>
+                await httpContext.AuthorizeAzureFunctionAsync(scopes: ["Trips.Calculate"]));
 
-            // Assert
-            var objectResult = (UnauthorizedObjectResult)response!;
-            var problemDetails = (ProblemDetails)objectResult.Value!;
-            await Assert.That(problemDetails.Detail).Contains("Trips.Calculate");
+            await Assert.That(exception!.Message).Contains("unauthenticated");
         }
 
         [Test]
-        public async Task IncludesRequiredRoleInErrorMessage_WhenRoleValidationFails()
+        public async Task ThrowsUnauthorizedAccessException_WhenUserHasNoClaimsAndRoleRequired()
         {
             // Arrange
-            var httpContext = CreateMockHttpContext(
-                isAuthenticated: true,
-                roles: ["other-role"]);
+            var claims = new List<Claim>(); // Empty claims
+            var httpContext = CreateMockHttpContext(isAuthenticated: true, claims: claims);
 
-            // Act
-            var (_, response) = await httpContext.AuthorizeAzureFunctionAsync(
-                roles: ["projectcoordination"]);
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<UnauthorizedAccessException>(async () =>
+                await httpContext.AuthorizeAzureFunctionAsync(roles: ["projectcoordination"]));
 
-            // Assert
-            var objectResult = (UnauthorizedObjectResult)response!;
-            var problemDetails = (ProblemDetails)objectResult.Value!;
-            await Assert.That(problemDetails.Detail).Contains("projectcoordination");
+            await Assert.That(exception!.Message).Contains("unauthenticated");
         }
 
-        private static HttpContext CreateMockHttpContext(
-            bool isAuthenticated,
-            string[]? scopes = null,
-            string[]? roles = null)
+        [Test]
+        public async Task Succeeds_WhenUsingScopeClaimInsteadOfScp()
         {
-            var claims = new List<Claim>();
-
-            if (scopes != null)
+            // Arrange
+            var claims = new List<Claim>
             {
-                foreach (var scope in scopes)
-                {
-                    claims.Add(new Claim("scp", scope));
-                }
-            }
-
-            if (roles != null)
-            {
-                foreach (var role in roles)
-                {
-                    claims.Add(new Claim(ClaimTypes.Role, role));
-                }
-            }
-
-            var identity = new ClaimsIdentity(claims, isAuthenticated ? "TestAuth" : null);
-            var principal = new ClaimsPrincipal(identity);
-
-            var httpContext = new DefaultHttpContext
-            {
-                User = principal
+                new Claim(ClaimConstants.Scope, "Trips.Calculate")
             };
+            var httpContext = CreateMockHttpContext(isAuthenticated: true, claims: claims);
 
-            // Mock the authentication service
-            var authServiceMock = new Mock<IAuthenticationService>();
-            var authResult = isAuthenticated
-                ? AuthenticateResult.Success(new AuthenticationTicket(principal, "Bearer"))
-                : AuthenticateResult.Fail("Authentication failed");
-
-            authServiceMock
-                .Setup(x => x.AuthenticateAsync(It.IsAny<HttpContext>(), It.IsAny<string>()))
-                .ReturnsAsync(authResult);
-
-            var serviceProviderMock = new Mock<IServiceProvider>();
-            serviceProviderMock
-                .Setup(x => x.GetService(typeof(IAuthenticationService)))
-                .Returns(authServiceMock.Object);
-
-            httpContext.RequestServices = serviceProviderMock.Object;
-
-            return httpContext;
+            // Act & Assert - should not throw
+            await httpContext.AuthorizeAzureFunctionAsync(scopes: ["Trips.Calculate"]);
         }
+
+        [Test]
+        public async Task Succeeds_WhenUsingRoleClaimInsteadOfRoles()
+        {
+            // Arrange
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimConstants.Role, "projectcoordination")
+            };
+            var httpContext = CreateMockHttpContext(isAuthenticated: true, claims: claims);
+
+            // Act & Assert - should not throw
+            await httpContext.AuthorizeAzureFunctionAsync(roles: ["projectcoordination"]);
+        }
+    }
+
+    private static HttpContext CreateMockHttpContext(
+        bool isAuthenticated,
+        string[]? scopes = null,
+        string[]? roles = null,
+        List<Claim>? claims = null)
+    {
+        var claimsList = claims ?? new List<Claim>();
+
+        if (scopes != null)
+        {
+            foreach (var scope in scopes)
+            {
+                claimsList.Add(new Claim(ClaimConstants.Scp, scope));
+            }
+        }
+
+        if (roles != null)
+        {
+            foreach (var role in roles)
+            {
+                claimsList.Add(new Claim(ClaimConstants.Roles, role));
+            }
+        }
+
+        var identity = new ClaimsIdentity(claimsList, isAuthenticated ? "TestAuth" : null);
+        var principal = new ClaimsPrincipal(identity);
+
+        var httpContext = new DefaultHttpContext
+        {
+            User = principal
+        };
+
+        // Mock the authentication service
+        var authServiceMock = new Mock<IAuthenticationService>();
+        var authResult = isAuthenticated
+            ? AuthenticateResult.Success(new AuthenticationTicket(principal, Constants.Bearer))
+            : AuthenticateResult.Fail("Authentication failed");
+
+        authServiceMock
+            .Setup(x => x.AuthenticateAsync(It.IsAny<HttpContext>(), It.IsAny<string>()))
+            .ReturnsAsync(authResult);
+
+        var serviceProviderMock = new Mock<IServiceProvider>();
+        serviceProviderMock
+            .Setup(x => x.GetService(typeof(IAuthenticationService)))
+            .Returns(authServiceMock.Object);
+
+        httpContext.RequestServices = serviceProviderMock.Object;
+
+        return httpContext;
     }
 }

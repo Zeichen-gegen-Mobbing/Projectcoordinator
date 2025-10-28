@@ -29,15 +29,9 @@ namespace ZgM.Projectcoordinator.api
         {
             using (_logger.BeginScope(new Dictionary<string, object> { { "FunctionName", nameof(GetTrips) } }))
             {
-                var (authorized, authenticationResponse) = await req.HttpContext.AuthorizeAzureFunctionAsync(
+                await req.HttpContext.AuthorizeAzureFunctionAsync(
                     scopes: ["Trips.Calculate"],
                     roles: ["projectcoordination"]);
-                if (!authorized)
-                {
-                    _logger.LogWarning("Unauthenticated request: {response}", authenticationResponse!.ToString());
-                    return authenticationResponse!;
-                }
-
 
                 if (!double.TryParse(req.Query["latitude"], CultureInfo.GetCultureInfo("en-US"), out double latitude) || !double.TryParse(req.Query["longitude"], CultureInfo.GetCultureInfo("en-US"), out double longitude))
                 {
