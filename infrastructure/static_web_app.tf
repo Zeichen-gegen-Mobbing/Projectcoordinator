@@ -13,8 +13,8 @@ resource "azurerm_static_web_app" "this" {
       "AzureAd__Instance"                     = "https://login.microsoftonline.com/"
       "AzureAd__TenantId"                     = data.azuread_client_config.current.tenant_id
       "Authentication__FrontEndClientId"      = module.application_registrations.frontend_client_id
-    },
-    { for idx, scope in module.application_registrations.api_scopes : "Authentication__ApiScopes__${idx}" => scope }
+      "Authentication__ApiClientId"           = module.application_registrations.api_client_id # We need to add this, as I don't know how to merge in C#
+    }
   )
 
   lifecycle {

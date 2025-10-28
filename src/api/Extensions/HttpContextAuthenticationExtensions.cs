@@ -100,7 +100,7 @@ public static class HttpContextAuthenticationExtensions
 
             if (scopeClaim is null || !scopeClaim.Value.Split(' ').Intersect(acceptedScopes).Any())
             {
-                string message = string.Format(CultureInfo.InvariantCulture, "The 'scope' or 'scp' claim does not contain scopes '{0}' or was not found.", string.Join(",", acceptedScopes));
+                string message = string.Format(CultureInfo.InvariantCulture, "The 'scope' or 'scp' claim does not contain scopes '{0}' or was not found., {1}", string.Join(",", acceptedScopes), string.Join(",", userClaims.Select(c => c.Type + ": " + c.Value)));
 
                 throw new UnauthorizedAccessException(message);
             }

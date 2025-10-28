@@ -8,5 +8,5 @@ public record AuthenticationOptions
     public required string FrontEndClientId { get; init; }
 
     [Required]
-    public required string[] ApiScopes { get; init; }
+    public required string ApiClientId { get; init; }
 }
