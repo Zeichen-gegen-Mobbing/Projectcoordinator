@@ -12,7 +12,6 @@ namespace FrontEnd.Tests.Unit.Services;
 
 public class GraphUserServiceTests : IDisposable
 {
-    protected readonly Mock<IHttpClientFactory> _httpClientFactoryMock = new();
     protected readonly Mock<ILogger<GraphUserService>> _loggerMock = new();
     protected readonly Mock<HttpMessageHandler> _httpMessageHandlerMock = new();
     protected readonly GraphUserService _service;
@@ -25,11 +24,7 @@ public class GraphUserServiceTests : IDisposable
             BaseAddress = new Uri("https://graph.microsoft.com/v1.0/")
         };
 
-        _httpClientFactoryMock
-            .Setup(x => x.CreateClient("GraphAPI"))
-            .Returns(_httpClient);
-
-        _service = new GraphUserService(_httpClientFactoryMock.Object, _loggerMock.Object);
+        _service = new GraphUserService(_httpClient, _loggerMock.Object);
     }
 
     public void Dispose()
