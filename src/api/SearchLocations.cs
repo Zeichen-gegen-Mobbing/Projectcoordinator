@@ -20,7 +20,7 @@ namespace api
         }
 
         [Function(nameof(SearchLocations))]
-        public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Function, "get", Route = "locations/search")] HttpRequest request)
+        public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Function, "get", Route = "locations/{text}")] HttpRequest request, string text)
         {
             using (_logger.BeginScope(new Dictionary<string, object> { { "FunctionName", nameof(SearchLocations) } }))
             {
@@ -28,16 +28,15 @@ namespace api
                 if (!authenticationStatus)
                     return authenticationResponse!;
 
-                var query = request.Query["text"].ToString();
-                if (string.IsNullOrWhiteSpace(query))
+                if (string.IsNullOrWhiteSpace(text))
                 {
-                    return new BadRequestObjectResult(new { error = "Query parameter 'text' is required" });
+                    return new BadRequestObjectResult(new { error = "Path parameter 'text' is required" });
                 }
 
-                _logger.LogInformation("Searching for locations with query: {Query}", query);
+                _logger.LogInformation("Searching for locations with query: {Query}", text);
                 try
                 {
-                    var results = await _locationService.SearchAsync(query);
+                    var results = await _locationService.SearchAsync(text);
                     return new OkObjectResult(results);
                 }
                 catch (ProblemDetailsException ex)
