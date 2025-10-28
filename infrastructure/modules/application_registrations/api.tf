@@ -18,6 +18,10 @@ locals {
       consent_display_name = "Create Places on Behalf of User"
       consent_description  = "Allows to create places on behalf of another user."
     }
+    "Locations.Search" = {
+      consent_display_name = "Search for Locations"
+      consent_description  = "Allows to search for locations."
+    }
   }
   api_roles = {
     "projectcoordination" = {

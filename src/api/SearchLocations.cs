@@ -1,4 +1,5 @@
 using api.Exceptions;
+using api.Extensions;
 using api.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -24,9 +25,9 @@ namespace api
         {
             using (_logger.BeginScope(new Dictionary<string, object> { { "FunctionName", nameof(SearchLocations) } }))
             {
-                var (authenticationStatus, authenticationResponse) = await request.HttpContext.AuthenticateAzureFunctionAsync();
-                if (!authenticationStatus)
-                    return authenticationResponse!;
+                await request.HttpContext.AuthorizeAzureFunctionAsync(
+                    scopes: ["Locations.Search"],
+                    roles: ["projectcoordination"]);
 
                 var text = request.Query["text"].ToString().Replace("\r", "").Replace("\n", "").Replace(Environment.NewLine, "");
                 if (string.IsNullOrWhiteSpace(text))
