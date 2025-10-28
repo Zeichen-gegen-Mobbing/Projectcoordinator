@@ -138,7 +138,7 @@
 	[Required]
 	public required bool Disabled { get; set; }
 
-	private SearchModel searchModel = new();
+	private readonly SearchModel searchModel = new();
 	private IEnumerable<LocationSearchResult>? searchResults;
 	private LocationSearchResult? selectedLocation;
 	private bool hasSearched = false;
