@@ -2,6 +2,11 @@
     "version": "2.0.0",
     "tasks": [
         {
+            "label": "Start Cosmos DB",
+            "type": "shell",
+            "command": "pwsh -File scripts/Start-PcDatabase.ps1"
+        },
+        {
             "label": "Build API in Release",
             "type": "shell",
             "command": "dotnet build -c Release src/api/api.csproj"
@@ -23,12 +28,25 @@
             "type": "shell",
             "command": "swa start --api-location http://localhost:7071 --run 'dotnet watch run -c Release'",
             "dependsOn": [
-                "Start Api in Release"
+                "Start Api in Release",
+                "Start Cosmos DB"
             ],
             "problemMatcher": [
                 "$swa-watch"
             ],
             "isBackground": true
+        },
+        {
+            "label": "Start SWA (with Backend) in Debug",
+            "type": "shell",
+            "command": "swa start",
+            "problemMatcher": [
+                "$swa-watch"
+            ],
+            "isBackground": true,
+            "dependsOn": [
+                "Start Cosmos DB"
+            ]
         }
     ]
 }
