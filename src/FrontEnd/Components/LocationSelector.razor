@@ -2,7 +2,9 @@
 @using System.ComponentModel.DataAnnotations.Schema;
 @using FrontEnd.Services;
 @using ZgM.ProjectCoordinator.Shared;
+@using Microsoft.JSInterop
 @inject ILocationService LocationService
+@inject IJSRuntime JSRuntime
 
 <div class="location-selector">
 	<h4>Location Search</h4>
@@ -172,9 +174,12 @@
 		}
 	}
 
-	private void SelectLocation(LocationSearchResult result)
+	private async void SelectLocation(LocationSearchResult result)
 	{
 		selectedLocation = result;
+		StateHasChanged();
+		await Task.Delay(100);
+		await JSRuntime.InvokeVoidAsync("eval", "document.querySelector('.selected-location').scrollIntoView({ behavior: 'smooth', block: 'start' })");
 	}
 
 	private async Task Submit()
