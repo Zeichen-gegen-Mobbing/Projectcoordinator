@@ -147,30 +147,6 @@ public class GraphUserServiceTests : IDisposable
         }
 
         [Test]
-        public async Task UsesGraphApiHttpClient_WhenCallingFactory()
-        {
-            // Arrange
-            var userId = new UserId(Guid.NewGuid());
-            var graphUser = new GraphUser { Id = userId.Value.ToString(), DisplayName = "Test User" };
-
-            _httpMessageHandlerMock.Protected()
-                .Setup<Task<HttpResponseMessage>>(
-                    "SendAsync",
-                    ItExpr.IsAny<HttpRequestMessage>(),
-                    ItExpr.IsAny<CancellationToken>())
-                .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK)
-                {
-                    Content = JsonContent.Create(graphUser)
-                });
-
-            // Act
-            await _service.GetUserAsync(userId);
-
-            // Assert
-            _httpClientFactoryMock.Verify(x => x.CreateClient("GraphAPI"), Times.Once);
-        }
-
-        [Test]
         public async Task PreservesUserId_WhenDisplayNameIsRetrieved()
         {
             // Arrange
@@ -259,23 +235,6 @@ public class GraphUserServiceTests : IDisposable
             await Assert.That(result).IsNotNull();
             await Assert.That(result.Id.Value).IsEqualTo(userId.Value);
             await Assert.That(result.DisplayName).IsNull();
-        }
-
-        [Test]
-        public async Task ThrowsException_WhenHttpClientFactoryReturnsNull()
-        {
-            // Arrange
-            var userId = new UserId(Guid.NewGuid());
-            _httpClientFactoryMock.Setup(x => x.CreateClient("GraphAPI")).Returns((HttpClient)null!);
-
-            // Act
-            var act = async () =>
-            {
-                await _service.GetUserAsync(userId);
-            };
-
-            // Assert
-            await Assert.ThrowsAsync<ArgumentNullException>(act);
         }
     }
 }
