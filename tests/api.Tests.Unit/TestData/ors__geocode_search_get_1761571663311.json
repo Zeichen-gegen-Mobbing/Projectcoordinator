@@ -1,0 +1,551 @@
+{
+    "geocoding": {
+        "version": "0.2",
+        "attribution": "https://openrouteservice.org/terms-of-service/#attribution-geocode",
+        "query": {
+            "text": "Gesamtschule Alterteichweg",
+            "size": 10,
+            "layers": [
+                "venue",
+                "street",
+                "country",
+                "macroregion",
+                "region",
+                "county",
+                "localadmin",
+                "locality",
+                "borough",
+                "neighbourhood",
+                "continent",
+                "empire",
+                "dependency",
+                "macrocounty",
+                "macrohood",
+                "microhood",
+                "disputed",
+                "postalcode",
+                "ocean",
+                "marinearea"
+            ],
+            "private": false,
+            "boundary.country": [
+                "DEU"
+            ],
+            "lang": {
+                "name": "English",
+                "iso6391": "en",
+                "iso6393": "eng",
+                "via": "header",
+                "defaulted": false
+            },
+            "querySize": 20,
+            "parser": "pelias",
+            "parsed_text": {
+                "subject": "Gesamtschule Alterteichweg",
+                "street": "Gesamtschule Alterteichweg"
+            }
+        },
+        "warnings": [
+            "performance optimization: excluding 'address' layer"
+        ],
+        "engine": {
+            "name": "Pelias",
+            "author": "Mapzen",
+            "version": "1.0"
+        },
+        "timestamp": 1761571657854
+    },
+    "type": "FeatureCollection",
+    "features": [
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    8.841337,
+                    50.74114
+                ]
+            },
+            "properties": {
+                "id": "way/29204472",
+                "gid": "openstreetmap:venue:way/29204472",
+                "layer": "venue",
+                "source": "openstreetmap",
+                "source_id": "way/29204472",
+                "name": "Gesamtschule Ebsdorfergrund",
+                "housenumber": "21",
+                "street": "Zur Gesamtschule",
+                "postalcode": "35085",
+                "confidence": 0.8,
+                "match_type": "fallback",
+                "accuracy": "point",
+                "country": "Germany",
+                "country_gid": "whosonfirst:country:85633111",
+                "country_a": "DEU",
+                "region": "Hesse",
+                "region_gid": "whosonfirst:region:85682531",
+                "region_a": "HE",
+                "macrocounty": "Giessen Government Region",
+                "macrocounty_gid": "whosonfirst:macrocounty:404227577",
+                "county": "Marburg-Biedenkopf",
+                "county_gid": "whosonfirst:county:102063691",
+                "county_a": "MB",
+                "localadmin": "Ebsdorfergrund",
+                "localadmin_gid": "whosonfirst:localadmin:1377683821",
+                "locality": "Ebsdorfergrund",
+                "locality_gid": "whosonfirst:locality:101811005",
+                "continent": "Europe",
+                "continent_gid": "whosonfirst:continent:102191581",
+                "label": "Gesamtschule Ebsdorfergrund, Ebsdorfergrund, HE, Germany"
+            },
+            "bbox": [
+                8.8395001,
+                50.7402231,
+                8.8430278,
+                50.7424406
+            ]
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    8.838807,
+                    50.741215
+                ]
+            },
+            "properties": {
+                "id": "polyline:4987542",
+                "gid": "openstreetmap:street:polyline:4987542",
+                "layer": "street",
+                "source": "openstreetmap",
+                "source_id": "polyline:4987542",
+                "name": "Zur Gesamtschule",
+                "street": "Zur Gesamtschule",
+                "confidence": 1,
+                "match_type": "exact",
+                "accuracy": "centroid",
+                "country": "Germany",
+                "country_gid": "whosonfirst:country:85633111",
+                "country_a": "DEU",
+                "region": "Hesse",
+                "region_gid": "whosonfirst:region:85682531",
+                "region_a": "HE",
+                "macrocounty": "Giessen Government Region",
+                "macrocounty_gid": "whosonfirst:macrocounty:404227577",
+                "county": "Marburg-Biedenkopf",
+                "county_gid": "whosonfirst:county:102063691",
+                "county_a": "MB",
+                "localadmin": "Ebsdorfergrund",
+                "localadmin_gid": "whosonfirst:localadmin:1377683821",
+                "locality": "Ebsdorfergrund",
+                "locality_gid": "whosonfirst:locality:101811005",
+                "continent": "Europe",
+                "continent_gid": "whosonfirst:continent:102191581",
+                "label": "Zur Gesamtschule, Ebsdorfergrund, HE, Germany"
+            },
+            "bbox": [
+                8.837035,
+                50.740138,
+                8.841914,
+                50.742951
+            ]
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    6.172518,
+                    50.881082
+                ]
+            },
+            "properties": {
+                "id": "polyline:4745396",
+                "gid": "openstreetmap:street:polyline:4745396",
+                "layer": "street",
+                "source": "openstreetmap",
+                "source_id": "polyline:4745396",
+                "name": "An der Gesamtschule",
+                "street": "An der Gesamtschule",
+                "confidence": 1,
+                "match_type": "exact",
+                "accuracy": "centroid",
+                "country": "Germany",
+                "country_gid": "whosonfirst:country:85633111",
+                "country_a": "DEU",
+                "region": "North Rhine-Westphalia",
+                "region_gid": "whosonfirst:region:85682513",
+                "region_a": "NW",
+                "macrocounty": "Köln",
+                "macrocounty_gid": "whosonfirst:macrocounty:404227541",
+                "county": "Aachen",
+                "county_gid": "whosonfirst:county:102063693",
+                "county_a": "AC",
+                "localadmin": "Alsdorf",
+                "localadmin_gid": "whosonfirst:localadmin:1377690005",
+                "locality": "Alsdorf",
+                "locality_gid": "whosonfirst:locality:101811035",
+                "continent": "Europe",
+                "continent_gid": "whosonfirst:continent:102191581",
+                "label": "An der Gesamtschule, Alsdorf, NW, Germany"
+            },
+            "bbox": [
+                6.1713,
+                50.880754,
+                6.17252,
+                50.88126
+            ]
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    7.189839,
+                    51.223873
+                ]
+            },
+            "properties": {
+                "id": "way/563122630",
+                "gid": "openstreetmap:venue:way/563122630",
+                "layer": "venue",
+                "source": "openstreetmap",
+                "source_id": "way/563122630",
+                "name": "Erich-Fried-Gesamtschule",
+                "housenumber": "70",
+                "street": "An der Blutfinke",
+                "postalcode": "42369",
+                "confidence": 0.8,
+                "match_type": "fallback",
+                "accuracy": "point",
+                "country": "Germany",
+                "country_gid": "whosonfirst:country:85633111",
+                "country_a": "DEU",
+                "region": "North Rhine-Westphalia",
+                "region_gid": "whosonfirst:region:85682513",
+                "region_a": "NW",
+                "macrocounty": "Düsseldorf Government Region",
+                "macrocounty_gid": "whosonfirst:macrocounty:404227561",
+                "county": "Wuppertal",
+                "county_gid": "whosonfirst:county:102063751",
+                "county_a": "WP",
+                "localadmin": "Wuppertal",
+                "localadmin_gid": "whosonfirst:localadmin:1377689477",
+                "locality": "Wuppertal",
+                "locality_gid": "whosonfirst:locality:101748657",
+                "continent": "Europe",
+                "continent_gid": "whosonfirst:continent:102191581",
+                "label": "Erich-Fried-Gesamtschule, Wuppertal, NW, Germany",
+                "addendum": {
+                    "osm": {
+                        "website": "http://efg.wtal.de"
+                    }
+                }
+            },
+            "bbox": [
+                7.1877157,
+                51.2218808,
+                7.1909615,
+                51.2264425
+            ]
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    7.028587,
+                    50.937782
+                ]
+            },
+            "properties": {
+                "id": "way/301080976",
+                "gid": "openstreetmap:venue:way/301080976",
+                "layer": "venue",
+                "source": "openstreetmap",
+                "source_id": "way/301080976",
+                "name": "Katharina-Henoth-Gesamtschule",
+                "housenumber": "17",
+                "street": "Adalbertstraße",
+                "postalcode": "51103",
+                "confidence": 0.8,
+                "match_type": "fallback",
+                "accuracy": "point",
+                "country": "Germany",
+                "country_gid": "whosonfirst:country:85633111",
+                "country_a": "DEU",
+                "region": "North Rhine-Westphalia",
+                "region_gid": "whosonfirst:region:85682513",
+                "region_a": "NW",
+                "macrocounty": "Köln",
+                "macrocounty_gid": "whosonfirst:macrocounty:404227541",
+                "county": "Köln",
+                "county_gid": "whosonfirst:county:102063715",
+                "county_a": "KO",
+                "localadmin": "Köln",
+                "localadmin_gid": "whosonfirst:localadmin:1377689979",
+                "locality": "Cologne",
+                "locality_gid": "whosonfirst:locality:101752771",
+                "continent": "Europe",
+                "continent_gid": "whosonfirst:continent:102191581",
+                "label": "Katharina-Henoth-Gesamtschule, Cologne, NW, Germany",
+                "addendum": {
+                    "osm": {
+                        "website": "https://igs-kathi.com",
+                        "phone": "+49 221 88 80 90"
+                    }
+                }
+            },
+            "bbox": [
+                7.0271396,
+                50.9366627,
+                7.0297511,
+                50.938775
+            ]
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    8.503654,
+                    52.247124
+                ]
+            },
+            "properties": {
+                "id": "relation/12307058",
+                "gid": "openstreetmap:venue:relation/12307058",
+                "layer": "venue",
+                "source": "openstreetmap",
+                "source_id": "relation/12307058",
+                "name": "ZOB Neue Mitte",
+                "confidence": 0.8,
+                "match_type": "fallback",
+                "accuracy": "point",
+                "country": "Germany",
+                "country_gid": "whosonfirst:country:85633111",
+                "country_a": "DEU",
+                "region": "North Rhine-Westphalia",
+                "region_gid": "whosonfirst:region:85682513",
+                "region_a": "NW",
+                "macrocounty": "Detmold Government Region",
+                "macrocounty_gid": "whosonfirst:macrocounty:404227571",
+                "county": "Herford",
+                "county_gid": "whosonfirst:county:102063891",
+                "county_a": "HF",
+                "localadmin": "Rödinghausen",
+                "localadmin_gid": "whosonfirst:localadmin:1377691627",
+                "locality": "Rödinghausen",
+                "locality_gid": "whosonfirst:locality:101907735",
+                "continent": "Europe",
+                "continent_gid": "whosonfirst:continent:102191581",
+                "label": "ZOB Neue Mitte, Rödinghausen, NW, Germany",
+                "addendum": {
+                    "osm": {
+                        "operator": "Gemeinde Rödinghausen"
+                    }
+                }
+            },
+            "bbox": [
+                8.5027521,
+                52.2465974,
+                8.5041738,
+                52.2473409
+            ]
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    9.019998,
+                    50.828214
+                ]
+            },
+            "properties": {
+                "id": "way/353655497",
+                "gid": "openstreetmap:venue:way/353655497",
+                "layer": "venue",
+                "source": "openstreetmap",
+                "source_id": "way/353655497",
+                "name": "Georg Büchner Gesamtschule",
+                "housenumber": "2a",
+                "street": "Am Lohpfad",
+                "postalcode": "35260",
+                "confidence": 0.8,
+                "match_type": "fallback",
+                "accuracy": "point",
+                "country": "Germany",
+                "country_gid": "whosonfirst:country:85633111",
+                "country_a": "DEU",
+                "region": "Hesse",
+                "region_gid": "whosonfirst:region:85682531",
+                "region_a": "HE",
+                "macrocounty": "Giessen Government Region",
+                "macrocounty_gid": "whosonfirst:macrocounty:404227577",
+                "county": "Marburg-Biedenkopf",
+                "county_gid": "whosonfirst:county:102063691",
+                "county_a": "MB",
+                "localadmin": "Stadtallendorf",
+                "localadmin_gid": "whosonfirst:localadmin:1377683911",
+                "locality": "Stadtallendorf",
+                "locality_gid": "whosonfirst:locality:101810999",
+                "continent": "Europe",
+                "continent_gid": "whosonfirst:continent:102191581",
+                "label": "Georg Büchner Gesamtschule, Stadtallendorf, HE, Germany"
+            },
+            "bbox": [
+                9.0180243,
+                50.8273281,
+                9.0222343,
+                50.8289761
+            ]
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    7.122616,
+                    51.270112
+                ]
+            },
+            "properties": {
+                "id": "way/509595385",
+                "gid": "openstreetmap:venue:way/509595385",
+                "layer": "venue",
+                "source": "openstreetmap",
+                "source_id": "way/509595385",
+                "name": "Gesamtschule Uellendahl-Katernberg",
+                "confidence": 0.8,
+                "match_type": "fallback",
+                "accuracy": "point",
+                "country": "Germany",
+                "country_gid": "whosonfirst:country:85633111",
+                "country_a": "DEU",
+                "region": "North Rhine-Westphalia",
+                "region_gid": "whosonfirst:region:85682513",
+                "region_a": "NW",
+                "macrocounty": "Düsseldorf Government Region",
+                "macrocounty_gid": "whosonfirst:macrocounty:404227561",
+                "county": "Wuppertal",
+                "county_gid": "whosonfirst:county:102063751",
+                "county_a": "WP",
+                "localadmin": "Wuppertal",
+                "localadmin_gid": "whosonfirst:localadmin:1377689477",
+                "locality": "Wuppertal",
+                "locality_gid": "whosonfirst:locality:101748657",
+                "continent": "Europe",
+                "continent_gid": "whosonfirst:continent:102191581",
+                "label": "Gesamtschule Uellendahl-Katernberg, Wuppertal, NW, Germany"
+            },
+            "bbox": [
+                7.122032,
+                51.2695984,
+                7.1238127,
+                51.2708261
+            ]
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    6.44707,
+                    51.656241
+                ]
+            },
+            "properties": {
+                "id": "node/1232009611",
+                "gid": "openstreetmap:venue:node/1232009611",
+                "layer": "venue",
+                "source": "openstreetmap",
+                "source_id": "node/1232009611",
+                "name": "Willi-Fährmann-Gesamtschule",
+                "housenumber": "3",
+                "street": "Heinrich-Lensing-Straße",
+                "postalcode": "46509",
+                "confidence": 0.8,
+                "match_type": "fallback",
+                "accuracy": "point",
+                "country": "Germany",
+                "country_gid": "whosonfirst:country:85633111",
+                "country_a": "DEU",
+                "region": "North Rhine-Westphalia",
+                "region_gid": "whosonfirst:region:85682513",
+                "region_a": "NW",
+                "macrocounty": "Düsseldorf Government Region",
+                "macrocounty_gid": "whosonfirst:macrocounty:404227561",
+                "county": "Wesel",
+                "county_gid": "whosonfirst:county:102063833",
+                "county_a": "WS",
+                "localadmin": "Xanten",
+                "localadmin_gid": "whosonfirst:localadmin:1377689961",
+                "locality": "Xanten",
+                "locality_gid": "whosonfirst:locality:101808917",
+                "continent": "Europe",
+                "continent_gid": "whosonfirst:continent:102191581",
+                "label": "Willi-Fährmann-Gesamtschule, Xanten, NW, Germany",
+                "addendum": {
+                    "osm": {
+                        "wheelchair": "yes",
+                        "website": "http://www.gesamtschule-xanten-sonsbeck.de",
+                        "phone": "+49 2801 988400"
+                    }
+                }
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    8.249899,
+                    49.048923
+                ]
+            },
+            "properties": {
+                "id": "node/663229829",
+                "gid": "openstreetmap:venue:node/663229829",
+                "layer": "venue",
+                "source": "openstreetmap",
+                "source_id": "node/663229829",
+                "name": "Carl-Benz-Gesamtschule",
+                "housenumber": "1a",
+                "street": "Forststraße",
+                "postalcode": "76744",
+                "confidence": 0.8,
+                "match_type": "fallback",
+                "accuracy": "point",
+                "country": "Germany",
+                "country_gid": "whosonfirst:country:85633111",
+                "country_a": "DEU",
+                "region": "Rhineland-Palatinate",
+                "region_gid": "whosonfirst:region:85682491",
+                "region_a": "RP",
+                "county": "Germersheim",
+                "county_gid": "whosonfirst:county:102063405",
+                "county_a": "GR",
+                "localadmin": "Wörth am Rhein",
+                "localadmin_gid": "whosonfirst:localadmin:1377686373",
+                "locality": "Wörth am Rhein",
+                "locality_gid": "whosonfirst:locality:101755911",
+                "continent": "Europe",
+                "continent_gid": "whosonfirst:continent:102191581",
+                "label": "Carl-Benz-Gesamtschule, Wörth am Rhein, RP, Germany",
+                "addendum": {
+                    "osm": {
+                        "website": "https://www.igs-woerth.de/"
+                    }
+                }
+            }
+        }
+    ],
+    "bbox": [
+        6.1713,
+        49.048923,
+        9.0222343,
+        52.2473409
+    ]
+}

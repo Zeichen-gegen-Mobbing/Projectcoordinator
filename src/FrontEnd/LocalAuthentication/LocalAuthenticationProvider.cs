@@ -9,6 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using ZgM.ProjectCoordinator.Shared;
 
 namespace FrontEnd.LocalAuthentication
 {
@@ -18,7 +19,7 @@ namespace FrontEnd.LocalAuthentication
         private const string LocalStorageKey = "debug-selected-user";
         private static readonly string _staticKey = "0123456789abcdef0123456789abcdef"; // 32 chars = 256 bits
         private static readonly string authority = "https://fake-authority.local";
-        private static readonly string clientId = "debug-clientid";
+        private readonly AuthenticationOptions _authConfig;
         private readonly NavigationManager _navigationManager;
         private readonly IJSRuntime _jsRuntime;
         private bool _initialized = false;
@@ -27,8 +28,7 @@ namespace FrontEnd.LocalAuthentication
             [
                 new Claim(ClaimTypes.Name, "TEST Projectcoordination"),
                 new Claim(ClaimTypes.NameIdentifier, "test-projectcoordination-id"),
-                new Claim(ClaimTypes.Role, "projectcoordination"),
-                new Claim("scp", "Trips.Calculate")
+                new Claim(ClaimTypes.Role, "projectcoordination")
         ], "LocalAuthentication"));
 
         static ClaimsPrincipal _user = new(new ClaimsIdentity(new[]
@@ -41,10 +41,11 @@ namespace FrontEnd.LocalAuthentication
 
         ClaimsPrincipal _selected = _unauthenticated;
 
-        public LocalAuthenticationProvider(NavigationManager navigationManager, IJSRuntime jsRuntime)
+        public LocalAuthenticationProvider(NavigationManager navigationManager, IJSRuntime jsRuntime, AuthenticationOptions authConfig)
         {
             _navigationManager = navigationManager;
             _jsRuntime = jsRuntime;
+            _authConfig = authConfig;
         }
 
         public static List<string?> GetNames()
@@ -125,6 +126,11 @@ namespace FrontEnd.LocalAuthentication
 
         public async ValueTask<AccessTokenResult> RequestAccessToken()
         {
+            return await RequestAccessToken(new AccessTokenRequestOptions());
+        }
+
+        public async ValueTask<AccessTokenResult> RequestAccessToken(AccessTokenRequestOptions options)
+        {
             if (!_initialized)
             {
                 await InitializeAsync();
@@ -135,7 +141,7 @@ namespace FrontEnd.LocalAuthentication
                 return new AccessTokenResult(AccessTokenResultStatus.RequiresRedirect, new AccessToken(), "", null);
             }
 
-            var token = GenerateJwtToken(_selected);
+            var token = GenerateJwtToken(options);
             var accessToken = new AccessToken()
             {
                 Value = token,
@@ -144,21 +150,23 @@ namespace FrontEnd.LocalAuthentication
             return new AccessTokenResult(AccessTokenResultStatus.Success, accessToken, "", null);
         }
 
-        public ValueTask<AccessTokenResult> RequestAccessToken(AccessTokenRequestOptions _)
-        {
-            return RequestAccessToken();
-        }
-
-        private static string GenerateJwtToken(ClaimsPrincipal user)
+        private string GenerateJwtToken(AccessTokenRequestOptions options)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_staticKey));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var claims = _selected.Claims.ToList();
+            if (options.Scopes is not null && options.Scopes.Any())
+            {
+                // Azure only has one Scope Claim with spaces between
+                var scope = String.Join(" ", options.Scopes.Select(s => s.Split("/").Last()));
+                claims.Add(new Claim("scp", scope));
+            }
 
             var jwt = new JwtSecurityToken(
                 issuer: authority,
-                audience: clientId,
-                claims: user.Claims,
+                audience: _authConfig.ApiClientId,
+                claims: claims,
                 expires: DateTime.UtcNow.AddHours(1),
                 signingCredentials: creds
             );
@@ -193,7 +201,7 @@ namespace FrontEnd.LocalAuthentication
             Console.WriteLine("DEBUG: SignOutAsync called");
             // Clear the authentication state immediately
             await ChangeIdentityAsync("None (Unauthenticated)");
-            
+
             // Also clear from localStorage
             try
             {
@@ -221,7 +229,7 @@ namespace FrontEnd.LocalAuthentication
             Console.WriteLine("DEBUG: CompleteSignOutAsync called");
             // Clear the authentication state
             await ChangeIdentityAsync("None (Unauthenticated)");
-            
+
             // Also clear from localStorage
             try
             {

@@ -4,7 +4,9 @@
         "AzureWebJobsStorage": "UseDevelopmentStorage=true",
         "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
         "AzureWebJobsFeatureFlags": "EnableActionResultHandling",
-        "Cosmos__ConnectionString": "",
-        "OpenRouteService__ApiKey": ""
+        "Cosmos__ConnectionString": "AccountEndpoint=https://localhost:8081/;AccountKey=C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==",
+        "OpenRouteService__ApiKey": "eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImU4YzE5YzBlMmQ3ZGIyNzU1ZDI3ZThjOGY3YzI4NzcwOTJmZjhlMjM2ZmJmMGQwZmMxMzcxMDEyIiwiaCI6Im11cm11cjY0In0=",
+        "Authentication__ApiClientId": "9d3b26c6-df97-4045-9523-fcc0ad530e6c",
+        "Authentication__FrontEndClientId": "fed078f9-9910-423e-aa32-1e67f8b955f3"
     }
 }

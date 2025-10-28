@@ -33,7 +33,7 @@ var host = new HostBuilder()
 
         services.AddOptionsWithValidateOnStart<AuthenticationOptions>().Configure<IConfiguration>((settings, configuration) =>
         {
-            configuration.GetSection("Authentication").Bind(settings);
+            configuration.GetSection(AuthenticationOptions.Title).Bind(settings);
         }).ValidateDataAnnotations();
 
         SocketsHttpHandler socketsHttpHandler = new SocketsHttpHandler();
@@ -61,13 +61,14 @@ var host = new HostBuilder()
         services.AddScoped<IPlaceRepository, PlaceRepository>();
         services.AddScoped<IPlaceService, PlaceCosmosService>();
         services.AddScoped<ITripService, TripOpenRouteService>();
+        services.AddScoped<ILocationService, LocationOpenRouteService>();
         services.AddScoped<AuthorizationHeaderMiddleware>();
         services.AddProblemDetails();
 #if DEBUG
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
         {
             options.Authority = "https://fake-authority.local";
-            options.Audience = "debug-clientid";
+            options.Audience = context.Configuration.GetRequiredSection("Authentication").Get<AuthenticationOptions>()?.ApiClientId ?? throw new InvalidOperationException("ApiClientId is not configured");
             options.TokenValidationParameters.ValidateIssuer = false;
             options.TokenValidationParameters.ValidateIssuerSigningKey = false;
             options.TokenValidationParameters.SignatureValidator = delegate (string token, Microsoft.IdentityModel.Tokens.TokenValidationParameters parameters)

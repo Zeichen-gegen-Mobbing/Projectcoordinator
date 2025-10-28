@@ -9,7 +9,7 @@ public record AuthenticationOptions : ZgM.ProjectCoordinator.Shared.Authenticati
         return new ZgM.ProjectCoordinator.Shared.AuthenticationOptions
         {
             FrontEndClientId = this.FrontEndClientId,
-            ApiScopes = this.ApiScopes
+            ApiClientId = this.ApiClientId
         };
     }
 }

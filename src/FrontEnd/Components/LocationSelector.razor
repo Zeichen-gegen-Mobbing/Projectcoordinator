@@ -1,36 +1,134 @@
 ﻿@using System.ComponentModel.DataAnnotations;
 @using System.ComponentModel.DataAnnotations.Schema;
+@using FrontEnd.Services;
+@using ZgM.ProjectCoordinator.Shared;
+@using Microsoft.JSInterop
+@inject ILocationService LocationService
+@inject IJSRuntime JSRuntime
 
-<p>Dies ist lediglich ein funktionaler Platzhalter. Später ist geplant dies durch eine klassische Locationsuche wie man
-	sie von Maps kennt abzulösen.</p>
-<p>Das kostet allerdings etwas Gehirnschmalz, daher bis dahin dieser etwas umständlichere Weg, an die Koordinaten zu
-	kommen:</p>
-<ol>
-	<li>Öffne <a href="https://www.openstreetmap.org" target="_blank">Open Street Map</a></li>
-	<li>Suche oben Links nach der Adresse oder dem Namen</li>
-	<li>Wenn der richtige Ort auf der Karte angezeigt wird, mache einen Rechklick auf den Ort und wähle <i>Show
-			Address</i>/<i>Adresse anzeigen</i> aus</li>
-	<li>Auf der linken Seite werden nun in der Suchleiste die Koordinaten angezeigt</li>
-	<li>Kopiere die Koordinaten in die entsprechenden Felder unten</li>
-	<li>Klicke außerhalb des Feldes, damit die Karte aktualisiert wird</li>
-	<li>Überprüfe, ob der angezeigte Ort stimmt</li>
-	<li>Klicke auf <i>Submit</i></li>
-</ol>
-<EditForm Model="location" OnValidSubmit="Submit">
-	<DataAnnotationsValidator />
-	<label>
-		Breitengrad:
-		<InputNumber @bind-Value="location.Latitude" placeholder="52.105130" />
-	</label>
-	<label>
-		Längengrad:
-		<InputNumber @bind-Value="location.Longitude" placeholder="9.801650" />
-	</label>
-	<br />
-	<iframe src="@mapUrl" width="90%" style="border: 1px solid black" />
-	<br />
-	<button disabled="@Disabled" type="submit" class="btn btn-primary">Submit</button>
-</EditForm>
+<div class="location-selector">
+	<h4>Location Search</h4>
+	<EditForm Model="searchModel" OnValidSubmit="Search">
+		<DataAnnotationsValidator />
+		<div class="search-box">
+			<label>
+				Search for a location:
+				<InputText @bind-Value="searchModel.SearchText" placeholder="Enter address or place name" class="form-control" />
+			</label>
+			<button disabled="@(Disabled || isSearching)" type="submit" class="btn btn-primary">
+				@if (isSearching)
+				{
+					<span>Searching...</span>
+				}
+				else
+				{
+					<span>Search</span>
+				}
+			</button>
+		</div>
+		<ValidationSummary />
+	</EditForm>
+
+	@if (searchResults != null && searchResults.Any() && !isConfirmed)
+	{
+		<div class="results-container">
+			<h5>Search Results</h5>
+			<table class="table table-striped table-hover">
+				<thead>
+					<tr>
+						<th>Name</th>
+						<th>Details</th>
+						<th>Action</th>
+					</tr>
+				</thead>
+				<tbody>
+					@foreach (var result in searchResults)
+					{
+						<tr>
+							<td>@(!string.IsNullOrEmpty(result.Name) ? result.Name : result.Label)</td>
+							<td>
+								@{
+									var parts = new List<string>();
+									if (!string.IsNullOrEmpty(result.Street))
+									{
+										parts.Add($"{result.Street} {result.HouseNumber}".Trim());
+									}
+									if (!string.IsNullOrEmpty(result.PostalCode) || !string.IsNullOrEmpty(result.Locality))
+									{
+										parts.Add($"{result.PostalCode} {result.Locality}".Trim());
+									}
+									if (!string.IsNullOrEmpty(result.Country))
+									{
+										parts.Add(result.Country);
+									}
+								}
+								@string.Join(", ", parts)
+							</td>
+							<td>
+								<button disabled="@Disabled" @onclick="() => SelectLocation(result)" class="btn btn-sm btn-success">
+									Select
+								</button>
+							</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	}
+	else if (hasSearched && (searchResults == null || !searchResults.Any()))
+	{
+		<div class="alert alert-info">
+			No results found. Try a different search term.
+		</div>
+	}
+
+	@if (selectedLocation != null && !isConfirmed)
+	{
+		<div class="selected-location">
+			<h5>Selected Location</h5>
+			<p><strong>@selectedLocation.Value.Label</strong></p>
+			<iframe src="@mapUrl" width="90%" height="300" style="border: 1px solid black" />
+			<br />
+			<button disabled="@Disabled" @onclick="Submit" class="btn btn-primary mt-2">Confirm Selection</button>
+		</div>
+	}
+
+	@if (!string.IsNullOrEmpty(errorMessage))
+	{
+		<div class="alert alert-danger">
+			@errorMessage
+		</div>
+	}
+</div>
+
+<style>
+	.location-selector {
+		padding: 1rem;
+	}
+
+	.search-box {
+		display: flex;
+		gap: 1rem;
+		align-items: flex-end;
+		margin-bottom: 1rem;
+	}
+
+	.search-box label {
+		flex: 1;
+	}
+
+	.results-container {
+		margin-top: 1rem;
+	}
+
+	.selected-location {
+		margin-top: 2rem;
+		padding: 1rem;
+		border: 2px solid #28a745;
+		border-radius: 0.25rem;
+		background-color: #f8f9fa;
+	}
+</style>
 
 @code {
 	[Parameter]
@@ -40,37 +138,71 @@
 	[Required]
 	public required bool Disabled { get; set; }
 
-	[SupplyParameterFromForm]
-	private Location location { get; set; } = new();
+	private readonly SearchModel searchModel = new();
+	private IEnumerable<LocationSearchResult>? searchResults;
+	private LocationSearchResult? selectedLocation;
+	private bool hasSearched = false;
+	private bool isSearching = false;
+	private bool isConfirmed = false;
+	private string? errorMessage;
+
+	private async Task Search()
+	{
+		if (string.IsNullOrWhiteSpace(searchModel.SearchText))
+		{
+			return;
+		}
+
+		isSearching = true;
+		errorMessage = null;
+		hasSearched = false;
+		searchResults = null;
+		selectedLocation = null;
+
+		try
+		{
+			searchResults = await LocationService.SearchLocationsAsync(searchModel.SearchText);
+			hasSearched = true;
+		}
+		catch (Exception ex)
+		{
+			errorMessage = $"Error searching for locations: {ex.Message}";
+		}
+		finally
+		{
+			isSearching = false;
+		}
+	}
+
+	private async Task SelectLocation(LocationSearchResult result)
+	{
+		selectedLocation = result;
+		StateHasChanged();
+		await Task.Delay(100);
+		await JSRuntime.InvokeVoidAsync("eval", "document.querySelector('.selected-location').scrollIntoView({ behavior: 'smooth', block: 'start' })");
+	}
 
 	private async Task Submit()
 	{
-		if (location.Latitude != null && location.Longitude != null)
+		if (selectedLocation.HasValue)
 		{
-			await OnLocationSelected((double)location.Latitude, (double)location.Longitude);
+			await OnLocationSelected(selectedLocation.Value.Latitude, selectedLocation.Value.Longitude);
+			isConfirmed = true;
 		}
-		else
-		{
-			Console.WriteLine("Latitude or Longitude was null on Submit. This should be impossible.");
-		}
-
 	}
 
-	public class Location
+	public class SearchModel
 	{
-		[Required]
-		[Range(-90, 90)]
-		public double? Latitude { get; set; }
-		[Required]
-		[Range(-180, 180)]
-		public double? Longitude { get; set; }
-
-		public bool isChoosen => Latitude != null && Longitude != null;
+		[Required(ErrorMessage = "Please enter a search term")]
+		[MinLength(2, ErrorMessage = "Search term must be at least 2 characters")]
+		public string SearchText { get; set; } = string.Empty;
 	}
 
-	private string mapUrl => location.isChoosen ?
+	private string mapUrl => selectedLocation.HasValue ?
 	String.Format(new System.Globalization.CultureInfo("en-US"),
 	"https://www.openstreetmap.org/export/embed.html?bbox={0},{1},{2},{3}&layer=mapnik&marker={4},{5}",
-	location.Longitude - 0.1, location.Latitude - 0.1, location.Longitude + 0.1, location.Latitude + 0.1, location.Latitude,
-	location.Longitude) : "https://www.openstreetmap.org/export/embed.html";
+	selectedLocation.Value.Longitude - 0.1, selectedLocation.Value.Latitude - 0.1, 
+	selectedLocation.Value.Longitude + 0.1, selectedLocation.Value.Latitude + 0.1, 
+	selectedLocation.Value.Latitude, selectedLocation.Value.Longitude) 
+	: "https://www.openstreetmap.org/export/embed.html";
 }
