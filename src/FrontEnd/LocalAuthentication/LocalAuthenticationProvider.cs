@@ -188,23 +188,52 @@ namespace FrontEnd.LocalAuthentication
             return Task.FromResult(result);
         }
 
-        public Task<RemoteAuthenticationResult<RemoteAuthenticationState>> SignOutAsync(RemoteAuthenticationContext<RemoteAuthenticationState> context)
+        public async Task<RemoteAuthenticationResult<RemoteAuthenticationState>> SignOutAsync(RemoteAuthenticationContext<RemoteAuthenticationState> context)
         {
-            // The actual sign-out happens in CompleteSignOutAsync
+            Console.WriteLine("DEBUG: SignOutAsync called");
+            // Clear the authentication state immediately
+            await ChangeIdentityAsync("None (Unauthenticated)");
+            
+            // Also clear from localStorage
+            try
+            {
+                await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", LocalStorageKey);
+                Console.WriteLine("DEBUG: localStorage cleared in SignOutAsync");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"DEBUG: localStorage error in SignOutAsync: {ex.Message}");
+            }
+
+            // Force page reload to clear all state
+            _navigationManager.NavigateTo("/", forceLoad: true);
+
             var result = new RemoteAuthenticationResult<RemoteAuthenticationState>
             {
-                Status = RemoteAuthenticationStatus.OperationCompleted
+                Status = RemoteAuthenticationStatus.Success,
+                State = context.State
             };
-            return Task.FromResult(result);
+            return result;
         }
 
         public async Task<RemoteAuthenticationResult<RemoteAuthenticationState>> CompleteSignOutAsync(RemoteAuthenticationContext<RemoteAuthenticationState> context)
         {
+            Console.WriteLine("DEBUG: CompleteSignOutAsync called");
             // Clear the authentication state
-
             await ChangeIdentityAsync("None (Unauthenticated)");
+            
+            // Also clear from localStorage
+            try
+            {
+                await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", LocalStorageKey);
+                Console.WriteLine("DEBUG: localStorage cleared");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"DEBUG: localStorage error: {ex.Message}");
+            }
 
-
+            Console.WriteLine("DEBUG: CompleteSignOutAsync returning Success");
             var result = new RemoteAuthenticationResult<RemoteAuthenticationState>
             {
                 Status = RemoteAuthenticationStatus.Success,
