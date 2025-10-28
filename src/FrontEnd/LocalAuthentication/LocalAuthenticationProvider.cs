@@ -27,7 +27,8 @@ namespace FrontEnd.LocalAuthentication
             [
                 new Claim(ClaimTypes.Name, "TEST Projectcoordination"),
                 new Claim(ClaimTypes.NameIdentifier, "test-projectcoordination-id"),
-                new Claim(ClaimTypes.Role, "projectcoordination")
+                new Claim(ClaimTypes.Role, "projectcoordination"),
+                new Claim("scp", "Trips.Calculate")
         ], "LocalAuthentication"));
 
         static ClaimsPrincipal _user = new(new ClaimsIdentity(new[]
