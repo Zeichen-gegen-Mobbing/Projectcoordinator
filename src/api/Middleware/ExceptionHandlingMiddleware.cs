@@ -45,7 +45,8 @@ public class ExceptionHandlingMiddleware : IFunctionsWorkerMiddleware
 
         var response = httpRequestData.CreateResponse();
         response.StatusCode = statusCode;
-        response.Headers.Add("Content-Type", "application/problem+json");
+        
+        // WriteAsJsonAsync sets Content-Type, so don't set it manually
         await response.WriteAsJsonAsync(problemDetails);
 
         context.GetInvocationResult().Value = response;
