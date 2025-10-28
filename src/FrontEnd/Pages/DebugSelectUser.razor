@@ -1,6 +1,10 @@
+@{
+#if DEBUG
+{
 @page "/debug-select-user"
-@using FrontEnd.LocalAuthentication
+
 @inject NavigationManager Navigation
+
 @inject AuthenticationStateProvider AuthStateProvider
 
 <div class="container mt-5">
@@ -10,34 +14,39 @@
         </div>
         <div class="card-body">
             <div class="list-group">
-                @foreach (var userName in LocalAuthenticationProvider.GetNames())
-                {
-                    <button type="button" class="list-group-item list-group-item-action"
-                        @onclick="@(() => SelectUser(userName))">
-                        @userName
-                    </button>
-                }
+                @foreach (var userName in FrontEnd.LocalAuthentication.LocalAuthenticationProvider.GetNames())
+                                {
+                <button type="button" class="list-group-item list-group-item-action"
+                    @onclick="@(() => SelectUser(userName))">
+                    @userName
+                </button>
+                                }
             </div>
         </div>
     </div>
 </div>
+}
+#endif
+}
 
 @code {
-    private string? returnUrl;
+#if DEBUG
+private string? returnUrl;
 
-    protected override void OnInitialized()
-    {
-        var uri = new Uri(Navigation.Uri);
-        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
-        returnUrl = query["returnUrl"] ?? "/";
-    }
+protected override void OnInitialized()
+{
+var uri = new Uri(Navigation.Uri);
+var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+returnUrl = query["returnUrl"] ?? "/";
+}
 
-    private async Task SelectUser(string? userName)
-    {
-        if (AuthStateProvider is LocalAuthenticationProvider localAuth)
-        {
-            await localAuth.ChangeIdentityAsync(userName ?? "None (Unauthenticated)");
-            Navigation.NavigateTo(returnUrl ?? "/");
-        }
-    }
+private async Task SelectUser(string? userName)
+{
+if (AuthStateProvider is FrontEnd.LocalAuthentication.LocalAuthenticationProvider localAuth)
+{
+await localAuth.ChangeIdentityAsync(userName ?? "None (Unauthenticated)");
+Navigation.NavigateTo(returnUrl ?? "/");
+}
+}
+#endif
 }
