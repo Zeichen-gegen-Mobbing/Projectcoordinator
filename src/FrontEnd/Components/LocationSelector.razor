@@ -27,7 +27,7 @@
 		<ValidationSummary />
 	</EditForm>
 
-	@if (searchResults != null && searchResults.Any())
+	@if (searchResults != null && searchResults.Any() && !isConfirmed)
 	{
 		<div class="results-container">
 			<h5>Search Results</h5>
@@ -80,7 +80,7 @@
 		</div>
 	}
 
-	@if (selectedLocation != null)
+	@if (selectedLocation != null && !isConfirmed)
 	{
 		<div class="selected-location">
 			<h5>Selected Location</h5>
@@ -141,6 +141,7 @@
 	private LocationSearchResult? selectedLocation;
 	private bool hasSearched = false;
 	private bool isSearching = false;
+	private bool isConfirmed = false;
 	private string? errorMessage;
 
 	private async Task Search()
@@ -181,6 +182,7 @@
 		if (selectedLocation.HasValue)
 		{
 			await OnLocationSelected(selectedLocation.Value.Latitude, selectedLocation.Value.Longitude);
+			isConfirmed = true;
 		}
 	}
 
