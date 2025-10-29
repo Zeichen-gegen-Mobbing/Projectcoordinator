@@ -47,14 +47,14 @@ builder.Services.AddHttpClient<ITripService, TripService>(client =>
         .ConfigureHandler([baseAddress], [$"api://{authConfig.ApiClientId}/Trips.Calculate"]);
 });
 
-builder.Services.AddHttpClient<IRoleService, RoleService>(client =>
+builder.Services.AddScoped<IRoleService>(sp =>
 {
-    client.BaseAddress = new Uri(baseAddress);
-})
-.AddHttpMessageHandler(sp =>
-{
-    return sp.GetRequiredService<CustomAuthorizationHeaderMessageHandler>()
-        .ConfigureHandler([baseAddress]);
+    var httpClient = new HttpClient(sp.GetRequiredService<CustomAuthorizationHeaderMessageHandler>()
+        .ConfigureHandler([baseAddress], [$"api://{authConfig.ApiClientId}/.default"]))
+    {
+        BaseAddress = new Uri(baseAddress)
+    };
+    return new RoleService(httpClient);
 });
 
 builder.Services.AddHttpClient<ILocationService, LocationService>(client =>

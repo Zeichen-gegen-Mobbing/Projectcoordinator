@@ -2,19 +2,52 @@ using System.Net.Http.Json;
 
 namespace FrontEnd.Services
 {
-    public class RoleService : IRoleService
+    public class RoleService(HttpClient httpClient) : IRoleService
     {
-        private readonly HttpClient _httpClient;
+        private string[]? _cachedRoles;
+        private Task<string[]>? _loadingTask;
+        private readonly SemaphoreSlim _semaphore = new(1, 1);
 
-        public RoleService(HttpClient httpClient)
+        public async Task<bool> HasRole(string roleName)
         {
-            _httpClient = httpClient;
+            var roles = await GetRolesAsync();
+            return roles.Contains(roleName, StringComparer.OrdinalIgnoreCase);
         }
 
-        public async Task<string[]> GetUserRolesAsync()
+        private async Task<string[]> GetRolesAsync()
         {
-            var roles = await _httpClient.GetFromJsonAsync<string[]>("user/roles");
-            return roles ?? Array.Empty<string>();
+            if (_cachedRoles != null)
+            {
+                return _cachedRoles;
+            }
+
+            await _semaphore.WaitAsync();
+            try
+            {
+                if (_cachedRoles != null)
+                {
+                    return _cachedRoles;
+                }
+
+                if (_loadingTask != null)
+                {
+                    return await _loadingTask;
+                }
+
+                _loadingTask = LoadRolesAsync();
+                _cachedRoles = await _loadingTask;
+                return _cachedRoles;
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
+        }
+
+        private async Task<string[]> LoadRolesAsync()
+        {
+            var roles = await httpClient.GetFromJsonAsync<string[]>("user/roles");
+            return roles ?? [];
         }
     }
 }

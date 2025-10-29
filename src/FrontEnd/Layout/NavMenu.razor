@@ -63,8 +63,7 @@
             try
             {
                 Console.WriteLine("Fetching user roles...");
-                var roles = await RoleService.GetUserRolesAsync();
-                hasProjectCoordinationRole = roles.Contains("projectcoordination", StringComparer.OrdinalIgnoreCase);
+                hasProjectCoordinationRole = await RoleService.HasRole("projectcoordination");
                 Console.WriteLine($"User has projectcoordination role: {hasProjectCoordinationRole}");
             }
             catch (Exception ex)

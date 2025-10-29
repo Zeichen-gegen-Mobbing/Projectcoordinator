@@ -27,8 +27,7 @@
     {
         try
         {
-            var roles = await RoleService.GetUserRolesAsync();
-            if (roles.Contains("projectcoordination", StringComparer.OrdinalIgnoreCase))
+            if (await RoleService.HasRole("projectcoordination"))
             {
                 NavigationManager.NavigateTo("/trips");
             }

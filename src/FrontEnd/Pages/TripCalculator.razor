@@ -54,8 +54,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        var roles = await RoleService.GetUserRolesAsync();
-        isAuthorized = roles.Contains("projectcoordination", StringComparer.OrdinalIgnoreCase);
+        isAuthorized = await RoleService.HasRole("projectcoordination");
 
         if (isAuthorized)
         {
