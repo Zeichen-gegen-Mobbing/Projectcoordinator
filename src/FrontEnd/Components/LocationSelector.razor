@@ -2,9 +2,7 @@
 @using System.ComponentModel.DataAnnotations.Schema;
 @using FrontEnd.Services;
 @using ZgM.ProjectCoordinator.Shared;
-@using Microsoft.JSInterop
 @inject ILocationService LocationService
-@inject IJSRuntime JSRuntime
 
 <div class="location-selector">
 	<h4>Location Search</h4>
@@ -13,7 +11,8 @@
 		<div class="search-box">
 			<label>
 				Search for a location:
-				<InputText @bind-Value="searchModel.SearchText" placeholder="Enter address or place name" class="form-control" />
+				<InputText @bind-Value="searchModel.SearchText" placeholder="Enter address or place name"
+					class="form-control" />
 			</label>
 			<button disabled="@(Disabled || isSearching)" type="submit" class="btn btn-primary">
 				@if (isSearching)
@@ -29,15 +28,24 @@
 		<ValidationSummary />
 	</EditForm>
 
-	@if (searchResults != null && searchResults.Any() && !isConfirmed)
+	@if (selectedLocation != null)
+	{
+		<div class="selected-location-label">
+			<h5>Selected Location</h5>
+			<p><strong>@selectedLocation.Value.Label</strong></p>
+		</div>
+	}
+
+	@if (searchResults != null && searchResults.Any())
 	{
 		<div class="results-container">
 			<h5>Search Results</h5>
 			<table class="table table-striped table-hover">
 				<thead>
 					<tr>
-						<th>Name</th>
-						<th>Details</th>
+						<th>Label</th>
+						<th>Adresse</th>
+						<th></th>
 						<th>Action</th>
 					</tr>
 				</thead>
@@ -45,7 +53,7 @@
 					@foreach (var result in searchResults)
 					{
 						<tr>
-							<td>@(!string.IsNullOrEmpty(result.Name) ? result.Name : result.Label)</td>
+							<td>@result.Label</td>
 							<td>
 								@{
 									var parts = new List<string>();
@@ -65,7 +73,13 @@
 								@string.Join(", ", parts)
 							</td>
 							<td>
-								<button disabled="@Disabled" @onclick="() => SelectLocation(result)" class="btn btn-sm btn-success">
+								<button @onclick="() => ShowMap(result)" class="btn btn-sm btn-secondary" title="Show on map">
+									<span>🗺️</span>
+								</button>
+							</td>
+							<td>
+								<button disabled="@Disabled" @onclick="() => SelectLocation(result)"
+									class="btn btn-sm btn-success">
 									Select
 								</button>
 							</td>
@@ -82,17 +96,6 @@
 		</div>
 	}
 
-	@if (selectedLocation != null && !isConfirmed)
-	{
-		<div class="selected-location">
-			<h5>Selected Location</h5>
-			<p><strong>@selectedLocation.Value.Label</strong></p>
-			<iframe src="@mapUrl" width="90%" height="300" style="border: 1px solid black" />
-			<br />
-			<button disabled="@Disabled" @onclick="Submit" class="btn btn-primary mt-2">Confirm Selection</button>
-		</div>
-	}
-
 	@if (!string.IsNullOrEmpty(errorMessage))
 	{
 		<div class="alert alert-danger">
@@ -100,6 +103,48 @@
 		</div>
 	}
 </div>
+
+@if (showMapModal && mapLocation != null)
+{
+	<div class="modal show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+		<div class="modal-dialog modal-lg">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title">@mapLocation.Value.Label</h5>
+					<button type="button" class="btn-close" @onclick="CloseMap"></button>
+				</div>
+				<div class="modal-body">
+					<div class="mb-3">
+						<strong>Address:</strong>
+						<div>
+							@{
+								var addressParts = new List<string>();
+								if (!string.IsNullOrEmpty(mapLocation.Value.Street))
+								{
+									addressParts.Add($"{mapLocation.Value.Street} {mapLocation.Value.HouseNumber}".Trim());
+								}
+								if (!string.IsNullOrEmpty(mapLocation.Value.PostalCode) || !string.IsNullOrEmpty(mapLocation.Value.Locality))
+								{
+									addressParts.Add($"{mapLocation.Value.PostalCode} {mapLocation.Value.Locality}".Trim());
+								}
+								if (!string.IsNullOrEmpty(mapLocation.Value.Country))
+								{
+									addressParts.Add(mapLocation.Value.Country);
+								}
+							}
+							@string.Join(", ", addressParts)
+						</div>
+					</div>
+					<iframe src="@mapUrl" width="100%" height="400" style="border: 1px solid #ccc"></iframe>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" @onclick="CloseMap">Close</button>
+					<button disabled="@Disabled" type="button" class="btn btn-success" @onclick="SelectMapLocation">Select This Location</button>
+				</div>
+			</div>
+		</div>
+	</div>
+}
 
 <style>
 	.location-selector {
@@ -121,12 +166,20 @@
 		margin-top: 1rem;
 	}
 
-	.selected-location {
-		margin-top: 2rem;
-		padding: 1rem;
-		border: 2px solid #28a745;
-		border-radius: 0.25rem;
+	.selected-location-label {
+		margin-top: 1rem;
+		padding: 0.5rem;
+		border-left: 4px solid #28a745;
 		background-color: #f8f9fa;
+	}
+
+	.selected-location-label h5 {
+		margin-bottom: 0.25rem;
+		font-size: 1rem;
+	}
+
+	.selected-location-label p {
+		margin: 0;
 	}
 </style>
 
@@ -143,8 +196,9 @@
 	private LocationSearchResult? selectedLocation;
 	private bool hasSearched = false;
 	private bool isSearching = false;
-	private bool isConfirmed = false;
 	private string? errorMessage;
+	private bool showMapModal = false;
+	private LocationSearchResult? mapLocation;
 
 	private async Task Search()
 	{
@@ -177,17 +231,29 @@
 	private async Task SelectLocation(LocationSearchResult result)
 	{
 		selectedLocation = result;
-		StateHasChanged();
-		await Task.Delay(100);
-		await JSRuntime.InvokeVoidAsync("eval", "document.querySelector('.selected-location').scrollIntoView({ behavior: 'smooth', block: 'start' })");
+		searchResults = null;
+		hasSearched = false;
+		await OnLocationSelected(result.Latitude, result.Longitude);
 	}
 
-	private async Task Submit()
+	private void ShowMap(LocationSearchResult result)
 	{
-		if (selectedLocation.HasValue)
+		mapLocation = result;
+		showMapModal = true;
+	}
+
+	private void CloseMap()
+	{
+		showMapModal = false;
+		mapLocation = null;
+	}
+
+	private async Task SelectMapLocation()
+	{
+		if (mapLocation.HasValue)
 		{
-			await OnLocationSelected(selectedLocation.Value.Latitude, selectedLocation.Value.Longitude);
-			isConfirmed = true;
+			await SelectLocation(mapLocation.Value);
+			CloseMap();
 		}
 	}
 
@@ -198,11 +264,11 @@
 		public string SearchText { get; set; } = string.Empty;
 	}
 
-	private string mapUrl => selectedLocation.HasValue ?
+	private string mapUrl => mapLocation.HasValue ?
 	String.Format(new System.Globalization.CultureInfo("en-US"),
 	"https://www.openstreetmap.org/export/embed.html?bbox={0},{1},{2},{3}&layer=mapnik&marker={4},{5}",
-	selectedLocation.Value.Longitude - 0.1, selectedLocation.Value.Latitude - 0.1, 
-	selectedLocation.Value.Longitude + 0.1, selectedLocation.Value.Latitude + 0.1, 
-	selectedLocation.Value.Latitude, selectedLocation.Value.Longitude) 
-	: "https://www.openstreetmap.org/export/embed.html";
+	mapLocation.Value.Longitude - 0.1, mapLocation.Value.Latitude - 0.1,
+	mapLocation.Value.Longitude + 0.1, mapLocation.Value.Latitude + 0.1,
+	mapLocation.Value.Latitude, mapLocation.Value.Longitude)
+	: "";
 }
