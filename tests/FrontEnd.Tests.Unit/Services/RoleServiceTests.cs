@@ -132,7 +132,15 @@ public class RoleServiceTests : IDisposable
         public async Task HandlesConcurrentCalls()
         {
             // Arrange
-            SetupMockResponse(["admin", "projectcoordination"]);
+            _httpMessageHandlerMock.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = JsonContent.Create<string[]>(["admin", "projectcoordination"])
+            }, TimeSpan.FromMilliseconds(50));
 
             // Act - Multiple concurrent calls
             var tasks = new[]
