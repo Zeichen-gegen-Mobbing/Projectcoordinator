@@ -379,5 +379,105 @@ public class LocationSelectorTests : Bunit.TestContext
 			var modals = cut.FindAll(".modal");
 			await Assert.That(modals.Count).IsEqualTo(0);
 		}
+
+		[Test]
+		public async Task ShowsAddressInModal_WhenMapIsOpened()
+		{
+			// Arrange
+			var results = new List<LocationSearchResult>
+			{
+				new() 
+				{ 
+					Label = "Berlin, Germany", 
+					Latitude = 52.52, 
+					Longitude = 13.405,
+					Street = "Unter den Linden",
+					HouseNumber = "1",
+					PostalCode = "10117",
+					Locality = "Berlin",
+					Country = "Germany"
+				}
+			};
+
+			_locationServiceMock
+				.Setup(x => x.SearchLocationsAsync(It.IsAny<string>()))
+				.ReturnsAsync(results);
+
+			Task OnLocationSelected(double lat, double lon) => Task.CompletedTask;
+
+			var cut = RenderComponent<LocationSelector>(parameters => parameters
+				.Add(p => p.OnLocationSelected, OnLocationSelected)
+				.Add(p => p.Disabled, false));
+
+			var searchInput = cut.Find("input[placeholder='Enter address or place name']");
+			searchInput.Change("Berlin");
+			var searchButton = cut.Find("button[type='submit']");
+			await cut.InvokeAsync(() => searchButton.Click());
+
+			// Act
+			var mapButton = cut.Find("button.btn-secondary");
+			await cut.InvokeAsync(() => mapButton.Click());
+
+			// Assert
+			await Assert.That(cut.Markup).Contains("Address:");
+			await Assert.That(cut.Markup).Contains("Unter den Linden 1");
+			await Assert.That(cut.Markup).Contains("10117 Berlin");
+			await Assert.That(cut.Markup).Contains("Germany");
+		}
+
+		[Test]
+		public async Task SelectsLocationFromModal_WhenSelectButtonIsClicked()
+		{
+			// Arrange
+			var results = new List<LocationSearchResult>
+			{
+				new() { Label = "Berlin, Germany", Latitude = 52.52, Longitude = 13.405 }
+			};
+
+			_locationServiceMock
+				.Setup(x => x.SearchLocationsAsync(It.IsAny<string>()))
+				.ReturnsAsync(results);
+
+			double? capturedLat = null;
+			double? capturedLon = null;
+			Task OnLocationSelected(double lat, double lon)
+			{
+				capturedLat = lat;
+				capturedLon = lon;
+				return Task.CompletedTask;
+			}
+
+			var cut = RenderComponent<LocationSelector>(parameters => parameters
+				.Add(p => p.OnLocationSelected, OnLocationSelected)
+				.Add(p => p.Disabled, false));
+
+			var searchInput = cut.Find("input[placeholder='Enter address or place name']");
+			searchInput.Change("Berlin");
+			var searchButton = cut.Find("button[type='submit']");
+			await cut.InvokeAsync(() => searchButton.Click());
+
+			var mapButton = cut.Find("button.btn-secondary");
+			await cut.InvokeAsync(() => mapButton.Click());
+
+			// Act - Find the select button in the modal footer
+			var selectButton = cut.Find(".modal-footer button.btn-success");
+			await cut.InvokeAsync(() => selectButton.Click());
+
+			// Assert
+			await Assert.That(capturedLat).IsEqualTo(52.52);
+			await Assert.That(capturedLon).IsEqualTo(13.405);
+			
+			// Modal should be closed
+			var modals = cut.FindAll(".modal");
+			await Assert.That(modals.Count).IsEqualTo(0);
+			
+			// Search results should be hidden
+			var tables = cut.FindAll("table");
+			await Assert.That(tables.Count).IsEqualTo(0);
+			
+			// Selected location label should be shown
+			var selectedLocationDiv = cut.Find(".selected-location-label");
+			await Assert.That(selectedLocationDiv.TextContent).Contains("Berlin, Germany");
+		}
 	}
 }

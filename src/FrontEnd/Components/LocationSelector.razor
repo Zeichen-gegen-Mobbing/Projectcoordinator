@@ -114,10 +114,32 @@
 					<button type="button" class="btn-close" @onclick="CloseMap"></button>
 				</div>
 				<div class="modal-body">
+					<div class="mb-3">
+						<strong>Address:</strong>
+						<div>
+							@{
+								var addressParts = new List<string>();
+								if (!string.IsNullOrEmpty(mapLocation.Value.Street))
+								{
+									addressParts.Add($"{mapLocation.Value.Street} {mapLocation.Value.HouseNumber}".Trim());
+								}
+								if (!string.IsNullOrEmpty(mapLocation.Value.PostalCode) || !string.IsNullOrEmpty(mapLocation.Value.Locality))
+								{
+									addressParts.Add($"{mapLocation.Value.PostalCode} {mapLocation.Value.Locality}".Trim());
+								}
+								if (!string.IsNullOrEmpty(mapLocation.Value.Country))
+								{
+									addressParts.Add(mapLocation.Value.Country);
+								}
+							}
+							@string.Join(", ", addressParts)
+						</div>
+					</div>
 					<iframe src="@mapUrl" width="100%" height="400" style="border: 1px solid #ccc"></iframe>
 				</div>
 				<div class="modal-footer">
 					<button type="button" class="btn btn-secondary" @onclick="CloseMap">Close</button>
+					<button disabled="@Disabled" type="button" class="btn btn-success" @onclick="SelectMapLocation">Select This Location</button>
 				</div>
 			</div>
 		</div>
@@ -210,6 +232,7 @@
 	{
 		selectedLocation = result;
 		searchResults = null;
+		hasSearched = false;
 		await OnLocationSelected(result.Latitude, result.Longitude);
 	}
 
@@ -223,6 +246,15 @@
 	{
 		showMapModal = false;
 		mapLocation = null;
+	}
+
+	private async Task SelectMapLocation()
+	{
+		if (mapLocation.HasValue)
+		{
+			await SelectLocation(mapLocation.Value);
+			CloseMap();
+		}
 	}
 
 	public class SearchModel
