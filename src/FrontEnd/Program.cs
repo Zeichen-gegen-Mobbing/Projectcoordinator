@@ -73,7 +73,7 @@ builder.Services.AddScoped<IUserService, FakeUserService>();
 builder.Services.AddHttpClient<IUserService, GraphUserService>(client => 
     client.BaseAddress = new Uri("https://graph.microsoft.com/v1.0"))
     .AddHttpMessageHandler(sp => {
-        return sp.GetRequiredService<CustomAuthorizationHeaderMessageHandler>()
+        return sp.GetRequiredService<AuthorizationHeaderMessageHandler>()
             .ConfigureHandler(
                 authorizedUrls: ["https://graph.microsoft.com/"],
                 scopes: ["User.ReadBasic.All"]);
