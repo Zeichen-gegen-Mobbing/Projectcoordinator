@@ -34,7 +34,7 @@ builder.Services.AddMsalAuthentication(options =>
 });
 #endif
 
-builder.Services.AddTransient<AuthorizationMessageHandler>();
+builder.Services.AddTransient<CustomAuthorizationHeaderMessageHandler>();
 
 var baseAddress = $"{builder.HostEnvironment.BaseAddress}api/";
 builder.Services.AddHttpClient<ITripService, TripService>(client =>
@@ -43,7 +43,7 @@ builder.Services.AddHttpClient<ITripService, TripService>(client =>
 })
 .AddHttpMessageHandler(sp =>
 {
-    return sp.GetRequiredService<AuthorizationMessageHandler>()
+    return sp.GetRequiredService<CustomAuthorizationHeaderMessageHandler>()
         .ConfigureHandler([baseAddress], [$"api://{authConfig.ApiClientId}/Trips.Calculate"]);
 });
 
@@ -53,7 +53,7 @@ builder.Services.AddHttpClient<IRoleService, RoleService>(client =>
 })
 .AddHttpMessageHandler(sp =>
 {
-    return sp.GetRequiredService<AuthorizationMessageHandler>()
+    return sp.GetRequiredService<CustomAuthorizationHeaderMessageHandler>()
         .ConfigureHandler([baseAddress]);
 });
 
@@ -63,7 +63,7 @@ builder.Services.AddHttpClient<ILocationService, LocationService>(client =>
 })
 .AddHttpMessageHandler(sp =>
 {
-    return sp.GetRequiredService<AuthorizationMessageHandler>()
+    return sp.GetRequiredService<CustomAuthorizationHeaderMessageHandler>()
         .ConfigureHandler([baseAddress], [$"api://{authConfig.ApiClientId}/Locations.Search"]);
 });
 
@@ -73,7 +73,7 @@ builder.Services.AddScoped<IUserService, FakeUserService>();
 builder.Services.AddHttpClient<IUserService, GraphUserService>(client => 
     client.BaseAddress = new Uri("https://graph.microsoft.com/v1.0"))
     .AddHttpMessageHandler(sp => {
-        return sp.GetRequiredService<AuthorizationMessageHandler>()
+        return sp.GetRequiredService<CustomAuthorizationHeaderMessageHandler>()
             .ConfigureHandler(
                 authorizedUrls: ["https://graph.microsoft.com/"],
                 scopes: ["User.ReadBasic.All"]);
