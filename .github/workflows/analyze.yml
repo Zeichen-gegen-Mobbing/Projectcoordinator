@@ -110,7 +110,7 @@ jobs:
             SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           ./.sonar/scanner/dotnet-sonarscanner begin /k:"Zeichen-gegen-Mobbing_Projectcoordinator" /o:"zeichen-gegen-mobbing" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.exclusions="**/obj/**,**/bin/**,**/wwwroot/lib/**" /d:sonar.cs.vstest.reportsPaths="**/TestResults/**/*.trx" /d:sonar.cs.vscoveragexml.reportsPaths="**/TestResults/*.xml"
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '9.x.x'
       - run: dotnet build
