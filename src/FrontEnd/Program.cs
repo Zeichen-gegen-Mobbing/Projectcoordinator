@@ -34,6 +34,7 @@ builder.Services.AddMsalAuthentication(options =>
 });
 #endif
 
+builder.Services.AddTransient<AuthorizationMessageHandler>();
 builder.Services.AddTransient<CustomAuthorizationHeaderMessageHandler>();
 
 var baseAddress = $"{builder.HostEnvironment.BaseAddress}api/";
@@ -54,7 +55,7 @@ builder.Services.AddHttpClient<IRoleService, RoleService>(client =>
 .AddHttpMessageHandler(sp =>
 {
     return sp.GetRequiredService<CustomAuthorizationHeaderMessageHandler>()
-        .ConfigureHandler([baseAddress]);
+        .ConfigureHandler([baseAddress], [$"api://{authConfig.ApiClientId}/.default"]);
 });
 
 builder.Services.AddHttpClient<ILocationService, LocationService>(client =>
@@ -71,11 +72,11 @@ builder.Services.AddHttpClient<ILocationService, LocationService>(client =>
 builder.Services.AddScoped<IUserService, FakeUserService>();
 #else
 builder.Services.AddHttpClient<IUserService, GraphUserService>(client => 
-    client.BaseAddress = new Uri("https://graph.microsoft.com/v1.0"))
+    client.BaseAddress = new Uri("https://graph.microsoft.com/v1.0/"))
     .AddHttpMessageHandler(sp => {
-        return sp.GetRequiredService<CustomAuthorizationHeaderMessageHandler>()
+        return sp.GetRequiredService<AuthorizationMessageHandler>()
             .ConfigureHandler(
-                authorizedUrls: ["https://graph.microsoft.com/"],
+                authorizedUrls: ["https://graph.microsoft.com/v1.0/"],
                 scopes: ["User.ReadBasic.All"]);
     });
 #endif
