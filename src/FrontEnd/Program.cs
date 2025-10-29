@@ -55,7 +55,7 @@ builder.Services.AddHttpClient<IRoleService, RoleService>(client =>
 .AddHttpMessageHandler(sp =>
 {
     return sp.GetRequiredService<CustomAuthorizationHeaderMessageHandler>()
-        .ConfigureHandler([baseAddress]);
+        .ConfigureHandler([baseAddress], [$"api://{authConfig.ApiClientId}/.default"]);
 });
 
 builder.Services.AddHttpClient<ILocationService, LocationService>(client =>
