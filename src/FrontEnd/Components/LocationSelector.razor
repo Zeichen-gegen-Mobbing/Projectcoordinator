@@ -190,6 +190,8 @@
 	[Parameter]
 	[Required]
 	public required bool Disabled { get; set; }
+	[Parameter]
+	public Action? OnSearchStarted { get; set; }
 
 	private readonly SearchModel searchModel = new();
 	private IEnumerable<LocationSearchResult>? searchResults;
@@ -206,6 +208,8 @@
 		{
 			return;
 		}
+
+		OnSearchStarted?.Invoke();
 
 		isSearching = true;
 		errorMessage = null;

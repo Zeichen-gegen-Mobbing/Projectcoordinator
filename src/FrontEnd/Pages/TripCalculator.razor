@@ -20,7 +20,7 @@
 
 <AuthorizeView Roles="projectcoordination">
     <Authorized>
-        <FrontEnd.Components.LocationSelector Disabled=LocationSelected OnLocationSelected=LoadTrips />
+        <FrontEnd.Components.LocationSelector Disabled=LocationSelected OnLocationSelected=LoadTrips OnSearchStarted=ClearTrips />
 
         @if (trips.Any())
         {
@@ -54,13 +54,21 @@
     {
     }
 
+    private void ClearTrips()
+    {
+        trips.Clear();
+        status = "Waiting for coordinates";
+        StateHasChanged();
+    }
+
     private async Task LoadTrips(double latitude, double longitude)
     {
+        trips.Clear();
         status = "Loading Trips";
         LocationSelected = true;
-        trips.Clear();
         StateHasChanged();
         await Task.Yield();
+        
         Console.WriteLine("Start getting trips");
         foreach (Trip t in (await TripService.GetTripsAsync(latitude, longitude)))
         {
