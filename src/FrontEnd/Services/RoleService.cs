@@ -1,42 +1,45 @@
 using System.Net.Http.Json;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Components.Authorization;
 
 namespace FrontEnd.Services
 {
-    public class RoleService(HttpClient httpClient) : IRoleService
+    public class RoleService(HttpClient httpClient, AuthenticationStateProvider authenticationStateProvider) : IRoleService
     {
-        private string[]? _cachedRoles;
-        private Task<string[]>? _loadingTask;
+        private Task<string[]>? _rolesTask;
+        private string? _cachedUserId;
         private readonly SemaphoreSlim _semaphore = new(1, 1);
 
         public async Task<bool> HasRole(string roleName)
         {
-            var roles = await GetRolesAsync();
-            return roles.Contains(roleName, StringComparer.OrdinalIgnoreCase);
+            var roles = await GetCurrentRolesAsync();
+            var hasRole = roles.Contains(roleName, StringComparer.OrdinalIgnoreCase);
+
+            if (!hasRole)
+            {
+                roles = await GetCurrentRolesAsync(forceReload: true);
+                hasRole = roles.Contains(roleName, StringComparer.OrdinalIgnoreCase);
+            }
+
+            return hasRole;
         }
 
-        private async Task<string[]> GetRolesAsync()
+        private async Task<string[]> GetCurrentRolesAsync(bool forceReload = false)
         {
-            if (_cachedRoles != null)
-            {
-                return _cachedRoles;
-            }
+            var currentUserId = await GetCurrentUserIdAsync();
 
             await _semaphore.WaitAsync();
             try
             {
-                if (_cachedRoles != null)
+                if (!forceReload && _rolesTask != null && _cachedUserId == currentUserId)
                 {
-                    return _cachedRoles;
+                    return await _rolesTask;
                 }
 
-                if (_loadingTask != null)
-                {
-                    return await _loadingTask;
-                }
+                _cachedUserId = currentUserId;
+                _rolesTask = httpClient.GetFromJsonAsync<string[]>("user/roles").ContinueWith(t => t.Result ?? []);
 
-                _loadingTask = LoadRolesAsync();
-                _cachedRoles = await _loadingTask;
-                return _cachedRoles;
+                return await _rolesTask;
             }
             finally
             {
@@ -44,10 +47,10 @@ namespace FrontEnd.Services
             }
         }
 
-        private async Task<string[]> LoadRolesAsync()
+        private async Task<string?> GetCurrentUserIdAsync()
         {
-            var roles = await httpClient.GetFromJsonAsync<string[]>("user/roles");
-            return roles ?? [];
+            var authState = await authenticationStateProvider.GetAuthenticationStateAsync();
+            return authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         }
     }
 }
