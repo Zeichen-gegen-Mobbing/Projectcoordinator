@@ -62,6 +62,22 @@ public class NavMenuTests : Bunit.TestContext
 		this.AddTestAuthorization();
 		var cut = RenderComponent<NavMenu>();
 		var toggleButton = cut.Find(".navbar-toggler");
+		
+		// Assert button is rendered and has expected classes
+		await Assert.That(toggleButton).IsNotNull();
+		await Assert.That(toggleButton.ClassList).Contains("navbar-toggler");
+		
+		// Check if button might be hidden by Bootstrap classes
+		// The navbar-toggler should be visible at mobile breakpoints
+		// In a real browser, this would be controlled by @media queries in CSS
+		// For this test, we verify the button exists and has the right class
+		var hasHiddenClass = toggleButton.ClassList.Contains("d-none") || 
+		                     toggleButton.ClassList.Contains("invisible") ||
+		                     toggleButton.ClassList.Contains("d-lg-none");
+		
+		// Assert button should be visible (fail if it has hidden classes)
+		await Assert.That(hasHiddenClass).IsFalse();
+		
 		var navMenu = cut.Find(".nav-scrollable");
 
 		// Assert initial state - collapsed
