@@ -1,9 +1,11 @@
 using FrontEnd;
+using FrontEnd.Authorization;
 #if DEBUG
 using FrontEnd.LocalAuthentication;
-using Microsoft.AspNetCore.Components.Authorization;
 #endif
 using FrontEnd.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
@@ -34,6 +36,11 @@ builder.Services.AddMsalAuthentication(options =>
 });
 #endif
 
+// Register custom authorization handlers
+builder.Services.AddAuthorizationCore();
+builder.Services.AddSingleton<IAuthorizationPolicyProvider, RoleAuthorizationPolicyProvider>();
+builder.Services.AddScoped<IAuthorizationHandler, RoleAuthorizationHandler>();
+
 builder.Services.AddTransient<AuthorizationMessageHandler>();
 builder.Services.AddTransient<CustomAuthorizationHeaderMessageHandler>();
 
@@ -48,7 +55,7 @@ builder.Services.AddHttpClient<ITripService, TripService>(client =>
         .ConfigureHandler([baseAddress], [$"api://{authConfig.ApiClientId}/Trips.Calculate"]);
 });
 
-builder.Services.AddHttpClient<IRoleService, RoleService>(client =>
+builder.Services.AddHttpClient("RoleService", client =>
 {
     client.BaseAddress = new Uri(baseAddress);
 })
@@ -56,6 +63,14 @@ builder.Services.AddHttpClient<IRoleService, RoleService>(client =>
 {
     return sp.GetRequiredService<CustomAuthorizationHeaderMessageHandler>()
         .ConfigureHandler([baseAddress], [$"api://{authConfig.ApiClientId}/.default"]);
+});
+
+builder.Services.AddScoped<IRoleService>(sp =>
+{
+    var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
+    var httpClient = httpClientFactory.CreateClient("RoleService");
+    var authStateProvider = sp.GetRequiredService<AuthenticationStateProvider>();
+    return new RoleService(httpClient, authStateProvider);
 });
 
 builder.Services.AddHttpClient<ILocationService, LocationService>(client =>

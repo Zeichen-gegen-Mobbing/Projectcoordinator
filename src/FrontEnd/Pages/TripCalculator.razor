@@ -11,65 +11,63 @@
 
 @inject IUserService UserService;
 @inject ITripService TripService;
-@inject IRoleService RoleService;
 @inject NavigationManager NavigationManager;
 
 <PageTitle>Trip Calculator</PageTitle>
+<AuthorizeView Policy="Role:projectcoordination">
+    <Authorized>
+        <h3>Trip Calculator</h3>
+        <p>Diese Seite ermöglicht es dir, die Reisedauer von den gespeicherten Orten zu berechnen und zu vergleichen.
+        </p>
 
-<h3>Trip Calculator</h3>
-<p>Diese Seite ermöglicht es dir, die Reisedauer von den gespeicherten Orten zu berechnen und zu vergleichen.</p>
+        <FrontEnd.Components.LocationSelector Disabled=LocationSelected OnLocationSelected=LoadTrips
+            OnSearchStarted=ClearTrips />
 
-@if (!isAuthorized)
-{
-    <div class="alert alert-danger" role="alert">
-        <strong>Access Denied</strong> - You do not have permission to access this page. The "projectcoordination" role is
-        required.
-    </div>
-}
-else
-{
-    <FrontEnd.Components.LocationSelector Disabled=LocationSelected OnLocationSelected=LoadTrips />
-
-    @if (trips.Any())
-    {
-        <QuickGrid Items="trips.AsQueryable()" Class="table table-hover table-bordered table-striped">
-            <PropertyColumn Property="@(t => t.UserDisplayName)" Sortable="true" />
-            <PropertyColumn Property="@(t => t.Place)" Sortable="false" />
-            <PropertyColumn Property="@(t => t.Time)" Format="" Sortable="true" IsDefaultSortColumn="true" />
-            <PropertyColumn Property="@(t => t.Cost)" Format="C2" Sortable="true" />
-        </QuickGrid>
-        <small>Time & Distance provided by © openrouteservice.org by HeiGIT | Map data © OpenStreetMap contributors</small>
-    }
-    else
-    {
-        <b>@status</b>
-    }
-}
+        @if (trips.Any())
+        {
+            <QuickGrid Items="trips.AsQueryable()" Class="table table-hover table-bordered table-striped">
+                <PropertyColumn Property="@(t => t.UserDisplayName)" Sortable="true" />
+                <PropertyColumn Property="@(t => t.Place)" Sortable="false" />
+                <PropertyColumn Property="@(t => t.Time)" Format="" Sortable="true" IsDefaultSortColumn="true" />
+                <PropertyColumn Property="@(t => t.Cost)" Format="C2" Sortable="true" />
+            </QuickGrid>
+            <small>Time & Distance provided by © openrouteservice.org by HeiGIT | Map data © OpenStreetMap
+                contributors</small>
+        }
+        else
+        {
+            <b>@status</b>
+        }
+    </Authorized>
+    <NotAuthorized>
+        <div class="alert alert-danger" role="alert">
+            <strong>Access Denied</strong> - You do not have permission to access this page. The "projectcoordination"
+            role is
+            required.
+        </div>
+    </NotAuthorized>
+</AuthorizeView>
 
 @code {
     private readonly ICollection<TripViewModel> trips = new List<TripViewModel>();
     private bool LocationSelected = false;
-    private string status = "Loading Site";
-    private bool isAuthorized = false;
+    private string status = "Waiting for coordinates";
 
-    protected override async Task OnInitializedAsync()
+    private void ClearTrips()
     {
-        var roles = await RoleService.GetUserRolesAsync();
-        isAuthorized = roles.Contains("projectcoordination", StringComparer.OrdinalIgnoreCase);
-
-        if (isAuthorized)
-        {
-            status = "Waiting for coordinates";
-        }
+        trips.Clear();
+        status = "Waiting for coordinates";
+        StateHasChanged();
     }
 
     private async Task LoadTrips(double latitude, double longitude)
     {
+        trips.Clear();
         status = "Loading Trips";
         LocationSelected = true;
-        trips.Clear();
         StateHasChanged();
         await Task.Yield();
+
         Console.WriteLine("Start getting trips");
         foreach (Trip t in (await TripService.GetTripsAsync(latitude, longitude)))
         {

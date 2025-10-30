@@ -57,9 +57,60 @@ public class LocationSelectorTests : Bunit.TestContext
 			await Assert.That(searchButton.HasAttribute("disabled")).IsTrue();
 		}
 	}
-
 	public class SearchMethod : LocationSelectorTests
 	{
+		[Test]
+		public async Task CallsOnSearchStarted_WhenSearchIsInitiated()
+		{
+			// Arrange
+			var onSearchStartedCalled = false;
+			_locationServiceMock
+				.Setup(x => x.SearchLocationsAsync(It.IsAny<string>()))
+				.ReturnsAsync(new List<LocationSearchResult>());
+
+			Task OnLocationSelected(double lat, double lon) => Task.CompletedTask;
+			void OnSearchStarted() => onSearchStartedCalled = true;
+
+			var cut = RenderComponent<LocationSelector>(parameters => parameters
+				.Add(p => p.OnLocationSelected, OnLocationSelected)
+				.Add(p => p.Disabled, false)
+				.Add(p => p.OnSearchStarted, OnSearchStarted));
+
+			// Act
+			var searchInput = cut.Find("input[placeholder='Enter address or place name']");
+			searchInput.Change("Berlin");
+			var searchButton = cut.Find("button[type='submit']");
+			await cut.InvokeAsync(() => searchButton.Click());
+
+			// Assert
+			await Assert.That(onSearchStartedCalled).IsTrue();
+		}
+
+		[Test]
+		public async Task DoesNotThrow_WhenOnSearchStartedIsNotProvided()
+		{
+			// Arrange
+			_locationServiceMock
+				.Setup(x => x.SearchLocationsAsync(It.IsAny<string>()))
+				.ReturnsAsync(new List<LocationSearchResult>());
+
+			Task OnLocationSelected(double lat, double lon) => Task.CompletedTask;
+
+			var cut = RenderComponent<LocationSelector>(parameters => parameters
+				.Add(p => p.OnLocationSelected, OnLocationSelected)
+				.Add(p => p.Disabled, false));
+			// OnSearchStarted not provided
+
+			// Act
+			var searchInput = cut.Find("input[placeholder='Enter address or place name']");
+			searchInput.Change("Berlin");
+			var searchButton = cut.Find("button[type='submit']");
+
+			// Assert - should not throw
+			await cut.InvokeAsync(() => searchButton.Click());
+			// Test passes if no exception is thrown
+		}
+
 		[Test]
 		public async Task DisplaysSearchResults_WhenSearchReturnsResults()
 		{
@@ -386,10 +437,10 @@ public class LocationSelectorTests : Bunit.TestContext
 			// Arrange
 			var results = new List<LocationSearchResult>
 			{
-				new() 
-				{ 
-					Label = "Berlin, Germany", 
-					Latitude = 52.52, 
+				new()
+				{
+					Label = "Berlin, Germany",
+					Latitude = 52.52,
 					Longitude = 13.405,
 					Street = "Unter den Linden",
 					HouseNumber = "1",
@@ -466,15 +517,15 @@ public class LocationSelectorTests : Bunit.TestContext
 			// Assert
 			await Assert.That(capturedLat).IsEqualTo(52.52);
 			await Assert.That(capturedLon).IsEqualTo(13.405);
-			
+
 			// Modal should be closed
 			var modals = cut.FindAll(".modal");
 			await Assert.That(modals.Count).IsEqualTo(0);
-			
+
 			// Search results should be hidden
 			var tables = cut.FindAll("table");
 			await Assert.That(tables.Count).IsEqualTo(0);
-			
+
 			// Selected location label should be shown
 			var selectedLocationDiv = cut.Find(".selected-location-label");
 			await Assert.That(selectedLocationDiv.TextContent).Contains("Berlin, Germany");

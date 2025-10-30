@@ -2,6 +2,6 @@ namespace FrontEnd.Services
 {
     public interface IRoleService
     {
-        Task<string[]> GetUserRolesAsync();
+        Task<bool> HasRole(string roleName);
     }
 }
