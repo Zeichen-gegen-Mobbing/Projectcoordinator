@@ -155,7 +155,7 @@ public class RoleServiceTests : IDisposable
             .Returns(async () =>
             {
                 await Task.Delay(50);
-                var json = System.Text.Json.JsonSerializer.Serialize(new[] { "admin", "projectcoordination" });
+                var json = System.Text.Json.JsonSerializer.Serialize<string[]>(["admin", "projectcoordination"]);
                 return new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StringContent(json, System.Text.Encoding.UTF8, "application/json")
@@ -225,7 +225,7 @@ public class RoleServiceTests : IDisposable
                 .ReturnsAsync(() =>
                 {
                     callCount++;
-                    var roles = callCount == 1 ? new[] { "admin" } : new[] { "admin", "projectcoordination" };
+                    string[] roles = callCount == 1 ? ["admin"] : ["admin", "projectcoordination"];
                     var json = System.Text.Json.JsonSerializer.Serialize(roles);
                     return new HttpResponseMessage(HttpStatusCode.OK)
                     {
