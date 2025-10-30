@@ -14,7 +14,7 @@
 @inject NavigationManager NavigationManager;
 
 <PageTitle>Trip Calculator</PageTitle>
-<AuthorizeView Roles="projectcoordination">
+<AuthorizeView Policy="Role:projectcoordination">
     <Authorized>
         <h3>Trip Calculator</h3>
         <p>Diese Seite ermöglicht es dir, die Reisedauer von den gespeicherten Orten zu berechnen und zu vergleichen.
