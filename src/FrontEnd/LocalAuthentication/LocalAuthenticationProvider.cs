@@ -24,11 +24,11 @@ namespace FrontEnd.LocalAuthentication
         private readonly IJSRuntime _jsRuntime;
         private bool _initialized = false;
 
+        // Base identities without roles - roles are added only in access tokens
         static ClaimsPrincipal _projectCoordination = new(new ClaimsIdentity(
             [
                 new Claim(ClaimTypes.Name, "TEST Projectcoordination"),
-                new Claim(ClaimTypes.NameIdentifier, "test-projectcoordination-id"),
-                new Claim(ClaimTypes.Role, "projectcoordination")
+                new Claim(ClaimTypes.NameIdentifier, "test-projectcoordination-id")
         ], "LocalAuthentication"));
 
         static ClaimsPrincipal _user = new(new ClaimsIdentity(new[]
@@ -36,6 +36,13 @@ namespace FrontEnd.LocalAuthentication
                 new Claim(ClaimTypes.Name, "TEST User"),
                 new Claim(ClaimTypes.NameIdentifier, "test-user-id")
         }, "LocalAuthentication"));
+        
+        // Map user identifiers to their roles (used when generating tokens)
+        private static readonly Dictionary<string, string[]> _userRoles = new()
+        {
+            ["test-projectcoordination-id"] = ["projectcoordination"],
+            ["test-user-id"] = []
+        };
 
         static ClaimsPrincipal _unauthenticated = new(new ClaimsIdentity());
 
@@ -156,8 +163,25 @@ namespace FrontEnd.LocalAuthentication
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_staticKey));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
             var claims = _selected.Claims.ToList();
+            
             if (options.Scopes is not null && options.Scopes.Any())
             {
+                // Check if any of the requested scopes are for the API client
+                var requestsApiScope = options.Scopes.Any(s => s.Contains(_authConfig.ApiClientId));
+                
+                if (requestsApiScope)
+                {
+                    // Add roles to the token only when requesting API access
+                    var userId = _selected.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                    if (userId != null && _userRoles.TryGetValue(userId, out var roles))
+                    {
+                        foreach (var role in roles)
+                        {
+                            claims.Add(new Claim(ClaimTypes.Role, role));
+                        }
+                    }
+                }
+                
                 // Azure only has one Scope Claim with spaces between
                 var scope = String.Join(" ", options.Scopes.Select(s => s.Split("/").Last()));
                 claims.Add(new Claim("scp", scope));
