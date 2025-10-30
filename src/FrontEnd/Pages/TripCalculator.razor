@@ -14,12 +14,12 @@
 @inject NavigationManager NavigationManager;
 
 <PageTitle>Trip Calculator</PageTitle>
-
-<h3>Trip Calculator</h3>
-<p>Diese Seite ermöglicht es dir, die Reisedauer von den gespeicherten Orten zu berechnen und zu vergleichen.</p>
-
 <AuthorizeView Roles="projectcoordination">
     <Authorized>
+        <h3>Trip Calculator</h3>
+        <p>Diese Seite ermöglicht es dir, die Reisedauer von den gespeicherten Orten zu berechnen und zu vergleichen.
+        </p>
+
         <FrontEnd.Components.LocationSelector Disabled=LocationSelected OnLocationSelected=LoadTrips
             OnSearchStarted=ClearTrips />
 
