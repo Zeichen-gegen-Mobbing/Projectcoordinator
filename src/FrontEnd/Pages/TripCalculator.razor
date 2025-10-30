@@ -20,7 +20,8 @@
 
 <AuthorizeView Roles="projectcoordination">
     <Authorized>
-        <FrontEnd.Components.LocationSelector Disabled=LocationSelected OnLocationSelected=LoadTrips OnSearchStarted=ClearTrips />
+        <FrontEnd.Components.LocationSelector Disabled=LocationSelected OnLocationSelected=LoadTrips
+            OnSearchStarted=ClearTrips />
 
         @if (trips.Any())
         {
@@ -30,7 +31,8 @@
                 <PropertyColumn Property="@(t => t.Time)" Format="" Sortable="true" IsDefaultSortColumn="true" />
                 <PropertyColumn Property="@(t => t.Cost)" Format="C2" Sortable="true" />
             </QuickGrid>
-            <small>Time & Distance provided by © openrouteservice.org by HeiGIT | Map data © OpenStreetMap contributors</small>
+            <small>Time & Distance provided by © openrouteservice.org by HeiGIT | Map data © OpenStreetMap
+                contributors</small>
         }
         else
         {
@@ -39,7 +41,8 @@
     </Authorized>
     <NotAuthorized>
         <div class="alert alert-danger" role="alert">
-            <strong>Access Denied</strong> - You do not have permission to access this page. The "projectcoordination" role is
+            <strong>Access Denied</strong> - You do not have permission to access this page. The "projectcoordination"
+            role is
             required.
         </div>
     </NotAuthorized>
@@ -49,10 +52,6 @@
     private readonly ICollection<TripViewModel> trips = new List<TripViewModel>();
     private bool LocationSelected = false;
     private string status = "Waiting for coordinates";
-
-    protected override void OnInitialized()
-    {
-    }
 
     private void ClearTrips()
     {
@@ -68,7 +67,7 @@
         LocationSelected = true;
         StateHasChanged();
         await Task.Yield();
-        
+
         Console.WriteLine("Start getting trips");
         foreach (Trip t in (await TripService.GetTripsAsync(latitude, longitude)))
         {
