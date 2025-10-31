@@ -21,8 +21,6 @@ public class PlaceRepositoryTests
 
     public PlaceRepositoryTests()
     {
-        repository = new PlaceRepository(mockCosmosClient.Object, mockOptions.Object, mockLogger.Object);
-
         mockOptions.Setup(o => o.Value).Returns(new CosmosOptions
         {
             Title = "TestCosmos",
@@ -36,6 +34,8 @@ public class PlaceRepositoryTests
 
         mockContainer.Setup(c => c.ReadContainerAsync(It.IsAny<ContainerRequestOptions>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Mock.Of<ContainerResponse>());
+
+        repository = new PlaceRepository(mockCosmosClient.Object, mockOptions.Object, mockLogger.Object);
     }
 
     public class DeleteAsync : PlaceRepositoryTests
