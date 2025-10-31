@@ -237,4 +237,144 @@ public class GraphUserServiceTests : IDisposable
             await Assert.That(result.DisplayName).IsNull();
         }
     }
+
+    public class SearchUsersAsyncMethod : GraphUserServiceTests
+    {
+        [Test]
+        public async Task SendsCorrectSearchQuery_WhenSearchingUsers()
+        {
+            // Arrange
+            var query = "Limpert";
+            var expectedResponse = new { value = Array.Empty<GraphUser>() };
+
+            _httpMessageHandlerMock.Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>())
+                .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = JsonContent.Create(expectedResponse)
+                });
+
+            // Act
+            await _service.SearchUsersAsync(query);
+
+            // Assert
+            _httpMessageHandlerMock.Protected().Verify(
+                "SendAsync",
+                Times.Once(),
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.Method == HttpMethod.Get &&
+                    req.RequestUri != null &&
+                    req.RequestUri.ToString().Contains($"$search=\"displayName:{query}\" OR \"mail:{query}\" OR \"givenName:{query}\" OR \"surname:{query}\"") &&
+                    req.Headers.Contains("ConsistencyLevel") &&
+                    req.Headers.GetValues("ConsistencyLevel").First() == "eventual"),
+                ItExpr.IsAny<CancellationToken>());
+        }
+
+        [Test]
+        public async Task ReturnsMatchedUsers_WhenSearchSucceeds()
+        {
+            // Arrange
+            var query = "test";
+            var expectedUsers = new[]
+            {
+                new GraphUser { Id = "1", DisplayName = "Test User", Mail = "test@example.com" },
+                new GraphUser { Id = "2", DisplayName = "Another Test", Mail = "test2@example.com" }
+            };
+            var response = new { value = expectedUsers };
+
+            _httpMessageHandlerMock.Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>())
+                .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = JsonContent.Create(response)
+                });
+
+            // Act
+            var result = await _service.SearchUsersAsync(query);
+
+            // Assert
+            await Assert.That(result).IsNotNull();
+            await Assert.That(result.Count()).IsEqualTo(2);
+            await Assert.That(result.First().DisplayName).IsEqualTo("Test User");
+            await Assert.That(result.Last().DisplayName).IsEqualTo("Another Test");
+        }
+
+        [Test]
+        public async Task ReturnsEmptyArray_WhenNoMatchesFound()
+        {
+            // Arrange
+            var query = "nonexistent";
+            var response = new { value = Array.Empty<GraphUser>() };
+
+            _httpMessageHandlerMock.Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>())
+                .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = JsonContent.Create(response)
+                });
+
+            // Act
+            var result = await _service.SearchUsersAsync(query);
+
+            // Assert
+            await Assert.That(result).IsNotNull();
+            await Assert.That(result).IsEmpty();
+        }
+
+        [Test]
+        public async Task ReturnsEmptyArray_WhenResponseIsNull()
+        {
+            // Arrange
+            var query = "test";
+
+            _httpMessageHandlerMock.Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>())
+                .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = JsonContent.Create<object?>(null)
+                });
+
+            // Act
+            var result = await _service.SearchUsersAsync(query);
+
+            // Assert
+            await Assert.That(result).IsNotNull();
+            await Assert.That(result).IsEmpty();
+        }
+
+        [Test]
+        public async Task ThrowsHttpRequestException_WhenApiReturnsError()
+        {
+            // Arrange
+            var query = "test";
+
+            _httpMessageHandlerMock.Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>())
+                .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.BadRequest)
+                {
+                    Content = new StringContent("{\"error\":{\"message\":\"Invalid search query\"}}")
+                });
+
+            // Act & Assert
+            await Assert.ThrowsAsync<HttpRequestException>(async () =>
+            {
+                await _service.SearchUsersAsync(query);
+            });
+        }
+    }
 }
