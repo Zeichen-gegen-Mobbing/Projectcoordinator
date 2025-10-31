@@ -243,7 +243,7 @@ public class GraphUserServiceTests : IDisposable
         [Test]
         [Arguments("Name", "Name")]
         [Arguments("O'Connor", "O%27Connor")]
-        [Arguments("Quo\"tes", "Quo\\\"tes")]
+        [Arguments("Quo\"tes", "Quo\\%22tes")]
         [Arguments("Back\\tick", "Back\\\\tick")]
         public async Task SendsCorrectSearchQuery_WhenSearchingUsers(string query, string expectedQuery)
         {
@@ -270,7 +270,7 @@ public class GraphUserServiceTests : IDisposable
                 ItExpr.Is<HttpRequestMessage>(req =>
                     req.Method == HttpMethod.Get &&
                     req.RequestUri != null &&
-                    req.RequestUri.ToString().Contains($"$search=\"displayName:{expectedQuery}\" OR \"mail:{expectedQuery}\" OR \"givenName:{expectedQuery}\" OR \"surname:{expectedQuery}\"") &&
+                    req.RequestUri.ToString().Contains($"$search=%22displayName:{expectedQuery}%22 OR %22mail:{expectedQuery}%22 OR %22givenName:{expectedQuery}%22 OR %22surname:{expectedQuery}%22") &&
                     req.Headers.Contains("ConsistencyLevel") &&
                     req.Headers.GetValues("ConsistencyLevel").First() == "eventual"),
                 ItExpr.IsAny<CancellationToken>());
