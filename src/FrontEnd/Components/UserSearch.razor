@@ -7,8 +7,11 @@
         <h5 class="card-title">@Title</h5>
         <div class="mb-3">
             <label for="@inputId" class="form-label">@Label</label>
-            <input type="text" class="form-control" id="@inputId" @bind="searchQuery" @bind:event="oninput"
-                placeholder="Enter user name or email" />
+            <div class="d-flex gap-2">
+                <input type="text" class="form-control" id="@inputId" @bind="searchQuery"
+                    placeholder="Enter user name or email" />
+                <button type="button" class="btn btn-primary" @onclick="SearchUsers">Search</button>
+            </div>
             @if (searchedUsers.Count > 0)
             {
                 <div class="list-group mt-2">
@@ -63,13 +66,7 @@
     private bool searchPerformed;
     private string inputId = $"userSearch_{Guid.NewGuid():N}";
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (!string.IsNullOrWhiteSpace(searchQuery))
-        {
-            await SearchUsers();
-        }
-    }
+    // Removed auto-search on input/after render. Search is now triggered explicitly by the Search button.
 
     private async Task SearchUsers()
     {

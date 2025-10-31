@@ -23,9 +23,18 @@ namespace FrontEnd.Services
         {
             using (logger.BeginScope(nameof(SearchUsersAsync)))
             {
-                var requestUri = $"users?$filter=startsWith(displayName,'{query}') or startsWith(mail,'{query}')&$select=displayName,id,mail&$top=10";
-                var response = await httpClient.GetFromJsonAsync<GraphSearchResponse>(requestUri);
-                return response?.Value ?? [];
+                // Construct search query for multiple fields with proper formatting
+                var searchQuery = $"\"displayName:{query}\" OR \"mail:{query}\" OR \"givenName:{query}\" OR \"surname:{query}\"";
+                var requestUri = $"users?$search={searchQuery}&$select=displayName,id,mail&$top=10";
+
+                using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
+                request.Headers.Add("ConsistencyLevel", "eventual");
+
+                var response = await httpClient.SendAsync(request);
+                response.EnsureSuccessStatusCode();
+                
+                var searchResponse = await response.Content.ReadFromJsonAsync<GraphSearchResponse>();
+                return searchResponse?.Value ?? Array.Empty<GraphUser>();
             }
         }
 
