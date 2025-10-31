@@ -29,7 +29,7 @@
                 <PropertyColumn Property="@(t => t.UserDisplayName)" Sortable="true" />
                 <PropertyColumn Property="@(t => t.Place)" Sortable="false" />
                 <PropertyColumn Property="@(t => t.Time)" Format="" Sortable="true" IsDefaultSortColumn="true" />
-                <PropertyColumn Property="@(t => t.Cost)" Format="C2" Sortable="true" />
+                <PropertyColumn Property="@(t => t.CostFormatted)" Sortable="true" />
             </QuickGrid>
             <small>Time & Distance provided by © openrouteservice.org by HeiGIT | Map data © OpenStreetMap
                 contributors</small>
@@ -111,5 +111,7 @@
         public required Place Place { get; set; }
         public required TimeSpan Time { get; set; }
         public decimal Cost { get; set; }
+
+        public string CostFormatted => $"{Cost.ToString("N2")} €";
     }
 }
