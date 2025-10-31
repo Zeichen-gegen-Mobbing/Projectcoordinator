@@ -241,10 +241,13 @@ public class GraphUserServiceTests : IDisposable
     public class SearchUsersAsyncMethod : GraphUserServiceTests
     {
         [Test]
-        public async Task SendsCorrectSearchQuery_WhenSearchingUsers()
+        [Arguments("Name", "Name")]
+        [Arguments("O'Connor", "O%27Connor")]
+        [Arguments("Quo\"tes", "Quo\\\"tes")]
+        [Arguments("Back\\tick", "Back\\\\tick")]
+        public async Task SendsCorrectSearchQuery_WhenSearchingUsers(string query, string expectedQuery)
         {
             // Arrange
-            var query = "Limpert";
             var expectedResponse = new { value = Array.Empty<GraphUser>() };
 
             _httpMessageHandlerMock.Protected()
@@ -267,7 +270,7 @@ public class GraphUserServiceTests : IDisposable
                 ItExpr.Is<HttpRequestMessage>(req =>
                     req.Method == HttpMethod.Get &&
                     req.RequestUri != null &&
-                    req.RequestUri.ToString().Contains($"$search=\"displayName:{query}\" OR \"mail:{query}\" OR \"givenName:{query}\" OR \"surname:{query}\"") &&
+                    req.RequestUri.ToString().Contains($"$search=\"displayName:{expectedQuery}\" OR \"mail:{expectedQuery}\" OR \"givenName:{expectedQuery}\" OR \"surname:{expectedQuery}\"") &&
                     req.Headers.Contains("ConsistencyLevel") &&
                     req.Headers.GetValues("ConsistencyLevel").First() == "eventual"),
                 ItExpr.IsAny<CancellationToken>());
