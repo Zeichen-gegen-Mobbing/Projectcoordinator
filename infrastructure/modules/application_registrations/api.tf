@@ -14,9 +14,17 @@ locals {
       consent_display_name = "Calculate Trips"
       consent_description  = "Allows to calculate trips to all places of all users."
     }
-    "Places.CreateOnBehalfOf" = {
-      consent_display_name = "Create Places on Behalf of User"
-      consent_description  = "Allows to create places on behalf of another user."
+    "Places.Create" = {
+      consent_display_name = "Create Places"
+      consent_description  = "Allows to create places for the authenticated user or on behalf of another user if admin."
+    }
+    "Places.Read" = {
+      consent_display_name = "Read Places"
+      consent_description  = "Allows to read places for the authenticated user."
+    }
+    "Places.Delete" = {
+      consent_display_name = "Delete Places"
+      consent_description  = "Allows to delete places for the authenticated user or for another user if admin."
     }
     "Locations.Search" = {
       consent_display_name = "Search for Locations"
@@ -27,6 +35,10 @@ locals {
     "projectcoordination" = {
       display_name = "Project Coordination"
       description  = "Allows access to project coordination features including trip planning."
+    }
+    "admin" = {
+      display_name = "Administrator"
+      description  = "Allows full administrative access including managing places for all users."
     }
   }
 }

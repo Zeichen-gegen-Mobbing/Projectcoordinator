@@ -7,6 +7,7 @@ namespace FrontEnd.Services
     {
         private readonly IDictionary<UserId, User> users = new Dictionary<UserId, User>();
         private readonly IList<string> names = new List<string> { "Alice", "Bob", "Charlie", "David", "Eve", "Frank", "Grace", "Heidi" };
+        
         public async Task<User> GetUserAsync(UserId Id)
         {
             var random = new Random();
@@ -25,6 +26,21 @@ namespace FrontEnd.Services
                 users.Add(Id, user);
                 return user;
             } 
+        }
+
+        public Task<IEnumerable<GraphUser>> SearchUsersAsync(string query)
+        {
+            var results = names
+                .Where(n => n.Contains(query, StringComparison.OrdinalIgnoreCase))
+                .Select(n => new GraphUser
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    DisplayName = n,
+                    Mail = $"{n.ToLower()}@example.com"
+                })
+                .ToList();
+
+            return Task.FromResult<IEnumerable<GraphUser>>(results);
         }
     }
 }

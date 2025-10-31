@@ -1,0 +1,117 @@
+@using ZgM.ProjectCoordinator.Shared
+@using FrontEnd.Services
+@using Microsoft.JSInterop
+@inject IPlaceService PlaceService
+@inject IJSRuntime JSRuntime
+
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title">@Title</h5>
+
+        @if (loading)
+        {
+            <p><em>Loading places...</em></p>
+        }
+        else if (errorMessage != null)
+        {
+            <div class="alert alert-danger" role="alert">
+                @errorMessage
+            </div>
+        }
+        else if (places == null || places.Count == 0)
+        {
+            <p>No places found.</p>
+        }
+        else
+        {
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Place Name</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var place in places)
+                    {
+                        <tr>
+                            <td>@place.Name</td>
+                            <td>
+                                <button class="btn btn-danger btn-sm" @onclick="() => DeletePlace(place)">Delete</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string Title { get; set; } = "Places";
+
+    [Parameter]
+    public UserId? UserId { get; set; }
+
+    [Parameter]
+    public EventCallback<Place> OnPlaceDeleted { get; set; }
+
+    private List<Place> places = new();
+    private bool loading = false;
+    private string? errorMessage;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (UserId != null)
+        {
+            await LoadPlaces();
+        }
+        else
+        {
+            places.Clear();
+        }
+    }
+
+    private async Task LoadPlaces()
+    {
+        if (UserId == null)
+        {
+            return;
+        }
+
+        loading = true;
+        errorMessage = null;
+        try
+        {
+            places = (await PlaceService.GetPlacesAsync(UserId.Value)).ToList();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to load places: {ex.Message}";
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private async Task DeletePlace(Place place)
+    {
+        if (!await JSRuntime.InvokeAsync<bool>("confirm", $"Are you sure you want to delete '{place.Name}'?"))
+        {
+            return;
+        }
+
+        try
+        {
+            await PlaceService.DeletePlaceAsync(place.UserId, place.Id);
+            await OnPlaceDeleted.InvokeAsync(place);
+            await LoadPlaces();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to delete place: {ex.Message}";
+        }
+    }
+}

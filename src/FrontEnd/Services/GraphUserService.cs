@@ -18,5 +18,21 @@ namespace FrontEnd.Services
                     : new User(Id);
             }
         }
+
+        public async Task<IEnumerable<GraphUser>> SearchUsersAsync(string query)
+        {
+            using (logger.BeginScope(nameof(SearchUsersAsync)))
+            {
+                var requestUri = $"users?$filter=startsWith(displayName,'{query}') or startsWith(mail,'{query}')&$select=displayName,id,mail&$top=10";
+                var response = await httpClient.GetFromJsonAsync<GraphSearchResponse>(requestUri);
+                return response?.Value ?? [];
+            }
+        }
+
+        private record GraphSearchResponse
+        {
+            [System.Text.Json.Serialization.JsonPropertyName("value")]
+            public GraphUser[]? Value { get; init; }
+        }
     }
 }

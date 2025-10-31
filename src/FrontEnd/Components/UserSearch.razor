@@ -1,0 +1,106 @@
+@using FrontEnd.Models
+@using FrontEnd.Services
+@inject IUserService UserService
+
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title">@Title</h5>
+        <div class="mb-3">
+            <label for="@inputId" class="form-label">@Label</label>
+            <input type="text" class="form-control" id="@inputId" @bind="searchQuery" @bind:event="oninput"
+                placeholder="Enter user name or email" />
+            @if (searchedUsers.Count > 0)
+            {
+                <div class="list-group mt-2">
+                    @foreach (var user in searchedUsers)
+                    {
+                        <button type="button"
+                            class="list-group-item list-group-item-action @(SelectedUser?.Id == user.Id ? "active" : "")"
+                            @onclick="() => SelectUser(user)">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">@user.DisplayName</h6>
+                            </div>
+                            <small>@user.Mail</small>
+                        </button>
+                    }
+                </div>
+            }
+            else if (!string.IsNullOrWhiteSpace(searchQuery) && searchPerformed)
+            {
+                <div class="alert alert-info mt-2" role="alert">
+                    No users found matching "@searchQuery"
+                </div>
+            }
+        </div>
+        
+        @if (ErrorMessage != null)
+        {
+            <div class="alert alert-danger" role="alert">
+                @ErrorMessage
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string Title { get; set; } = "Search User";
+
+    [Parameter]
+    public string Label { get; set; } = "Search for user";
+
+    [Parameter]
+    public GraphUser? SelectedUser { get; set; }
+
+    [Parameter]
+    public EventCallback<GraphUser> OnUserSelected { get; set; }
+
+    [Parameter]
+    public string? ErrorMessage { get; set; }
+
+    private string searchQuery = "";
+    private List<GraphUser> searchedUsers = new();
+    private bool searchPerformed;
+    private string inputId = $"userSearch_{Guid.NewGuid():N}";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!string.IsNullOrWhiteSpace(searchQuery))
+        {
+            await SearchUsers();
+        }
+    }
+
+    private async Task SearchUsers()
+    {
+        if (string.IsNullOrWhiteSpace(searchQuery))
+        {
+            searchedUsers.Clear();
+            searchPerformed = false;
+            return;
+        }
+
+        try
+        {
+            searchedUsers = (await UserService.SearchUsersAsync(searchQuery)).ToList();
+            searchPerformed = true;
+        }
+        catch (Exception)
+        {
+            searchedUsers.Clear();
+            await OnUserSelected.InvokeAsync(null);
+        }
+    }
+
+    private async Task SelectUser(GraphUser user)
+    {
+        await OnUserSelected.InvokeAsync(user);
+    }
+
+    public void Clear()
+    {
+        searchQuery = "";
+        searchedUsers.Clear();
+        searchPerformed = false;
+    }
+}
