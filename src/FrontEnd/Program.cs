@@ -19,6 +19,10 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
+// Set German culture for proper currency formatting
+CultureInfo.DefaultThreadCurrentCulture = new CultureInfo("de-DE");
+CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo("de-DE");
+
 // Load authentication configuration from API
 using var httpClient = new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) };
 var authConfig = await httpClient.GetFromJsonAsync<AuthenticationOptions>("api/authentication-config") ?? throw new InvalidOperationException("Failed to load authentication configuration from API");
