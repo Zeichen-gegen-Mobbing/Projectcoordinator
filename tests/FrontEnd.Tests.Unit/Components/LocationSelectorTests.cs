@@ -24,7 +24,7 @@ public class LocationSelectorTests : Bunit.TestContext
 		{
 			// Arrange
 			var locationSelectedCalled = false;
-			Task OnLocationSelected(double lat, double lon)
+			Task OnLocationSelected(LocationSearchResult result)
 			{
 				locationSelectedCalled = true;
 				return Task.CompletedTask;
@@ -45,7 +45,7 @@ public class LocationSelectorTests : Bunit.TestContext
 		public async Task DisablesSearchButton_WhenDisabledIsTrue()
 		{
 			// Arrange
-			static Task OnLocationSelected(double lat, double lon) => Task.CompletedTask;
+			static Task OnLocationSelected(LocationSearchResult result) => Task.CompletedTask;
 
 			// Act
 			var cut = RenderComponent<LocationSelector>(parameters => parameters
@@ -68,7 +68,7 @@ public class LocationSelectorTests : Bunit.TestContext
 				.Setup(x => x.SearchLocationsAsync(It.IsAny<string>()))
 				.ReturnsAsync(new List<LocationSearchResult>());
 
-			Task OnLocationSelected(double lat, double lon) => Task.CompletedTask;
+			Task OnLocationSelected(LocationSearchResult result) => Task.CompletedTask;
 			void OnSearchStarted() => onSearchStartedCalled = true;
 
 			var cut = RenderComponent<LocationSelector>(parameters => parameters
@@ -94,7 +94,7 @@ public class LocationSelectorTests : Bunit.TestContext
 				.Setup(x => x.SearchLocationsAsync(It.IsAny<string>()))
 				.ReturnsAsync(new List<LocationSearchResult>());
 
-			Task OnLocationSelected(double lat, double lon) => Task.CompletedTask;
+			Task OnLocationSelected(LocationSearchResult result) => Task.CompletedTask;
 
 			var cut = RenderComponent<LocationSelector>(parameters => parameters
 				.Add(p => p.OnLocationSelected, OnLocationSelected)
@@ -125,7 +125,7 @@ public class LocationSelectorTests : Bunit.TestContext
 				.Setup(x => x.SearchLocationsAsync(It.IsAny<string>()))
 				.ReturnsAsync(results);
 
-			Task OnLocationSelected(double lat, double lon) => Task.CompletedTask;
+			Task OnLocationSelected(LocationSearchResult result) => Task.CompletedTask;
 
 			var cut = RenderComponent<LocationSelector>(parameters => parameters
 				.Add(p => p.OnLocationSelected, OnLocationSelected)
@@ -156,7 +156,7 @@ public class LocationSelectorTests : Bunit.TestContext
 				.Setup(x => x.SearchLocationsAsync(It.IsAny<string>()))
 				.ReturnsAsync(new List<LocationSearchResult>());
 
-			Task OnLocationSelected(double lat, double lon) => Task.CompletedTask;
+			Task OnLocationSelected(LocationSearchResult result) => Task.CompletedTask;
 
 			var cut = RenderComponent<LocationSelector>(parameters => parameters
 				.Add(p => p.OnLocationSelected, OnLocationSelected)
@@ -180,7 +180,7 @@ public class LocationSelectorTests : Bunit.TestContext
 				.Setup(x => x.SearchLocationsAsync(It.IsAny<string>()))
 				.ThrowsAsync(new Exception("API Error"));
 
-			Task OnLocationSelected(double lat, double lon) => Task.CompletedTask;
+			Task OnLocationSelected(LocationSearchResult result) => Task.CompletedTask;
 
 			var cut = RenderComponent<LocationSelector>(parameters => parameters
 				.Add(p => p.OnLocationSelected, OnLocationSelected)
@@ -213,7 +213,7 @@ public class LocationSelectorTests : Bunit.TestContext
 				.ReturnsAsync(results);
 
 			var locationSelectedCount = 0;
-			Task OnLocationSelected(double lat, double lon)
+			Task OnLocationSelected(LocationSearchResult result)
 			{
 				locationSelectedCount++;
 				return Task.CompletedTask;
@@ -260,12 +260,10 @@ public class LocationSelectorTests : Bunit.TestContext
 				.Setup(x => x.SearchLocationsAsync(It.IsAny<string>()))
 				.ReturnsAsync(results);
 
-			double? capturedLat = null;
-			double? capturedLon = null;
-			Task OnLocationSelected(double lat, double lon)
+			LocationSearchResult? capturedResult = null;
+			Task OnLocationSelected(LocationSearchResult result)
 			{
-				capturedLat = lat;
-				capturedLon = lon;
+				capturedResult = result;
 				return Task.CompletedTask;
 			}
 
@@ -284,8 +282,9 @@ public class LocationSelectorTests : Bunit.TestContext
 			await cut.InvokeAsync(() => selectButton.Click());
 
 			// Assert
-			await Assert.That(capturedLat).IsEqualTo(52.52);
-			await Assert.That(capturedLon).IsEqualTo(13.405);
+			await Assert.That(capturedResult).IsNotNull();
+			await Assert.That(capturedResult!.Value.Latitude).IsEqualTo(52.52);
+			await Assert.That(capturedResult.Value.Longitude).IsEqualTo(13.405);
 		}
 
 		[Test]
@@ -301,7 +300,7 @@ public class LocationSelectorTests : Bunit.TestContext
 				.Setup(x => x.SearchLocationsAsync(It.IsAny<string>()))
 				.ReturnsAsync(results);
 
-			Task OnLocationSelected(double lat, double lon) => Task.CompletedTask;
+			Task OnLocationSelected(LocationSearchResult result) => Task.CompletedTask;
 
 			var cut = RenderComponent<LocationSelector>(parameters => parameters
 				.Add(p => p.OnLocationSelected, OnLocationSelected)
@@ -334,7 +333,7 @@ public class LocationSelectorTests : Bunit.TestContext
 				.Setup(x => x.SearchLocationsAsync(It.IsAny<string>()))
 				.ReturnsAsync(results);
 
-			Task OnLocationSelected(double lat, double lon) => Task.CompletedTask;
+			Task OnLocationSelected(LocationSearchResult result) => Task.CompletedTask;
 
 			var cut = RenderComponent<LocationSelector>(parameters => parameters
 				.Add(p => p.OnLocationSelected, OnLocationSelected)
@@ -371,7 +370,7 @@ public class LocationSelectorTests : Bunit.TestContext
 				.Setup(x => x.SearchLocationsAsync(It.IsAny<string>()))
 				.ReturnsAsync(results);
 
-			Task OnLocationSelected(double lat, double lon) => Task.CompletedTask;
+			Task OnLocationSelected(LocationSearchResult result) => Task.CompletedTask;
 
 			var cut = RenderComponent<LocationSelector>(parameters => parameters
 				.Add(p => p.OnLocationSelected, OnLocationSelected)
@@ -408,7 +407,7 @@ public class LocationSelectorTests : Bunit.TestContext
 				.Setup(x => x.SearchLocationsAsync(It.IsAny<string>()))
 				.ReturnsAsync(results);
 
-			Task OnLocationSelected(double lat, double lon) => Task.CompletedTask;
+			Task OnLocationSelected(LocationSearchResult result) => Task.CompletedTask;
 
 			var cut = RenderComponent<LocationSelector>(parameters => parameters
 				.Add(p => p.OnLocationSelected, OnLocationSelected)
@@ -454,7 +453,7 @@ public class LocationSelectorTests : Bunit.TestContext
 				.Setup(x => x.SearchLocationsAsync(It.IsAny<string>()))
 				.ReturnsAsync(results);
 
-			Task OnLocationSelected(double lat, double lon) => Task.CompletedTask;
+			Task OnLocationSelected(LocationSearchResult result) => Task.CompletedTask;
 
 			var cut = RenderComponent<LocationSelector>(parameters => parameters
 				.Add(p => p.OnLocationSelected, OnLocationSelected)
@@ -489,12 +488,10 @@ public class LocationSelectorTests : Bunit.TestContext
 				.Setup(x => x.SearchLocationsAsync(It.IsAny<string>()))
 				.ReturnsAsync(results);
 
-			double? capturedLat = null;
-			double? capturedLon = null;
-			Task OnLocationSelected(double lat, double lon)
+			LocationSearchResult? capturedResult = null;
+			Task OnLocationSelected(LocationSearchResult result)
 			{
-				capturedLat = lat;
-				capturedLon = lon;
+				capturedResult = result;
 				return Task.CompletedTask;
 			}
 
@@ -515,8 +512,9 @@ public class LocationSelectorTests : Bunit.TestContext
 			await cut.InvokeAsync(() => selectButton.Click());
 
 			// Assert
-			await Assert.That(capturedLat).IsEqualTo(52.52);
-			await Assert.That(capturedLon).IsEqualTo(13.405);
+			await Assert.That(capturedResult).IsNotNull();
+			await Assert.That(capturedResult!.Value.Latitude).IsEqualTo(52.52);
+			await Assert.That(capturedResult.Value.Longitude).IsEqualTo(13.405);
 
 			// Modal should be closed
 			var modals = cut.FindAll(".modal");

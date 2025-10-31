@@ -1,0 +1,46 @@
+@page "/admin/places"
+@using ZgM.ProjectCoordinator.Shared
+@using FrontEnd.Components
+@using FrontEnd.Models
+
+<PageTitle>Admin - Manage Places</PageTitle>
+
+<h1>Admin - Manage Places</h1>
+
+<div class="mb-4">
+    <UserSearch Title="Search User" 
+                Label="Search for user to view their places"
+                OnUserSelected="@OnUserSelected" 
+                ErrorMessage="@errorMessage" />
+</div>
+
+@if (selectedUser != null)
+{
+    <UserPlacesManager UserId="@UserId.Parse(selectedUser.Id)" 
+                       UserDisplayName="@selectedUser.DisplayName"
+                       OnPlaceCreated="@OnPlaceCreated"
+                       OnPlaceDeleted="@OnPlaceDeleted" />
+}
+
+@code {
+    private GraphUser? selectedUser;
+    private string? errorMessage;
+
+    private Task OnUserSelected(GraphUser? user)
+    {
+        selectedUser = user;
+        errorMessage = null;
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    private Task OnPlaceCreated(Place place)
+    {
+        return Task.CompletedTask;
+    }
+
+    private Task OnPlaceDeleted(Place place)
+    {
+        return Task.CompletedTask;
+    }
+}

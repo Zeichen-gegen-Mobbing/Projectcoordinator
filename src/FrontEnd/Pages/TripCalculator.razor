@@ -60,7 +60,7 @@
         StateHasChanged();
     }
 
-    private async Task LoadTrips(double latitude, double longitude)
+    private async Task LoadTrips(LocationSearchResult result)
     {
         trips.Clear();
         status = "Loading Trips";
@@ -69,7 +69,7 @@
         await Task.Yield();
 
         Console.WriteLine("Start getting trips");
-        foreach (Trip t in (await TripService.GetTripsAsync(latitude, longitude)))
+        foreach (Trip t in (await TripService.GetTripsAsync(result.Latitude, result.Longitude)))
         {
             var trip = new TripViewModel()
             {

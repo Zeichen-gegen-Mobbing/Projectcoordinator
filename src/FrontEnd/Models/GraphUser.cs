@@ -11,6 +11,9 @@ namespace FrontEnd.Models
         [JsonPropertyName("displayName")]
         public required string DisplayName { get; init; }
 
+        [JsonPropertyName("mail")]
+        public string? Mail { get; init; }
+
         public User ToUser()
         {
             return new User(UserId.Parse(Id), DisplayName);

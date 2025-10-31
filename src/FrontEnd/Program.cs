@@ -96,4 +96,15 @@ builder.Services.AddHttpClient<IUserService, GraphUserService>(client =>
     });
 #endif
 
+builder.Services.AddHttpClient<IPlaceService, PlaceService>(client =>
+{
+    client.BaseAddress = new Uri(baseAddress);
+})
+.AddHttpMessageHandler(sp =>
+{
+    return sp.GetRequiredService<CustomAuthorizationHeaderMessageHandler>()
+        .ConfigureHandler([baseAddress], [$"api://{authConfig.ApiClientId}/Places.Create", $"api://{authConfig.ApiClientId}/Places.Delete", $"api://{authConfig.ApiClientId}/Places.Read"]);
+});
+
+
 await builder.Build().RunAsync();

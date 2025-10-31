@@ -1,0 +1,66 @@
+@using ZgM.ProjectCoordinator.Shared
+
+@if (UserId != null)
+{
+    <div class="mb-3">
+        <button class="btn btn-primary" @onclick="ShowCreateDialog">Create Place</button>
+    </div>
+
+    <PlacesList Title="@($"Places for {UserDisplayName}")" 
+                UserId="@UserId"
+                OnPlaceDeleted="@OnPlaceDeleted" />
+}
+
+@if (showCreateDialog && UserId != null)
+{
+    <div class="modal fade show d-block" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create Place for @UserDisplayName</h5>
+                    <button type="button" class="btn-close" @onclick="CloseCreateDialog"></button>
+                </div>
+                <div class="modal-body">
+                    <CreatePlaceForm UserId="@UserId.Value"
+                                     OnPlaceCreated="@OnPlaceCreatedInternal" />
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseCreateDialog">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code {
+    [Parameter]
+    public UserId? UserId { get; set; }
+
+    [Parameter]
+    public string UserDisplayName { get; set; } = "";
+
+    [Parameter]
+    public EventCallback<Place> OnPlaceCreated { get; set; }
+
+    [Parameter]
+    public EventCallback<Place> OnPlaceDeleted { get; set; }
+
+    private bool showCreateDialog;
+
+    private void ShowCreateDialog()
+    {
+        showCreateDialog = true;
+    }
+
+    private void CloseCreateDialog()
+    {
+        showCreateDialog = false;
+    }
+
+    private async Task OnPlaceCreatedInternal(Place place)
+    {
+        CloseCreateDialog();
+        await OnPlaceCreated.InvokeAsync(place);
+    }
+}

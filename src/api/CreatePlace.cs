@@ -1,48 +1,48 @@
-using api.Entities;
 using api.Exceptions;
 using api.Extensions;
-using api.Models;
 using api.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using Microsoft.Identity.Web;
-using Microsoft.Identity.Web.Resource;
+using ZgM.ProjectCoordinator.Shared;
 
 namespace api
 {
-    public class CreatePlace
+    public class CreatePlace(ILogger<CreatePlace> logger, IPlaceService placeService)
     {
-        private readonly ILogger<CreatePlace> _logger;
-        private readonly IPlaceService _placeService;
-
-        public CreatePlace(ILogger<CreatePlace> logger, IPlaceService placeService)
-        {
-            _logger = logger;
-            _placeService = placeService;
-        }
-
         [Function(nameof(CreatePlace))]
-        public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Function, "post", Route = "places")] HttpRequest request)
+        public async Task<IActionResult> Run(
+            [HttpTrigger(AuthorizationLevel.Function, "post", Route = "users/{userId}/places")] HttpRequest req,
+            string userId)
         {
-            using (_logger.BeginScope(new Dictionary<string, object> { { "FunctionName", nameof(CreatePlace) } }))
+            using (logger.BeginScope(new Dictionary<string, object> { { "FunctionName", nameof(CreatePlace) } }))
             {
-                await request.HttpContext.AuthorizeAzureFunctionAsync(
-                    scopes: ["Places.CreateOnBehalfOf"],
-                    roles: ["admin"]);
+                await req.HttpContext.AuthorizeAzureFunctionAsync(scopes: ["Places.Create"]);
 
-                var placeRequest = await request.ReadFromJsonAsync<PlaceRequest>();
-                _logger.LogInformation("Read place from request");
-                try
+                var authenticatedUserId = req.HttpContext.User.GetObjectId();
+                if (authenticatedUserId == null)
                 {
-                    await _placeService.AddPlace(placeRequest);
-                    return new CreatedResult();
+                    return new UnauthorizedObjectResult("Unable to determine authenticated user");
                 }
-                catch (ProblemDetailsException ex)
+
+                var requestedUserId = UserId.Parse(userId);
+
+                // Check authorization: user must be creating for themselves OR have admin role
+                if (authenticatedUserId != requestedUserId.Value.ToString() &&
+                    !req.HttpContext.User.IsInRole("admin"))
                 {
-                    return new BadRequestObjectResult(ex.ProblemDetails);
+                    return new ForbidResult("Only admins can create places for other users");
                 }
+
+                var sharedRequest = await req.ReadFromJsonAsync<ZgM.ProjectCoordinator.Shared.PlaceRequest>();
+
+                // Create API PlaceRequest with userId from route
+                var placeRequest = Models.PlaceRequest.FromShared(sharedRequest, requestedUserId);
+                var place = await placeService.AddPlace(placeRequest);
+
+                return new CreatedResult($"/users/{userId}/places/{place.Id}", place);
             }
         }
     }

@@ -80,7 +80,7 @@
 							<td>
 								<button disabled="@Disabled" @onclick="() => SelectLocation(result)"
 									class="btn btn-sm btn-success">
-									Select
+									@SelectButtonText
 								</button>
 							</td>
 						</tr>
@@ -139,7 +139,7 @@
 				</div>
 				<div class="modal-footer">
 					<button type="button" class="btn btn-secondary" @onclick="CloseMap">Close</button>
-					<button disabled="@Disabled" type="button" class="btn btn-success" @onclick="SelectMapLocation">Select This Location</button>
+					<button disabled="@Disabled" type="button" class="btn btn-success" @onclick="SelectMapLocation">@SelectModalButtonText</button>
 				</div>
 			</div>
 		</div>
@@ -186,12 +186,16 @@
 @code {
 	[Parameter]
 	[Required]
-	public required Func<double, double, Task> OnLocationSelected { get; init; }
+	public required Func<LocationSearchResult, Task> OnLocationSelected { get; init; }
 	[Parameter]
 	[Required]
 	public required bool Disabled { get; set; }
 	[Parameter]
 	public Action? OnSearchStarted { get; set; }
+	[Parameter]
+	public string SelectButtonText { get; set; } = "Select";
+	[Parameter]
+	public string SelectModalButtonText { get; set; } = "Select This Location";
 
 	private readonly SearchModel searchModel = new();
 	private IEnumerable<LocationSearchResult>? searchResults;
@@ -237,7 +241,7 @@
 		selectedLocation = result;
 		searchResults = null;
 		hasSearched = false;
-		await OnLocationSelected(result.Latitude, result.Longitude);
+		await OnLocationSelected(result);
 	}
 
 	private void ShowMap(LocationSearchResult result)

@@ -1,0 +1,63 @@
+@using ZgM.ProjectCoordinator.Shared
+@using FrontEnd.Services
+@inject IPlaceService PlaceService
+
+<div class="mb-3">
+    <label for="placeName" class="form-label">Place Name</label>
+    <input type="text" class="form-control" id="placeName" @bind="placeName" @bind:event="oninput"
+        placeholder="Enter place name" />
+</div>
+
+<div class="mb-3">
+    <label class="form-label">Location</label>
+    <LocationSelector OnLocationSelected="CreatePlace" Disabled="@(!CanCreate)" SelectButtonText="Create"
+        SelectModalButtonText="Create" />
+</div>
+
+@if (errorMessage != null)
+{
+    <div class="alert alert-danger" role="alert">
+        @errorMessage
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public UserId UserId { get; set; } = default!;
+
+    [Parameter]
+    public EventCallback<Place> OnPlaceCreated { get; set; }
+
+    [Parameter]
+    public EventCallback OnCancel { get; set; }
+
+    private string placeName = "";
+    private string? errorMessage;
+
+    private bool CanCreate => !string.IsNullOrWhiteSpace(placeName);
+
+    private async Task CreatePlace(LocationSearchResult result)
+    {
+        if (!CanCreate)
+        {
+            return;
+        }
+
+        try
+        {
+            errorMessage = null;
+            var place = await PlaceService.CreatePlaceAsync(
+            UserId,
+            placeName,
+            result.Latitude,
+            result.Longitude);
+
+            placeName = "";
+            await OnPlaceCreated.InvokeAsync(place);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to create place: {ex.Message}";
+        }
+    }
+}

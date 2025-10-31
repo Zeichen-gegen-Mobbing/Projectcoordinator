@@ -15,7 +15,7 @@ namespace api.Services
     public sealed class PlaceCosmosService(IPlaceRepository repository, ILocationService locationService) : IPlaceService
     {
 
-        public async Task<Place> AddPlace(PlaceRequest placeRequest)
+        public async Task<Place> AddPlace(Models.PlaceRequest placeRequest)
         {
             var coordinatesValid = await locationService.ValidateAsync(placeRequest.Latitude, placeRequest.Longitude);
             if (coordinatesValid)
@@ -54,6 +54,25 @@ namespace api.Services
                     Name = entity.Name,
                 };
             });
+        }
+
+        public async Task<IEnumerable<Place>> GetPlacesAsync(UserId userId)
+        {
+            var placeEntities = await repository.GetAsync(userId);
+            return placeEntities.Select(entity =>
+            {
+                return new Place
+                {
+                    Id = entity.Id,
+                    UserId = entity.UserId,
+                    Name = entity.Name,
+                };
+            });
+        }
+
+        public async Task DeletePlace(UserId userId, PlaceId placeId)
+        {
+            await repository.DeleteAsync(userId, placeId);
         }
     }
 }
