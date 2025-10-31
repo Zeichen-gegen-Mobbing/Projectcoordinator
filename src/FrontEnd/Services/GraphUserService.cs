@@ -23,8 +23,17 @@ namespace FrontEnd.Services
         {
             using (logger.BeginScope(nameof(SearchUsersAsync)))
             {
-                // Construct search query for multiple fields with proper formatting
-                var searchQuery = $"\"displayName:{query}\" OR \"mail:{query}\" OR \"givenName:{query}\" OR \"surname:{query}\"";
+                // Encode the query according to Graph $search requirements:
+                // - The whole clause is enclosed in double quotes
+                // - If the clause contains double quotes or backslash, escape them with a backslash
+                // - All other special characters must be URL encoded
+                var encoded = Uri.EscapeDataString(queryy);
+                // Replace percent-encoded double quote (%22) with an escaped quote (\")
+                encoded = encoded.Replace("%22", "\\\"");
+                // Replace percent-encoded backslash (%5C or %5c) with an escaped backslash (\\)
+                encoded = encoded.Replace("%5C", "\\\\");
+                encoded = encoded.Replace("%5c", "\\\\");
+                var searchQuery = $"\"displayName:{encoded}\" OR \"mail:{encoded}\" OR \"givenName:{encoded}\" OR \"surname:{encoded}\"";
                 var requestUri = $"users?$search={searchQuery}&$select=displayName,id,mail&$top=10";
 
                 using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
@@ -32,7 +41,7 @@ namespace FrontEnd.Services
 
                 var response = await httpClient.SendAsync(request);
                 response.EnsureSuccessStatusCode();
-                
+
                 var searchResponse = await response.Content.ReadFromJsonAsync<GraphSearchResponse>();
                 return searchResponse?.Value ?? Array.Empty<GraphUser>();
             }
