@@ -29,96 +29,96 @@ public class TripCalculatorTests : Bunit.TestContext
 	public class AccessControl : TripCalculatorTests
 	{
 
-	[Test]
-	public async Task ShowsAccessDenied_WhenUserIsNotAuthorized()
-	{
-		// Arrange
-		var authContext = this.AddTestAuthorization();
-		authContext.SetAuthorized("TEST USER", AuthorizationState.Unauthorized);
+		[Test]
+		public async Task ShowsAccessDenied_WhenUserIsNotAuthorized()
+		{
+			// Arrange
+			var authContext = this.AddTestAuthorization();
+			authContext.SetAuthorized("TEST USER", AuthorizationState.Unauthorized);
 
-		// Act
-		var cut = RenderComponent<TripCalculator>();
+			// Act
+			var cut = RenderComponent<TripCalculator>();
 
-		// Assert
-		await Assert.That(cut.Markup).Contains("Access Denied");
-		await Assert.That(cut.Markup).Contains("projectcoordination");
+			// Assert
+			await Assert.That(cut.Markup).Contains("Access Denied");
+			await Assert.That(cut.Markup).Contains("projectcoordination");
+		}
+
+		[Test]
+		public async Task ShowsAccessDenied_WhenUserIsNotAuthenticated()
+		{
+			// Arrange
+			this.AddTestAuthorization(); // Default is unauthenticated
+
+			// Act
+			var cut = RenderComponent<TripCalculator>();
+
+			// Assert
+			await Assert.That(cut.Markup).Contains("Access Denied");
+		}
+
+		[Test]
+		public async Task RendersPageTitle_WhenUserIsAuthorized()
+		{
+			// Arrange
+			var authContext = this.AddTestAuthorization();
+			authContext.SetAuthorized("TEST USER");
+			authContext.SetPolicies("Role:projectcoordination");
+
+			// Act
+			var cut = RenderComponent<TripCalculator>();
+
+			// Assert
+			var pageTitle = cut.Find("h3");
+			await Assert.That(pageTitle.TextContent).Contains("Trip Calculator");
+		}
+
+		[Test]
+		public async Task RendersLocationSelector_WhenUserIsAuthorized()
+		{
+			// Arrange
+			var authContext = this.AddTestAuthorization();
+			authContext.SetAuthorized("TEST USER");
+			authContext.SetPolicies("Role:projectcoordination");
+
+			// Act
+			var cut = RenderComponent<TripCalculator>();
+
+			// Assert - LocationSelector has a search input
+			var searchInput = cut.Find("input[placeholder='Enter address or place name']");
+			await Assert.That(searchInput).IsNotNull();
+		}
+
+		[Test]
+		public async Task InitialStatus_IsWaitingForCoordinates_WhenUserIsAuthorized()
+		{
+			// Arrange
+			var authContext = this.AddTestAuthorization();
+			authContext.SetAuthorized("TEST USER");
+			authContext.SetPolicies("Role:projectcoordination");
+
+			// Act
+			var cut = RenderComponent<TripCalculator>();
+
+			// Assert
+			await Assert.That(cut.Markup).Contains("Waiting for coordinates");
+		}
+
+		[Test]
+		public async Task ShowsPageDescription_WhenUserIsAuthorized()
+		{
+			// Arrange
+			var authContext = this.AddTestAuthorization();
+			authContext.SetAuthorized("TEST USER");
+			authContext.SetPolicies("Role:projectcoordination");
+
+			// Act
+			var cut = RenderComponent<TripCalculator>();
+
+			// Assert
+			await Assert.That(cut.Markup).Contains("Reisedauer");
+		}
 	}
-
-	[Test]
-	public async Task ShowsAccessDenied_WhenUserIsNotAuthenticated()
-	{
-		// Arrange
-		this.AddTestAuthorization(); // Default is unauthenticated
-
-		// Act
-		var cut = RenderComponent<TripCalculator>();
-
-		// Assert
-		await Assert.That(cut.Markup).Contains("Access Denied");
-	}
-
-	[Test]
-	public async Task RendersPageTitle_WhenUserIsAuthorized()
-	{
-		// Arrange
-		var authContext = this.AddTestAuthorization();
-		authContext.SetAuthorized("TEST USER");
-		authContext.SetPolicies("Role:projectcoordination");
-
-		// Act
-		var cut = RenderComponent<TripCalculator>();
-
-		// Assert
-		var pageTitle = cut.Find("h3");
-		await Assert.That(pageTitle.TextContent).Contains("Trip Calculator");
-	}
-
-	[Test]
-	public async Task RendersLocationSelector_WhenUserIsAuthorized()
-	{
-		// Arrange
-		var authContext = this.AddTestAuthorization();
-		authContext.SetAuthorized("TEST USER");
-		authContext.SetPolicies("Role:projectcoordination");
-
-		// Act
-		var cut = RenderComponent<TripCalculator>();
-
-		// Assert - LocationSelector has a search input
-		var searchInput = cut.Find("input[placeholder='Enter address or place name']");
-		await Assert.That(searchInput).IsNotNull();
-	}
-
-	[Test]
-	public async Task InitialStatus_IsWaitingForCoordinates_WhenUserIsAuthorized()
-	{
-		// Arrange
-		var authContext = this.AddTestAuthorization();
-		authContext.SetAuthorized("TEST USER");
-		authContext.SetPolicies("Role:projectcoordination");
-
-		// Act
-		var cut = RenderComponent<TripCalculator>();
-
-		// Assert
-		await Assert.That(cut.Markup).Contains("Waiting for coordinates");
-	}
-
-	[Test]
-	public async Task ShowsPageDescription_WhenUserIsAuthorized()
-	{
-		// Arrange
-		var authContext = this.AddTestAuthorization();
-		authContext.SetAuthorized("TEST USER");
-		authContext.SetPolicies("Role:projectcoordination");
-
-		// Act
-		var cut = RenderComponent<TripCalculator>();
-
-		// Assert
-		await Assert.That(cut.Markup).Contains("Reisedauer");
-	}
-}
 
 	public class CostDisplay : TripCalculatorTests
 	{
@@ -132,6 +132,16 @@ public class TripCalculatorTests : Bunit.TestContext
 			var authContext = this.AddTestAuthorization();
 			authContext.SetAuthorized("TEST USER");
 			authContext.SetPolicies("Role:projectcoordination");
+
+			var searchResult = new ZgM.ProjectCoordinator.Shared.LocationSearchResult
+			{
+				Label = "Test Location",
+				Latitude = 52.5200,
+				Longitude = 13.4050
+			};
+
+			_locationServiceMock.Setup(s => s.SearchLocationsAsync(It.IsAny<string>()))
+				.ReturnsAsync(new[] { searchResult });
 
 			var trip = new ZgM.ProjectCoordinator.Shared.Trip
 			{
@@ -148,20 +158,30 @@ public class TripCalculatorTests : Bunit.TestContext
 			_tripServiceMock.Setup(s => s.GetTripsAsync(It.IsAny<double>(), It.IsAny<double>()))
 				.ReturnsAsync(new[] { trip });
 
+			// Configure JSInterop to handle QuickGrid module import (needed when trips render)
+			JSInterop.Mode = JSRuntimeMode.Loose;
+
 			// Act
 			var cut = RenderComponent<TripCalculator>();
 
-			// Invoke the private LoadTrips method to populate trips on the component dispatcher
-			var method = cut.Instance.GetType().GetMethod("LoadTrips", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!;
-			var location = new ZgM.ProjectCoordinator.Shared.LocationSearchResult { Label = "X", Latitude = 1.0, Longitude = 2.0 };
-			await cut.InvokeAsync(async () =>
-			{
-				var task = (Task)method.Invoke(cut.Instance, new object[] { location })!;
-				await task;
-			});
+			// 1. Enter search string into the LocationSearch
+			var searchInput = cut.Find("input[placeholder='Enter address or place name']");
+			searchInput.Change("Berlin");
 
-			// Assert - expect German formatted cost with euro symbol
-			await Assert.That(cut.Markup).Contains("123,45 €");
+			// 2. Click the search button
+			var searchButton = cut.Find("button[type='submit']");
+			await cut.InvokeAsync(() => searchButton.Click());
+
+			// 3. Select a found location - this will trigger trips loading
+			var selectButton = cut.Find("button.btn-success");
+			await cut.InvokeAsync(() => selectButton.Click());
+
+			// Assert - wait for German formatted cost with euro symbol to appear
+			cut.WaitForAssertion(() =>
+			{
+				if (!cut.Markup.Contains("123,45 €"))
+					throw new Exception("Expected currency format '123,45 €' not found in markup");
+			}, TimeSpan.FromSeconds(5));
 		}
 	}
 }
