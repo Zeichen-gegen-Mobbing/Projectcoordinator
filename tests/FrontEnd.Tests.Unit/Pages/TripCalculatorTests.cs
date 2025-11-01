@@ -123,9 +123,9 @@ public class TripCalculatorTests : Bunit.TestContext
 	public class CostDisplay : TripCalculatorTests
 	{
 		[Test]
-		[Arguments("de-DE")]
-		[Arguments("en-US")]
-		public async Task ShowsCostWithEuroSymbol_WhenTripsLoaded(string cultureName)
+		[Arguments("de-DE", "123,45")]
+		[Arguments("en-US", "123.45")]
+		public async Task ShowsCostWithEuroSymbol_WhenTripsLoaded(string cultureName, string expectedCost)
 		{
 			// Arrange: enforce German culture for predictable formatting
 			Thread.CurrentThread.CurrentCulture = new CultureInfo(cultureName);
@@ -177,10 +177,11 @@ public class TripCalculatorTests : Bunit.TestContext
 			var selectButton = cut.Find("button.btn-success");
 			await cut.InvokeAsync(() => selectButton.Click());
 
-			// Assert - wait for German formatted cost with euro symbol to appear
+			// Assert - wait for cost value and column header with euro symbol to appear
 			cut.WaitForAssertion(async () =>
 			{
-				await Assert.That(cut.Markup).Contains("123, 45 €");
+				await Assert.That(cut.Markup).Contains(expectedCost);
+				await Assert.That(cut.Markup).Contains("Costs (€)");
 			});
 		}
 	}
