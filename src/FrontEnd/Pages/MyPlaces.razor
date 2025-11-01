@@ -23,9 +23,7 @@ else if (errorMessage != null)
 else if (currentUserId != null)
 {
     <UserPlacesManager UserId="@currentUserId.Value" 
-                       UserDisplayName="@currentUserDisplayName"
-                       OnPlaceCreated="@OnPlaceCreated"
-                       OnPlaceDeleted="@OnPlaceDeleted" />
+                       UserDisplayName="@currentUserDisplayName" />
 }
 
 @code {
@@ -70,15 +68,5 @@ else if (currentUserId != null)
         {
             loading = false;
         }
-    }
-
-    private Task OnPlaceCreated(Place place)
-    {
-        return Task.CompletedTask;
-    }
-
-    private Task OnPlaceDeleted(Place place)
-    {
-        return Task.CompletedTask;
     }
 }
