@@ -45,6 +45,13 @@
                 </div>
             }
         </div>
+
+        @if (internalErrorMessage != null)
+        {
+            <div class="alert alert-danger" role="alert">
+                @internalErrorMessage
+            </div>
+        }
     </div>
 </div>
 
@@ -65,6 +72,7 @@
     private List<GraphUser> searchedUsers = new();
     private bool searchPerformed;
     private bool isSearching;
+    private string? internalErrorMessage;
     private string inputId = $"userSearch_{Guid.NewGuid():N}";
 
     // Removed auto-search on input/after render. Search is now triggered explicitly by the Search button.
@@ -75,10 +83,12 @@
         {
             searchedUsers.Clear();
             searchPerformed = false;
+            internalErrorMessage = null;
             return;
         }
 
         isSearching = true;
+        internalErrorMessage = null;
         try
         {
             searchedUsers = (await UserService.SearchUsersAsync(searchModel.SearchQuery)).ToList();
@@ -87,7 +97,7 @@
         catch (Exception)
         {
             searchedUsers.Clear();
-            await OnUserSelected.InvokeAsync(null);
+            internalErrorMessage = "Something went wrong";
         }
         finally
         {
@@ -105,6 +115,7 @@
         searchModel.SearchQuery = "";
         searchedUsers.Clear();
         searchPerformed = false;
+        internalErrorMessage = null;
     }
 
     public class SearchModel

@@ -204,10 +204,6 @@ public class UserSearchTests : Bunit.TestContext
 			await Assert.That(cut.Markup).DoesNotContain("No users found matching");
 			await Assert.That(cut.Markup).Contains("Something went wrong");
 
-			// Assert - OnUserSelected should be invoked with null
-			await Assert.That(callbackInvoked).IsTrue();
-			await Assert.That(capturedUser).IsNull();
-
 			// Assert - Button should be enabled again
 			searchButton = cut.Find("button[type='submit']");
 			await Assert.That(searchButton.HasAttribute("disabled")).IsFalse();
