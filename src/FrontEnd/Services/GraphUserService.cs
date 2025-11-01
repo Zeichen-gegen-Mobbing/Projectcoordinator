@@ -27,13 +27,9 @@ namespace FrontEnd.Services
                 // - The whole clause is enclosed in double quotes
                 // - If the clause contains double quotes or backslash, escape them with a backslash
                 // - All other special characters must be URL encoded
-                var encoded = Uri.EscapeDataString(queryy);
-                // Replace percent-encoded double quote (%22) with an escaped quote (\")
-                encoded = encoded.Replace("%22", "\\\"");
-                // Replace percent-encoded backslash (%5C or %5c) with an escaped backslash (\\)
-                encoded = encoded.Replace("%5C", "\\\\");
-                encoded = encoded.Replace("%5c", "\\\\");
-                var searchQuery = $"\"displayName:{encoded}\" OR \"mail:{encoded}\" OR \"givenName:{encoded}\" OR \"surname:{encoded}\"";
+                // We ignore that until we got problems
+                var escaped = query.Replace("\\", "\\\\").Replace("\"", "\\\"");
+                var searchQuery = $"\"displayName:{escaped}\" OR \"mail:{escaped}\" OR \"givenName:{escaped}\" OR \"surname:{escaped}\"";
                 var requestUri = $"users?$search={searchQuery}&$select=displayName,id,mail&$top=10";
 
                 using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
