@@ -180,13 +180,11 @@ public class UserSearchTests : Bunit.TestContext
 				.ThrowsAsync(new Exception("API Error"));
 
 			GraphUser? capturedUser = new() { Id = "initial", DisplayName = "Initial User", Mail = "initial@example.com" };
-			var callbackInvoked = false;
 
 			var cut = RenderComponent<UserSearch>(parameters => parameters
 				.Add(p => p.OnUserSelected, async (user) =>
 				{
 					capturedUser = user;
-					callbackInvoked = true;
 					await Task.CompletedTask;
 				}));
 
