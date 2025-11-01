@@ -12,8 +12,9 @@
                     <InputText @bind-Value="searchModel.SearchQuery" class="form-control" id="@inputId"
                         placeholder="Enter user name or email" />
                     <button type="submit" class="btn btn-primary d-flex align-items-center" disabled="@isSearching">
+                        <i class="bi bi-search me-1" style="@(isSearching ? "display: none;" : "")"></i>
                         <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true" 
-                              style="@(isSearching ? "" : "visibility: hidden;")"></span>
+                              style="@(isSearching ? "" : "display: none;")"></span>
                         <span>Search</span>
                     </button>
                 </div>
