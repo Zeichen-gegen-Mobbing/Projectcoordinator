@@ -20,6 +20,12 @@ namespace ZgM.ProjectCoordinator.Shared
         public required PlaceId Id { get; set; }
         public required UserId UserId { get; set; }
         public required string Name { get; set; }
+        public TransportMode TransportMode { get; set; }
+
+        public Place()
+        {
+            TransportMode = TransportMode.Car;
+        }
 
         public override string ToString()
         {

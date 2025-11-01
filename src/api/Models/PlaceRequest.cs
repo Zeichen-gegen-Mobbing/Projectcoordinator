@@ -11,6 +11,12 @@ namespace api.Models
         public required string Name { get; init; }
         public required double Longitude { get; init; }
         public required double Latitude { get; init; }
+        public TransportMode TransportMode { get; init; }
+
+        public PlaceRequest()
+        {
+            TransportMode = TransportMode.Car;
+        }
 
         /// <summary>
         /// Creates an API PlaceRequest from a Shared PlaceRequest and UserId
@@ -22,7 +28,8 @@ namespace api.Models
                 UserId = userId,
                 Name = request.Name,
                 Latitude = request.Latitude,
-                Longitude = request.Longitude
+                Longitude = request.Longitude,
+                TransportMode = request.TransportMode
             };
         }
     }

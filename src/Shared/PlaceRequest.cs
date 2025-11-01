@@ -8,5 +8,11 @@ namespace ZgM.ProjectCoordinator.Shared
         public required string Name { get; init; }
         public required double Longitude { get; init; }
         public required double Latitude { get; init; }
+        public TransportMode TransportMode { get; init; }
+
+        public PlaceRequest()
+        {
+            TransportMode = TransportMode.Car;
+        }
     }
 }

@@ -9,5 +9,11 @@ namespace api.Entities
         public required string Name { get; init; }
         public required double Latitude { get; init; }
         public required double Longitude { get; init; }
+        public TransportMode TransportMode { get; init; }
+
+        public PlaceEntity()
+        {
+            TransportMode = TransportMode.Car;
+        }
     }
 }
