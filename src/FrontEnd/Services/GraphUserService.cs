@@ -23,9 +23,23 @@ namespace FrontEnd.Services
         {
             using (logger.BeginScope(nameof(SearchUsersAsync)))
             {
-                var requestUri = $"users?$filter=startsWith(displayName,'{query}') or startsWith(mail,'{query}')&$select=displayName,id,mail&$top=10";
-                var response = await httpClient.GetFromJsonAsync<GraphSearchResponse>(requestUri);
-                return response?.Value ?? [];
+                // Encode the query according to Graph $search requirements:
+                // - The whole clause is enclosed in double quotes
+                // - If the clause contains double quotes or backslash, escape them with a backslash
+                // - All other special characters must be URL encoded
+                // We ignore that until we got problems
+                var escaped = query.Replace("\\", "\\\\").Replace("\"", "\\\"");
+                var searchQuery = $"\"displayName:{escaped}\" OR \"mail:{escaped}\" OR \"givenName:{escaped}\" OR \"surname:{escaped}\"";
+                var requestUri = $"users?$search={searchQuery}&$select=displayName,id,mail&$top=10";
+
+                using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
+                request.Headers.Add("ConsistencyLevel", "eventual");
+
+                var response = await httpClient.SendAsync(request);
+                response.EnsureSuccessStatusCode();
+
+                var searchResponse = await response.Content.ReadFromJsonAsync<GraphSearchResponse>();
+                return searchResponse?.Value ?? Array.Empty<GraphUser>();
             }
         }
 

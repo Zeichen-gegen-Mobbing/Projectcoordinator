@@ -8,28 +8,21 @@
 <h1>Admin - Manage Places</h1>
 
 <div class="mb-4">
-    <UserSearch Title="Search User" 
-                Label="Search for user to view their places"
-                OnUserSelected="@OnUserSelected" 
-                ErrorMessage="@errorMessage" />
+    <UserSearch Title="Search User" Label="Search for user to view their places" OnUserSelected="@OnUserSelected" />
 </div>
 
 @if (selectedUser != null)
 {
-    <UserPlacesManager UserId="@UserId.Parse(selectedUser.Id)" 
-                       UserDisplayName="@selectedUser.DisplayName"
-                       OnPlaceCreated="@OnPlaceCreated"
-                       OnPlaceDeleted="@OnPlaceDeleted" />
+    <UserPlacesManager UserId="@UserId.Parse(selectedUser.Id)" UserDisplayName="@selectedUser.DisplayName"
+        OnPlaceCreated="@OnPlaceCreated" OnPlaceDeleted="@OnPlaceDeleted" />
 }
 
 @code {
     private GraphUser? selectedUser;
-    private string? errorMessage;
 
     private Task OnUserSelected(GraphUser? user)
     {
         selectedUser = user;
-        errorMessage = null;
         StateHasChanged();
         return Task.CompletedTask;
     }
