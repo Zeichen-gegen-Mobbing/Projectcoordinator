@@ -107,6 +107,8 @@
 
     private async Task SelectUser(GraphUser user)
     {
+        searchedUsers.Clear();
+        searchPerformed = false;
         await OnUserSelected.InvokeAsync(user);
     }
 

@@ -267,6 +267,47 @@ public class UserSearchTests : Bunit.TestContext
 		}
 
 		[Test]
+		public async Task HidesSearchResults_WhenUserIsSelected()
+		{
+			// Arrange
+			var users = new List<GraphUser>
+			{
+				new() { Id = "1", DisplayName = "John Doe", Mail = "john@example.com" },
+				new() { Id = "2", DisplayName = "Jane Smith", Mail = "jane@example.com" }
+			};
+
+			_userServiceMock
+				.Setup(x => x.SearchUsersAsync(It.IsAny<string>()))
+				.ReturnsAsync(users);
+
+			GraphUser? capturedUser = null;
+			var cut = RenderComponent<UserSearch>(parameters => parameters
+				.Add(p => p.OnUserSelected, async (user) =>
+				{
+					capturedUser = user;
+					await Task.CompletedTask;
+				}));
+
+			var searchInput = cut.Find("input[placeholder='Enter user name or email']");
+			searchInput.Change("John");
+			var searchButton = cut.Find("button[type='submit']");
+			await cut.InvokeAsync(() => searchButton.Click());
+
+			// Verify results are shown
+			var userButtons = cut.FindAll(".list-group-item");
+			await Assert.That(userButtons.Count).IsEqualTo(2);
+
+			// Act - Select first user
+			await cut.InvokeAsync(() => userButtons[0].Click());
+
+			// Assert - Results should be hidden
+			userButtons = cut.FindAll(".list-group-item");
+			await Assert.That(userButtons.Count).IsEqualTo(0);
+			await Assert.That(cut.Markup).DoesNotContain("John Doe");
+			await Assert.That(cut.Markup).DoesNotContain("Jane Smith");
+		}
+
+		[Test]
 		public async Task HighlightsSelectedUser_WhenUserIsSelected()
 		{
 			// Arrange
