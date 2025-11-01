@@ -45,13 +45,6 @@
                 </div>
             }
         </div>
-        
-        @if (ErrorMessage != null)
-        {
-            <div class="alert alert-danger" role="alert">
-                @ErrorMessage
-            </div>
-        }
     </div>
 </div>
 
@@ -67,9 +60,6 @@
 
     [Parameter]
     public EventCallback<GraphUser> OnUserSelected { get; set; }
-
-    [Parameter]
-    public string? ErrorMessage { get; set; }
 
     private readonly SearchModel searchModel = new();
     private List<GraphUser> searchedUsers = new();
