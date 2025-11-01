@@ -4,15 +4,17 @@ using FrontEnd.Pages;
 using FrontEnd.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using System.Globalization;
 using TUnit.Assertions.Extensions;
+using TUnit;
 
 namespace FrontEnd.Tests.Unit.Pages;
 
 public class TripCalculatorTests : Bunit.TestContext
 {
-	private readonly Mock<IUserService> _userServiceMock;
-	private readonly Mock<ITripService> _tripServiceMock;
-	private readonly Mock<ILocationService> _locationServiceMock;
+	protected readonly Mock<IUserService> _userServiceMock;
+	protected readonly Mock<ITripService> _tripServiceMock;
+	protected readonly Mock<ILocationService> _locationServiceMock;
 
 	public TripCalculatorTests()
 	{
@@ -24,6 +26,8 @@ public class TripCalculatorTests : Bunit.TestContext
 		Services.AddSingleton(_tripServiceMock.Object);
 		Services.AddSingleton(_locationServiceMock.Object);
 	}
+	public class AccessControl : TripCalculatorTests
+	{
 
 	[Test]
 	public async Task ShowsAccessDenied_WhenUserIsNotAuthorized()
@@ -113,5 +117,51 @@ public class TripCalculatorTests : Bunit.TestContext
 
 		// Assert
 		await Assert.That(cut.Markup).Contains("Reisedauer");
+	}
+}
+
+	public class CostDisplay : TripCalculatorTests
+	{
+		[Test]
+		public async Task ShowsCostWithEuroSymbol_WhenTripsLoaded()
+		{
+			// Arrange: enforce German culture for predictable formatting
+			CultureInfo.DefaultThreadCurrentCulture = new CultureInfo("de-DE");
+			CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo("de-DE");
+
+			var authContext = this.AddTestAuthorization();
+			authContext.SetAuthorized("TEST USER");
+			authContext.SetPolicies("Role:projectcoordination");
+
+			var trip = new ZgM.ProjectCoordinator.Shared.Trip
+			{
+				Place = new ZgM.ProjectCoordinator.Shared.Place
+				{
+					Id = new ZgM.ProjectCoordinator.Shared.PlaceId("place1"),
+					UserId = ZgM.ProjectCoordinator.Shared.UserId.Parse("00000000-0000-0000-0000-000000000001"),
+					Name = "Test Place"
+				},
+				Time = TimeSpan.FromMinutes(10),
+				Cost = 12345 // cents => 123.45
+			};
+
+			_tripServiceMock.Setup(s => s.GetTripsAsync(It.IsAny<double>(), It.IsAny<double>()))
+				.ReturnsAsync(new[] { trip });
+
+			// Act
+			var cut = RenderComponent<TripCalculator>();
+
+			// Invoke the private LoadTrips method to populate trips on the component dispatcher
+			var method = cut.Instance.GetType().GetMethod("LoadTrips", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!;
+			var location = new ZgM.ProjectCoordinator.Shared.LocationSearchResult { Label = "X", Latitude = 1.0, Longitude = 2.0 };
+			await cut.InvokeAsync(async () =>
+			{
+				var task = (Task)method.Invoke(cut.Instance, new object[] { location })!;
+				await task;
+			});
+
+			// Assert - expect German formatted cost with euro symbol
+			await Assert.That(cut.Markup).Contains("123,45 €");
+		}
 	}
 }
