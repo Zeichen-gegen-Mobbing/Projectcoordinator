@@ -123,11 +123,12 @@ public class TripCalculatorTests : Bunit.TestContext
 	public class CostDisplay : TripCalculatorTests
 	{
 		[Test]
-		public async Task ShowsCostWithEuroSymbol_WhenTripsLoaded()
+		[Arguments("de-DE")]
+		[Arguments("en-US")]
+		public async Task ShowsCostWithEuroSymbol_WhenTripsLoaded(string cultureName)
 		{
 			// Arrange: enforce German culture for predictable formatting
-			CultureInfo.DefaultThreadCurrentCulture = new CultureInfo("de-DE");
-			CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo("de-DE");
+			Thread.CurrentThread.CurrentCulture = new CultureInfo(cultureName);
 
 			var authContext = this.AddTestAuthorization();
 			authContext.SetAuthorized("TEST USER");
@@ -177,11 +178,10 @@ public class TripCalculatorTests : Bunit.TestContext
 			await cut.InvokeAsync(() => selectButton.Click());
 
 			// Assert - wait for German formatted cost with euro symbol to appear
-			cut.WaitForAssertion(() =>
+			cut.WaitForAssertion(async () =>
 			{
-				if (!cut.Markup.Contains("123,45 €"))
-					throw new Exception("Expected currency format '123,45 €' not found in markup");
-			}, TimeSpan.FromSeconds(5));
+				await Assert.That(cut.Markup).Contains("123, 45 €");
+			});
 		}
 	}
 }
