@@ -38,11 +38,18 @@ namespace FrontEnd.LocalAuthentication
                 new Claim("oid", "000-0000-0000-0000-000000000002")
         ], "LocalAuthentication"));
 
+        static readonly ClaimsPrincipal _socialVisionary = new(new ClaimsIdentity(
+            [
+                new Claim(ClaimTypes.Name, "TEST Social Visionary"),
+                new Claim(ClaimTypes.NameIdentifier, "test-socialvisionary-id"),
+                new Claim("oid", "000-0000-0000-0000-000000000003")
+        ], "LocalAuthentication"));
+
         static readonly ClaimsPrincipal _user = new(new ClaimsIdentity(new[]
         {
                 new Claim(ClaimTypes.Name, "TEST User"),
                 new Claim(ClaimTypes.NameIdentifier, "test-user-id"),
-                new Claim("oid", "000-0000-0000-0000-000000000003")
+                new Claim("oid", "000-0000-0000-0000-000000000004")
         }, "LocalAuthentication"));
 
         static readonly ClaimsPrincipal _unauthenticated = new(new ClaimsIdentity());
@@ -53,6 +60,7 @@ namespace FrontEnd.LocalAuthentication
         {
             ["test-admin-id"] = ["admin"],
             ["test-projectcoordination-id"] = ["projectcoordination"],
+            ["test-socialvisionary-id"] = ["socialvisionary"],
             ["test-user-id"] = []
         };
 
@@ -70,6 +78,7 @@ namespace FrontEnd.LocalAuthentication
             return new List<string?>() {
             "None (Unauthenticated)",
             nameof(_user),
+            nameof(_socialVisionary),
             nameof(_projectCoordination),
             nameof(_admin)
             };
@@ -132,6 +141,9 @@ namespace FrontEnd.LocalAuthentication
                     break;
                 case nameof(_projectCoordination):
                     _selected = _projectCoordination;
+                    break;
+                case nameof(_socialVisionary):
+                    _selected = _socialVisionary;
                     break;
                 case nameof(_user):
                     _selected = _user;

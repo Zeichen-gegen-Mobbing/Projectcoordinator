@@ -40,6 +40,10 @@ locals {
       display_name = "Administrator"
       description  = "Allows full administrative access including managing places for all users."
     }
+    "socialvisionary" = {
+      display_name = "Social Visionary"
+      description  = "Allows users to manage their own places for coordination purposes."
+    }
   }
 }
 resource "random_uuid" "api_scope_id" {
