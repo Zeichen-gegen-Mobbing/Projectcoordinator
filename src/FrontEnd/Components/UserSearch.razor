@@ -5,16 +5,26 @@
 <div class="card">
     <div class="card-body">
         <h5 class="card-title">@Title</h5>
-        <div class="mb-3">
-            <label for="@inputId" class="form-label">@Label</label>
-            <div class="d-flex gap-2">
-                <input type="text" class="form-control" id="@inputId" @bind="searchQuery"
-                    placeholder="Enter user name or email" />
-                <button type="button" class="btn btn-primary" @onclick="SearchUsers">Search</button>
+        <EditForm Model="searchModel" OnValidSubmit="SearchUsers">
+            <div class="mb-3">
+                <label for="@inputId" class="form-label">@Label</label>
+                <div class="d-flex gap-2">
+                    <InputText @bind-Value="searchModel.SearchQuery" class="form-control" id="@inputId"
+                        placeholder="Enter user name or email" />
+                    <button type="submit" class="btn btn-primary" disabled="@isSearching">
+                        @if (isSearching)
+                        {
+                            <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                        }
+                        Search
+                    </button>
+                </div>
             </div>
+        </EditForm>
+        <div class="mb-3">
             @if (searchedUsers.Count > 0)
             {
-                <div class="list-group mt-2">
+                <div class="list-group">
                     @foreach (var user in searchedUsers)
                     {
                         <button type="button"
@@ -28,10 +38,10 @@
                     }
                 </div>
             }
-            else if (!string.IsNullOrWhiteSpace(searchQuery) && searchPerformed)
+            else if (!string.IsNullOrWhiteSpace(searchModel.SearchQuery) && searchPerformed)
             {
-                <div class="alert alert-info mt-2" role="alert">
-                    No users found matching "@searchQuery"
+                <div class="alert alert-info" role="alert">
+                    No users found matching "@searchModel.SearchQuery"
                 </div>
             }
         </div>
@@ -61,31 +71,37 @@
     [Parameter]
     public string? ErrorMessage { get; set; }
 
-    private string searchQuery = "";
+    private readonly SearchModel searchModel = new();
     private List<GraphUser> searchedUsers = new();
     private bool searchPerformed;
+    private bool isSearching;
     private string inputId = $"userSearch_{Guid.NewGuid():N}";
 
     // Removed auto-search on input/after render. Search is now triggered explicitly by the Search button.
 
     private async Task SearchUsers()
     {
-        if (string.IsNullOrWhiteSpace(searchQuery))
+        if (string.IsNullOrWhiteSpace(searchModel.SearchQuery))
         {
             searchedUsers.Clear();
             searchPerformed = false;
             return;
         }
 
+        isSearching = true;
         try
         {
-            searchedUsers = (await UserService.SearchUsersAsync(searchQuery)).ToList();
+            searchedUsers = (await UserService.SearchUsersAsync(searchModel.SearchQuery)).ToList();
             searchPerformed = true;
         }
         catch (Exception)
         {
             searchedUsers.Clear();
             await OnUserSelected.InvokeAsync(null);
+        }
+        finally
+        {
+            isSearching = false;
         }
     }
 
@@ -96,8 +112,13 @@
 
     public void Clear()
     {
-        searchQuery = "";
+        searchModel.SearchQuery = "";
         searchedUsers.Clear();
         searchPerformed = false;
+    }
+
+    public class SearchModel
+    {
+        public string SearchQuery { get; set; } = string.Empty;
     }
 }
