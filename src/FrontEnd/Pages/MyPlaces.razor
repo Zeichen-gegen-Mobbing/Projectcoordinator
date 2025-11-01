@@ -1,0 +1,84 @@
+@page "/my-places"
+@using ZgM.ProjectCoordinator.Shared
+@using FrontEnd.Components
+@using FrontEnd.Services
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IRoleService RoleService
+
+<PageTitle>My Places</PageTitle>
+
+<h1>My Places</h1>
+
+@if (loading)
+{
+    <p><em>Loading...</em></p>
+}
+else if (errorMessage != null)
+{
+    <div class="alert alert-danger" role="alert">
+        @errorMessage
+    </div>
+}
+else if (currentUserId != null)
+{
+    <UserPlacesManager UserId="@currentUserId.Value" 
+                       UserDisplayName="@currentUserDisplayName"
+                       OnPlaceCreated="@OnPlaceCreated"
+                       OnPlaceDeleted="@OnPlaceDeleted" />
+}
+
+@code {
+    private UserId? currentUserId;
+    private string currentUserDisplayName = "";
+    private bool loading = true;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+
+            if (user.Identity?.IsAuthenticated == true)
+            {
+                var userIdClaim = user.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier")
+                    ?? user.FindFirst("sub")
+                    ?? user.FindFirst("oid");
+
+                if (userIdClaim != null)
+                {
+                    currentUserId = UserId.Parse(userIdClaim.Value);
+                    currentUserDisplayName = user.Identity.Name ?? "You";
+                }
+                else
+                {
+                    errorMessage = "Could not determine user ID from authentication token.";
+                }
+            }
+            else
+            {
+                errorMessage = "You must be logged in to view this page.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to load user information: {ex.Message}";
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private Task OnPlaceCreated(Place place)
+    {
+        return Task.CompletedTask;
+    }
+
+    private Task OnPlaceDeleted(Place place)
+    {
+        return Task.CompletedTask;
+    }
+}
