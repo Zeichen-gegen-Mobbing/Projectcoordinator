@@ -60,7 +60,9 @@ var host = new HostBuilder()
 
         services.AddScoped<IPlaceRepository, PlaceRepository>();
         services.AddScoped<IPlaceService, PlaceCosmosService>();
-        services.AddScoped<ITripService, TripOpenRouteService>();
+        services.AddScoped<ICarRouteService, CarOpenRouteService>();
+        services.AddScoped<ITrainRouteService, TrainTransitousService>();
+        services.AddScoped<ITripService, TripOrchestrationService>();
         services.AddScoped<ILocationService, LocationOpenRouteService>();
         services.AddScoped<AuthorizationHeaderMiddleware>();
         services.AddProblemDetails();
