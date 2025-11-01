@@ -50,16 +50,35 @@
 @code {
     protected override async Task OnInitializedAsync()
     {
+        if (!IsInitialNavigation())
+        {
+            return;
+        }
+
         try
         {
-            if (await RoleService.HasRole("projectcoordination"))
+            if (await RoleService.HasRole("admin"))
+            {
+                NavigationManager.NavigateTo("/admin/places");
+            }
+            else if (await RoleService.HasRole("projectcoordination"))
             {
                 NavigationManager.NavigateTo("/trips");
+            }
+            else if (await RoleService.HasRole("socialvisionary"))
+            {
+                NavigationManager.NavigateTo("/my-places");
             }
         }
         catch
         {
             // If role check fails, stay on home page
         }
+    }
+
+    private bool IsInitialNavigation()
+    {
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        return uri.PathAndQuery == "/" || uri.PathAndQuery == "";
     }
 }
