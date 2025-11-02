@@ -29,27 +29,27 @@ namespace FrontEnd.LocalAuthentication
             [
                 new Claim(ClaimTypes.Name, "TEST Admin"),
                 new Claim(ClaimTypes.NameIdentifier, "test-admin-id"),
-                new Claim("oid", "000-0000-0000-0000-000000000001")
+                new Claim("oid", "f89e278f-c9c1-4c8d-86d9-c30601ffdf75")
         ], "LocalAuthentication"));
         static readonly ClaimsPrincipal _projectCoordination = new(new ClaimsIdentity(
             [
                 new Claim(ClaimTypes.Name, "TEST Projectcoordination"),
                 new Claim(ClaimTypes.NameIdentifier, "test-projectcoordination-id"),
-                new Claim("oid", "000-0000-0000-0000-000000000002")
+                new Claim("oid", "0330c7f5-5cb7-47dc-915c-fc40efb96d6c")
         ], "LocalAuthentication"));
 
         static readonly ClaimsPrincipal _socialVisionary = new(new ClaimsIdentity(
             [
                 new Claim(ClaimTypes.Name, "TEST Social Visionary"),
                 new Claim(ClaimTypes.NameIdentifier, "test-socialvisionary-id"),
-                new Claim("oid", "000-0000-0000-0000-000000000003")
+                new Claim("oid", "ecb3b457-c304-4184-bd99-11bca9c1cba4")
         ], "LocalAuthentication"));
 
         static readonly ClaimsPrincipal _user = new(new ClaimsIdentity(new[]
         {
                 new Claim(ClaimTypes.Name, "TEST User"),
                 new Claim(ClaimTypes.NameIdentifier, "test-user-id"),
-                new Claim("oid", "000-0000-0000-0000-000000000004")
+                new Claim("oid", "5d571f69-2812-4d6b-bd5e-4e969131eb62")
         }, "LocalAuthentication"));
 
         static readonly ClaimsPrincipal _unauthenticated = new(new ClaimsIdentity());
