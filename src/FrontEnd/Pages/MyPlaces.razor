@@ -41,7 +41,6 @@ else if (currentUserId != null)
             if (user.Identity?.IsAuthenticated == true)
             {
                 var userIdClaim = user.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier")
-                ?? user.FindFirst("sub")
                 ?? user.FindFirst("oid");
 
                 if (userIdClaim != null)
