@@ -247,4 +247,79 @@ public class RoleServiceTests : IDisposable
             VerifyHttpCallCount(Times.Once());
         }
     }
+
+    public class GetRolesAsync : RoleServiceTests
+    {
+        [Test]
+        public async Task ReturnsAllRoles_WhenUserHasMultipleRoles()
+        {
+            // Arrange
+            var expectedRoles = new[] { "admin", "projectcoordination", "socialvisionary" };
+            SetupMockResponse(expectedRoles);
+
+            // Act
+            var result = await _service.GetRolesAsync();
+
+            // Assert
+            await Assert.That(result).IsEquivalentTo(expectedRoles);
+        }
+
+        [Test]
+        public async Task ReturnsEmptyArray_WhenUserHasNoRoles()
+        {
+            // Arrange
+            SetupMockResponse([]);
+
+            // Act
+            var result = await _service.GetRolesAsync();
+
+            // Assert
+            await Assert.That(result).IsEmpty();
+        }
+
+        [Test]
+        public async Task ReturnsSingleRole_WhenUserHasOneRole()
+        {
+            // Arrange
+            SetupMockResponse(["admin"]);
+
+            // Act
+            var result = await _service.GetRolesAsync();
+
+            // Assert
+            await Assert.That(result).HasCount().EqualTo(1);
+            await Assert.That(result[0]).IsEqualTo("admin");
+        }
+
+        [Test]
+        public async Task UsesCachedRoles_WhenCalledMultipleTimes()
+        {
+            // Arrange
+            SetupMockResponse(["admin", "projectcoordination"]);
+
+            // Act
+            var result1 = await _service.GetRolesAsync();
+            var result2 = await _service.GetRolesAsync();
+
+            // Assert
+            await Assert.That(result1).IsEquivalentTo(result2);
+            VerifyHttpCallCount(Times.Exactly(1));
+        }
+
+        [Test]
+        public async Task SharesCacheWithHasRole()
+        {
+            // Arrange
+            SetupMockResponse(["admin", "projectcoordination"]);
+
+            // Act
+            var roles = await _service.GetRolesAsync();
+            var hasRole = await _service.HasRole("admin");
+
+            // Assert
+            await Assert.That(roles).HasCount().EqualTo(2);
+            await Assert.That(hasRole).IsTrue();
+            VerifyHttpCallCount(Times.Exactly(1));
+        }
+    }
 }

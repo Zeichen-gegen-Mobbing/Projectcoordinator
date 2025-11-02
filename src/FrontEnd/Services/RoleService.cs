@@ -24,6 +24,11 @@ namespace FrontEnd.Services
             return hasRole;
         }
 
+        public async Task<string[]> GetRolesAsync()
+        {
+            return await GetCurrentRolesAsync();
+        }
+
         private async Task<string[]> GetCurrentRolesAsync(bool forceReload = false)
         {
             var currentUserId = await GetCurrentUserIdAsync();
