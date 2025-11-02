@@ -1,3 +1,4 @@
+@using FrontEnd.Models
 @using ZgM.ProjectCoordinator.Shared
 @using FrontEnd.Services
 @using Microsoft.JSInterop
@@ -51,6 +52,8 @@
     [Parameter]
     public string Title { get; set; } = "Places";
 
+    private UserId? _userId;
+
     [Parameter]
     public UserId? UserId { get; set; }
 
@@ -63,17 +66,21 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        if (UserId != null)
+        if (UserId != _userId)
         {
-            await LoadPlaces();
-        }
-        else
-        {
-            places.Clear();
+            _userId = UserId;
+            if (_userId != null)
+            {
+                await LoadPlaces();
+            }
+            else
+            {
+                places.Clear();
+            }
         }
     }
 
-    private async Task LoadPlaces()
+    public async Task LoadPlaces()
     {
         if (UserId == null)
         {
@@ -93,6 +100,7 @@
         finally
         {
             loading = false;
+            StateHasChanged();
         }
     }
 
