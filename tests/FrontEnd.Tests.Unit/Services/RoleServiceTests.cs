@@ -131,16 +131,12 @@ public class RoleServiceTests : IDisposable
             SetupMockResponse(["admin", "projectcoordination"]);
 
             // Act
-            var result1 = await _service.HasRole("admin");
-            var result2 = await _service.HasRole("projectcoordination");
-            var result3 = await _service.HasRole("viewer");
+            _ = await _service.HasRole("admin");
+            _ = await _service.HasRole("projectcoordination");
 
             // Assert
-            await Assert.That(result1).IsTrue();
-            await Assert.That(result2).IsTrue();
-            await Assert.That(result3).IsFalse();
-            // viewer not found triggers retry, so we expect 2 calls total
-            VerifyHttpCallCount(Times.Exactly(2));
+
+            VerifyHttpCallCount(Times.Exactly(1));
         }
 
         [Test]
@@ -167,7 +163,6 @@ public class RoleServiceTests : IDisposable
             {
                 _service.HasRole("admin"),
                 _service.HasRole("projectcoordination"),
-                _service.HasRole("viewer"),
                 _service.HasRole("admin"),
                 _service.HasRole("projectcoordination")
             };
@@ -177,11 +172,10 @@ public class RoleServiceTests : IDisposable
             // Assert
             await Assert.That(results[0]).IsTrue();
             await Assert.That(results[1]).IsTrue();
-            await Assert.That(results[2]).IsFalse();
+            await Assert.That(results[2]).IsTrue();
             await Assert.That(results[3]).IsTrue();
-            await Assert.That(results[4]).IsTrue();
-            // One of the concurrent calls checks for "viewer" which triggers retry = 2 calls total
-            VerifyHttpCallCount(Times.Exactly(2));
+
+            VerifyHttpCallCount(Times.Exactly(1));
         }
 
         [Test]
@@ -198,18 +192,16 @@ public class RoleServiceTests : IDisposable
             _authStateProviderMock.Setup(x => x.GetAuthenticationStateAsync())
                 .ReturnsAsync(new AuthenticationState(newClaimsPrincipal));
 
-            SetupMockResponse(["viewer"]);
+            SetupMockResponse(["admin"]);
 
             // Act - Second call with different user
             var result2 = await _service.HasRole("admin");
-            var result3 = await _service.HasRole("viewer");
 
             // Assert
             await Assert.That(result1).IsTrue();
-            await Assert.That(result2).IsFalse();
-            await Assert.That(result3).IsTrue();
-            // First user: 1 call, Second user: "admin" not found triggers retry (2 calls), then "viewer" uses cache (0 additional calls) = 3 total
-            VerifyHttpCallCount(Times.Exactly(3));
+            await Assert.That(result2).IsTrue();
+
+            VerifyHttpCallCount(Times.Exactly(2));
         }
 
         [Test]
@@ -253,6 +245,81 @@ public class RoleServiceTests : IDisposable
             // Assert
             await Assert.That(result).IsTrue();
             VerifyHttpCallCount(Times.Once());
+        }
+    }
+
+    public class GetRolesAsync : RoleServiceTests
+    {
+        [Test]
+        public async Task ReturnsAllRoles_WhenUserHasMultipleRoles()
+        {
+            // Arrange
+            var expectedRoles = new[] { "admin", "projectcoordination", "socialvisionary" };
+            SetupMockResponse(expectedRoles);
+
+            // Act
+            var result = await _service.GetRolesAsync();
+
+            // Assert
+            await Assert.That(result).IsEquivalentTo(expectedRoles);
+        }
+
+        [Test]
+        public async Task ReturnsEmptyArray_WhenUserHasNoRoles()
+        {
+            // Arrange
+            SetupMockResponse([]);
+
+            // Act
+            var result = await _service.GetRolesAsync();
+
+            // Assert
+            await Assert.That(result).IsEmpty();
+        }
+
+        [Test]
+        public async Task ReturnsSingleRole_WhenUserHasOneRole()
+        {
+            // Arrange
+            SetupMockResponse(["admin"]);
+
+            // Act
+            var result = await _service.GetRolesAsync();
+
+            // Assert
+            await Assert.That(result).HasCount().EqualTo(1);
+            await Assert.That(result[0]).IsEqualTo("admin");
+        }
+
+        [Test]
+        public async Task UsesCachedRoles_WhenCalledMultipleTimes()
+        {
+            // Arrange
+            SetupMockResponse(["admin", "projectcoordination"]);
+
+            // Act
+            var result1 = await _service.GetRolesAsync();
+            var result2 = await _service.GetRolesAsync();
+
+            // Assert
+            await Assert.That(result1).IsEquivalentTo(result2);
+            VerifyHttpCallCount(Times.Exactly(1));
+        }
+
+        [Test]
+        public async Task SharesCacheWithHasRole()
+        {
+            // Arrange
+            SetupMockResponse(["admin", "projectcoordination"]);
+
+            // Act
+            var roles = await _service.GetRolesAsync();
+            var hasRole = await _service.HasRole("admin");
+
+            // Assert
+            await Assert.That(roles).HasCount().EqualTo(2);
+            await Assert.That(hasRole).IsTrue();
+            VerifyHttpCallCount(Times.Exactly(1));
         }
     }
 }

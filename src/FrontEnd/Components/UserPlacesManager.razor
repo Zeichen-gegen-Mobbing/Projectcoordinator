@@ -6,9 +6,8 @@
         <button class="btn btn-primary" @onclick="ShowCreateDialog">Create Place</button>
     </div>
 
-    <PlacesList Title="@($"Places for {UserDisplayName}")" 
-                UserId="@UserId"
-                OnPlaceDeleted="@OnPlaceDeleted" />
+    <PlacesList Title="@($"Places for {UserDisplayName}")" UserId="@UserId" OnPlaceDeleted="@OnPlaceDeleted"
+        @ref="placesList" />
 }
 
 @if (showCreateDialog && UserId != null)
@@ -21,8 +20,7 @@
                     <button type="button" class="btn-close" @onclick="CloseCreateDialog"></button>
                 </div>
                 <div class="modal-body">
-                    <CreatePlaceForm UserId="@UserId.Value"
-                                     OnPlaceCreated="@OnPlaceCreatedInternal" />
+                    <CreatePlaceForm UserId="@UserId.Value" OnPlaceCreated="@OnPlaceCreatedInternal" />
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" @onclick="CloseCreateDialog">Cancel</button>
@@ -46,6 +44,8 @@
     [Parameter]
     public EventCallback<Place> OnPlaceDeleted { get; set; }
 
+    private PlacesList? placesList;
+
     private bool showCreateDialog;
 
     private void ShowCreateDialog()
@@ -60,6 +60,7 @@
 
     private async Task OnPlaceCreatedInternal(Place place)
     {
+        placesList?.LoadPlaces();
         CloseCreateDialog();
         await OnPlaceCreated.InvokeAsync(place);
     }

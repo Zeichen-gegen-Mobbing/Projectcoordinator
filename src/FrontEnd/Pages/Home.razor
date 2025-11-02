@@ -9,32 +9,95 @@
 
 <PageTitle>Projectcoordinator</PageTitle>
 
-<h1>Welcome to Project Coordinator</h1>
+<h1>Willkommen beim Projektkoordinator</h1>
 
-<p>
-    Diese Anwendung soll die Projektkoordination vereinfachen. Aktuell bietet sie lediglich die Möglichkeit die
-    Reisedauer von gespeicherten Orten zu berechnen, um zu sehen, wer am besten geeignet ist.
-</p>
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <span class="bi bi-geo-alt-fill text-primary"></span> Projektkoordination - Reisen berechnen
+                </h5>
+                <p class="card-text">
+                    Die Projektkoordination kann die Reisedauer von allen gespeicherten Orten zu einem Zielort
+                    automatisch berechnen.
+                    So findet sie schnell heraus, wer am besten geeignet ist, einen Workshop wahrzunehmen.
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <span class="bi bi-pin-map-fill text-success"></span> SoVi - Orte verwalten
+                </h5>
+                <p class="card-text">
+                    Social Visionaries können ihre häufig besuchten Orte speichern und verwalten. Diese Orte werden für
+                    die
+                    Reiseberechnung verwendet, um optimale Zuordnungen zu finden.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
 
-<p>
-    Da du diese Seite siehst, ist vermutlich etwas nicht in Ordnung. Warte eine kurze Zeit, klicke auf Home im
-    Navigationsmenü oder melde dich ab und wieder an. Sollte das Problem weiterhin bestehen, kontaktiere bitte den
-    "Support".
-</p>
+@if (_showNoRoleWarning)
+{
+    <div class="alert alert-warning mt-4" role="alert">
+        <strong>Warnung:</strong> Du hast keine Rolle zugewiesen bekommen.
+        Bitte kontaktiere den Support, um eine Rolle zu erhalten.
+    </div>
+}
 
 @code {
+    private bool _showNoRoleWarning = false;
+
     protected override async Task OnInitializedAsync()
     {
+        if (!IsInitialNavigation())
+        {
+            return;
+        }
+
         try
         {
-            if (await RoleService.HasRole("projectcoordination"))
+            var roles = await RoleService.GetRolesAsync();
+
+            if (roles.Length == 0)
             {
-                NavigationManager.NavigateTo("/trips");
+                _showNoRoleWarning = true;
+            }
+            else if (roles.Length == 1)
+            {
+                NavigateToRolePage(roles[0]);
             }
         }
         catch
         {
             // If role check fails, stay on home page
         }
+    }
+
+    private void NavigateToRolePage(string role)
+    {
+        var destination = role.ToLower() switch
+        {
+            "admin" => "/admin/places",
+            "projectcoordination" => "/trips",
+            "socialvisionary" => "/my-places",
+            _ => null
+        };
+
+        if (destination != null)
+        {
+            NavigationManager.NavigateTo(destination);
+        }
+    }
+
+    private bool IsInitialNavigation()
+    {
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        return uri.PathAndQuery == "/" || uri.PathAndQuery == "";
     }
 }

@@ -70,7 +70,7 @@ for ($i = $RetryCount; $i -ge 0; $i--) {
         break
     }
     catch {
-        Write-Progress -Activity "Downloading emulator certificate" -Status $_.Exception.Message -PercentComplete ((($RetryCount - $i) / $RetryCount) * 100)
+        Write-Progress -Activity "Downloading emulator certificate" -Status "$($_.Exception.Message) - $($_.Exception.InnerException.Message)" -PercentComplete ((($RetryCount - $i) / $RetryCount) * 100)
         Start-Sleep -Seconds $i
     }
 }

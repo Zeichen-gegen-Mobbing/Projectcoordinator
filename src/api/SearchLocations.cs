@@ -27,7 +27,7 @@ namespace api
             {
                 await request.HttpContext.AuthorizeAzureFunctionAsync(
                     scopes: ["Locations.Search"],
-                    roles: ["projectcoordination", "admin"]);
+                    roles: ["projectcoordination", "admin", "socialvisionary"]);
 
                 var text = request.Query["text"].ToString().Replace("\r", "").Replace("\n", "").Replace(Environment.NewLine, "");
                 if (string.IsNullOrWhiteSpace(text))
