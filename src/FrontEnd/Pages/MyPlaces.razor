@@ -22,8 +22,7 @@ else if (errorMessage != null)
 }
 else if (currentUserId != null)
 {
-    <UserPlacesManager UserId="@currentUserId.Value" 
-                       UserDisplayName="@currentUserDisplayName" />
+    <UserPlacesManager UserId="@currentUserId.Value" UserDisplayName="@currentUserDisplayName" />
 }
 
 @code {
@@ -42,8 +41,8 @@ else if (currentUserId != null)
             if (user.Identity?.IsAuthenticated == true)
             {
                 var userIdClaim = user.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier")
-                    ?? user.FindFirst("sub")
-                    ?? user.FindFirst("oid");
+                ?? user.FindFirst("sub")
+                ?? user.FindFirst("oid");
 
                 if (userIdClaim != null)
                 {
@@ -63,6 +62,7 @@ else if (currentUserId != null)
         catch (Exception ex)
         {
             errorMessage = $"Failed to load user information: {ex.Message}";
+            Console.Error.Write(ex);
         }
         finally
         {
