@@ -34,57 +34,43 @@ namespace api.Services
 
             if (!places.Any())
             {
-                return Enumerable.Empty<Trip>();
+                return [];
             }
 
-            var carPlaces = places.Where(p => p.TransportMode == TransportMode.Car);
-            var trainPlaces = places.Where(p => p.TransportMode == TransportMode.Train);
+            var trainPlaces = new List<PlaceEntity>();
+            var carPlaces = new List<PlaceEntity>();
 
-            Task<IEnumerable<CarRouteResult>> carTask = carRouteService.CalculateRoutesAsync(carPlaces.Concat(trainPlaces), latitude, longitude);
-            Task<IEnumerable<TrainRouteResult>> trainTask;
-
-            if (trainPlaces.Any())
+            foreach (var place in places)
             {
-                async Task<Dictionary<PlaceId, ushort>> carCostsTask()
+                if (place.TransportMode == TransportMode.Train)
                 {
-                    var carTrips = await carTask;
-                    return carTrips.ToDictionary(r => r.PlaceId, r => r.CostCents);
+                    trainPlaces.Add(place);
                 }
-                trainTask = trainRouteService.CalculateRoutesAsync(
-                    trainPlaces, latitude, longitude, carCostsTask());
-            }
-            else
-            {
-                trainTask = Task.FromResult(Enumerable.Empty<TrainRouteResult>());
-            }
-
-            await Task.WhenAll(carTask, trainTask);
-
-            var carResults = await carTask;
-            var trainResults = await trainTask;
-
-            var carTrips = carResults
-                .Where(r => carPlaces.Any(p => p.Id == r.PlaceId))
-                .Select(r =>
+                else if (place.TransportMode == TransportMode.Car)
                 {
-                    var place = carPlaces.First(p => p.Id == r.PlaceId);
-                    return new Trip
-                    {
-                        Place = new Place
-                        {
-                            Id = place.Id,
-                            Name = place.Name,
-                            UserId = place.UserId,
-                            TransportMode = TransportMode.Car
-                        },
-                        Time = TimeSpan.FromSeconds(r.DurationSeconds),
-                        Cost = r.CostCents
-                    };
-                });
+                    carPlaces.Add(place);
+                }
+            }
 
-            var trainTrips = trainResults.Select(r =>
+            var carTrips = CalculateCarTripsAsync(carPlaces, latitude, longitude);
+            var trainTrips = CalculateTrainTripsAsync(trainPlaces, latitude, longitude);
+
+            await Task.WhenAll(carTrips, trainTrips);
+
+            return (await carTrips).Concat(await trainTrips);
+        }
+
+        private async Task<IEnumerable<Trip>> CalculateTrainTripsAsync(List<PlaceEntity> trainPlaces, double latitude, double longitude)
+        {
+            if (trainPlaces.Count == 0)
             {
-                var place = trainPlaces.First(p => p.Id == r.PlaceId);
+                return [];
+            }
+            var trainRoutes = await trainRouteService.CalculateRoutesAsync(trainPlaces, latitude, longitude);
+
+            return trainRoutes.Select((r, i) =>
+            {
+                var place = trainPlaces[i].Id == r.PlaceId ? trainPlaces[i] : trainPlaces.First(p => p.Id == r.PlaceId);
                 return new Trip
                 {
                     Place = new Place
@@ -98,8 +84,31 @@ namespace api.Services
                     Cost = r.CostCents
                 };
             });
+        }
+        private async Task<IEnumerable<Trip>> CalculateCarTripsAsync(List<PlaceEntity> carPlaces, double latitude, double longitude)
+        {
+            if (carPlaces.Count == 0)
+            {
+                return [];
+            }
+            var carRoutes = await carRouteService.CalculateRoutesAsync(carPlaces, latitude, longitude);
 
-            return carTrips.Concat(trainTrips);
+            return carRoutes.Select((r, i) =>
+            {
+                var place = carPlaces[i].Id == r.PlaceId ? carPlaces[i] : carPlaces.First(p => p.Id == r.PlaceId);
+                return new Trip
+                {
+                    Place = new Place
+                    {
+                        Id = place.Id,
+                        Name = place.Name,
+                        UserId = place.UserId,
+                        TransportMode = TransportMode.Car
+                    },
+                    Time = TimeSpan.FromSeconds(r.DurationSeconds),
+                    Cost = r.CostCents
+                };
+            });
         }
     }
 }

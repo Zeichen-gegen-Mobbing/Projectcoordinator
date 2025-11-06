@@ -19,6 +19,7 @@ public class TrainTransitousServiceTests
     {
         private readonly Mock<HttpMessageHandler> httpHandlerMock;
         private readonly Mock<IHttpClientFactory> clientFactoryMock;
+        private readonly Mock<ICarRouteService> carServiceMock;
         private readonly Mock<ILogger<TrainTransitousService>> loggerMock;
         private readonly TrainTransitousService service;
 
@@ -26,6 +27,7 @@ public class TrainTransitousServiceTests
         {
             httpHandlerMock = new Mock<HttpMessageHandler>();
             clientFactoryMock = new Mock<IHttpClientFactory>();
+            carServiceMock = new Mock<ICarRouteService>();
             loggerMock = new Mock<ILogger<TrainTransitousService>>();
 
             var httpClient = new HttpClient(httpHandlerMock.Object)
@@ -33,7 +35,7 @@ public class TrainTransitousServiceTests
                 BaseAddress = new Uri("https://api.transitous.org/")
             };
             clientFactoryMock.Setup(f => f.CreateClient(It.IsAny<string>())).Returns(httpClient);
-            service = new TrainTransitousService(clientFactoryMock.Object, loggerMock.Object);
+            service = new TrainTransitousService(clientFactoryMock.Object, carServiceMock.Object, loggerMock.Object);
         }
 
         private void SetupHttpResponse<T>(HttpStatusCode statusCode, T response)
@@ -75,9 +77,9 @@ public class TrainTransitousServiceTests
         }
 
         /// <summary>
-        /// Given: A valid list of places, origin coordinates, and car costs task
+        /// Given: A valid list of places and origin coordinates
         /// When: Transitous API returns successful response with durations
-        /// Then: Returns TrainRouteResult for each place with train time and car costs
+        /// Then: Returns TrainRouteResult for each place with train time and car costs from CarService
         /// </summary>
         [Test]
         public async Task ReturnsTrainRouteResults_WhenApiReturnsSuccess()
@@ -89,7 +91,15 @@ public class TrainTransitousServiceTests
                 CreatePlace("place2", "Office")
             };
 
-            var carCosts = CreateCarCosts(("place1", 150), ("place2", 300));
+            var carResults = new List<CarRouteResult>
+            {
+                new() { PlaceId = PlaceId.Parse("place1"), CostCents = 150, DurationSeconds = 600, DistanceMeters = 5000 },
+                new() { PlaceId = PlaceId.Parse("place2"), CostCents = 300, DurationSeconds = 900, DistanceMeters = 10000 }
+            };
+
+            carServiceMock
+                .Setup(s => s.CalculateRoutesAsync(places, 52.5100, 13.4000))
+                .ReturnsAsync(carResults);
 
             SetupHttpResponse(HttpStatusCode.OK, new
             {
@@ -99,8 +109,7 @@ public class TrainTransitousServiceTests
 
 
             // Act
-            var results = (await service.CalculateRoutesAsync(
-                places, 52.5100, 13.4000, Task.FromResult(carCosts))).ToList();
+            var results = (await service.CalculateRoutesAsync(places, 52.5100, 13.4000)).ToList();
 
             // Assert
             await Assert.That(results.Count).IsEqualTo(2);
@@ -115,12 +124,12 @@ public class TrainTransitousServiceTests
         }
 
         /// <summary>
-        /// Given: Car costs task is not yet completed when starting train calculation
+        /// Given: CarService takes time to calculate routes
         /// When: Train API call completes
-        /// Then: Awaits car costs and combines results correctly (parallel execution)
+        /// Then: Awaits car routes and combines results correctly (parallel execution)
         /// </summary>
         [Test]
-        public async Task AwaitsCarCosts_WhenCarCostsNotYetAvailable()
+        public async Task AwaitsCarRoutes_WhenCarRoutesNotYetAvailable()
         {
             // Arrange
             var places = new List<PlaceEntity> { CreatePlace("place1") };
@@ -131,18 +140,20 @@ public class TrainTransitousServiceTests
                 distances = new[] { new[] { 4000.0 } }
             });
 
-            
-
-            // Simulate car costs arriving after delay
-            var carCostsTask = Task.Run(async () =>
-            {
-                await Task.Delay(100);
-                return CreateCarCosts(("place1", 150));
-            });
+            // Simulate car service taking time
+            carServiceMock
+                .Setup(s => s.CalculateRoutesAsync(places, 52.5100, 13.4000))
+                .Returns(async () =>
+                {
+                    await Task.Delay(100);
+                    return new List<CarRouteResult>
+                    {
+                        new() { PlaceId = PlaceId.Parse("place1"), CostCents = 150, DurationSeconds = 600, DistanceMeters = 5000 }
+                    };
+                });
 
             // Act
-            var results = (await service.CalculateRoutesAsync(
-                places, 52.5100, 13.4000, carCostsTask)).ToList();
+            var results = (await service.CalculateRoutesAsync(places, 52.5100, 13.4000)).ToList();
 
             // Assert
             await Assert.That(results.Single().CostCents).IsEqualTo((ushort)150);
@@ -151,19 +162,23 @@ public class TrainTransitousServiceTests
         /// <summary>
         /// Given: Empty list of places
         /// When: Calling CalculateRoutesAsync
-        /// Then: Returns empty result set without calling API
+        /// Then: Returns empty result set without calling APIs
         /// </summary>
         [Test]
         public async Task ReturnsEmpty_WhenNoPlacesProvided()
         {
             // Arrange
             var places = Enumerable.Empty<PlaceEntity>();
-            var carCosts = Task.FromResult(new Dictionary<PlaceId, ushort>());
+            
+            carServiceMock
+                .Setup(s => s.CalculateRoutesAsync(places, 52.5100, 13.4000))
+                .ReturnsAsync(Enumerable.Empty<CarRouteResult>());
+            
             SetupHttpResponse(HttpStatusCode.OK, "{}");
 
 
             // Act
-            var results = await service.CalculateRoutesAsync(places, 52.5100, 13.4000, carCosts);
+            var results = await service.CalculateRoutesAsync(places, 52.5100, 13.4000);
 
             // Assert
             await Assert.That(results.Count()).IsEqualTo(0);
@@ -179,13 +194,20 @@ public class TrainTransitousServiceTests
         {
             // Arrange
             var places = new List<PlaceEntity> { CreatePlace("place1") };
-            var carCosts = Task.FromResult(CreateCarCosts(("place1", 150)));
+            
+            carServiceMock
+                .Setup(s => s.CalculateRoutesAsync(places, 52.5100, 13.4000))
+                .ReturnsAsync(new List<CarRouteResult>
+                {
+                    new() { PlaceId = PlaceId.Parse("place1"), CostCents = 150, DurationSeconds = 600, DistanceMeters = 5000 }
+                });
+            
             SetupHttpResponse(HttpStatusCode.InternalServerError, "Internal Server Error");
 
 
             // Act & Assert
             await Assert.ThrowsAsync<Exception>(async () =>
-                await service.CalculateRoutesAsync(places, 52.5100, 13.4000, carCosts));
+                await service.CalculateRoutesAsync(places, 52.5100, 13.4000));
         }
 
         /// <summary>
@@ -198,13 +220,20 @@ public class TrainTransitousServiceTests
         {
             // Arrange
             var places = new List<PlaceEntity> { CreatePlace("place1") };
-            var carCosts = Task.FromResult(CreateCarCosts(("place1", 150)));
+            
+            carServiceMock
+                .Setup(s => s.CalculateRoutesAsync(places, 52.5100, 13.4000))
+                .ReturnsAsync(new List<CarRouteResult>
+                {
+                    new() { PlaceId = PlaceId.Parse("place1"), CostCents = 150, DurationSeconds = 600, DistanceMeters = 5000 }
+                });
+            
             SetupHttpResponse(HttpStatusCode.OK, "{ invalid json }");
 
 
             // Act & Assert
             await Assert.ThrowsAsync<Exception>(async () =>
-                await service.CalculateRoutesAsync(places, 52.5100, 13.4000, carCosts));
+                await service.CalculateRoutesAsync(places, 52.5100, 13.4000));
         }
 
         /// <summary>
@@ -217,7 +246,13 @@ public class TrainTransitousServiceTests
         {
             // Arrange
             var places = new List<PlaceEntity> { CreatePlace("place1") };
-            var carCosts = Task.FromResult(CreateCarCosts(("place1", 150)));
+            
+            carServiceMock
+                .Setup(s => s.CalculateRoutesAsync(places, 52.5100, 13.4000))
+                .ReturnsAsync(new List<CarRouteResult>
+                {
+                    new() { PlaceId = PlaceId.Parse("place1"), CostCents = 150, DurationSeconds = 600, DistanceMeters = 5000 }
+                });
             
             HttpRequestMessage? capturedRequest = null;
             httpHandlerMock
@@ -239,7 +274,7 @@ public class TrainTransitousServiceTests
 
 
             // Act
-            await service.CalculateRoutesAsync(places, 52.5100, 13.4000, carCosts);
+            await service.CalculateRoutesAsync(places, 52.5100, 13.4000);
 
             // Assert
             await Assert.That(capturedRequest).IsNotNull();
@@ -248,17 +283,19 @@ public class TrainTransitousServiceTests
         }
 
         /// <summary>
-        /// Given: Car costs task throws exception
-        /// When: Awaiting car costs in train calculation
-        /// Then: Propagates the exception from car costs task
+        /// Given: CarService throws exception
+        /// When: Awaiting car routes in train calculation
+        /// Then: Propagates the exception from CarService
         /// </summary>
         [Test]
-        public async Task ThrowsException_WhenCarCostsTaskFails()
+        public async Task ThrowsException_WhenCarServiceFails()
         {
             // Arrange
             var places = new List<PlaceEntity> { CreatePlace("place1") };
-            var carCostsTask = Task.FromException<Dictionary<PlaceId, ushort>>(
-                new InvalidOperationException("Car cost calculation failed"));
+            
+            carServiceMock
+                .Setup(s => s.CalculateRoutesAsync(places, 52.5100, 13.4000))
+                .ThrowsAsync(new InvalidOperationException("Car cost calculation failed"));
 
             SetupHttpResponse(HttpStatusCode.OK, new
             {
@@ -269,7 +306,7 @@ public class TrainTransitousServiceTests
 
             // Act & Assert
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-                await service.CalculateRoutesAsync(places, 52.5100, 13.4000, carCostsTask));
+                await service.CalculateRoutesAsync(places, 52.5100, 13.4000));
 
             await Assert.That(exception!.Message).IsEqualTo("Car cost calculation failed");
         }

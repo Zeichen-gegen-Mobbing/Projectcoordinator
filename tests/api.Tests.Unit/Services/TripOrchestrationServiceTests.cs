@@ -81,42 +81,23 @@ public class TripOrchestrationServiceTests
                 s => s.CalculateRoutesAsync(
                     It.IsAny<IEnumerable<PlaceEntity>>(),
                     It.IsAny<double>(),
-                    It.IsAny<double>(),
-                    It.IsAny<Task<Dictionary<PlaceId, ushort>>>()),
+                    It.IsAny<double>()),
                 Times.Never);
         }
 
         /// <summary>
         /// Given: All places have Train transport mode
         /// When: Getting all trips
-        /// Then: Uses both car (for costs) and train services, returns trips with train times and car costs
+        /// Then: Uses only train service (which internally calls car service), returns trips with train times and car costs
         /// </summary>
         [Test]
-        public async Task UsesBothServices_WhenAllPlacesAreTrain()
+        public async Task UsesOnlyTrainService_WhenAllPlacesAreTrain()
         {
             // Arrange
             var places = new List<PlaceEntity>
             {
                 CreatePlace("place1", "Home", TransportMode.Train),
                 CreatePlace("place2", "Office", TransportMode.Train)
-            };
-
-            var carResults = new List<CarRouteResult>
-            {
-                new CarRouteResult
-                {
-                    PlaceId = PlaceId.Parse("place1"),
-                    DurationSeconds = 600,
-                    DistanceMeters = 5000,
-                    CostCents = 150
-                },
-                new CarRouteResult
-                {
-                    PlaceId = PlaceId.Parse("place2"),
-                    DurationSeconds = 900,
-                    DistanceMeters = 10000,
-                    CostCents = 300
-                }
             };
 
             var trainResults = new List<TrainRouteResult>
@@ -135,7 +116,7 @@ public class TripOrchestrationServiceTests
                 }
             };
 
-            var (service, carServiceMock, trainServiceMock, _) = CreateService(places, carResults, trainResults);
+            var (service, carServiceMock, trainServiceMock, _) = CreateService(places, new List<CarRouteResult>(), trainResults);
 
             // Act
             var trips = (await service.GetAllTripsAsync(52.5100, 13.4000)).ToList();
@@ -152,20 +133,19 @@ public class TripOrchestrationServiceTests
             await Assert.That(trip2.Time).IsEqualTo(TimeSpan.FromSeconds(1200)); // Train time
             await Assert.That(trip2.Cost).IsEqualTo((ushort)300); // Car cost
 
-            // Verify both services were called
+            // Verify only train service was called by orchestrator (train service calls car service internally)
             carServiceMock.Verify(
                 s => s.CalculateRoutesAsync(
                     It.IsAny<IEnumerable<PlaceEntity>>(),
-                    52.5100,
-                    13.4000),
-                Times.Once);
+                    It.IsAny<double>(),
+                    It.IsAny<double>()),
+                Times.Never);
 
             trainServiceMock.Verify(
                 s => s.CalculateRoutesAsync(
                     It.IsAny<IEnumerable<PlaceEntity>>(),
                     52.5100,
-                    13.4000,
-                    It.IsAny<Task<Dictionary<PlaceId, ushort>>>()),
+                    13.4000),
                 Times.Once);
         }
 
@@ -193,13 +173,6 @@ public class TripOrchestrationServiceTests
                     DurationSeconds = 600,
                     DistanceMeters = 5000,
                     CostCents = 150
-                },
-                new CarRouteResult
-                {
-                    PlaceId = PlaceId.Parse("place2"),
-                    DurationSeconds = 900,
-                    DistanceMeters = 10000,
-                    CostCents = 300
                 },
                 new CarRouteResult
                 {
@@ -271,23 +244,23 @@ public class TripOrchestrationServiceTests
                 s => s.CalculateRoutesAsync(
                     It.IsAny<IEnumerable<PlaceEntity>>(),
                     It.IsAny<double>(),
-                    It.IsAny<double>(),
-                    It.IsAny<Task<Dictionary<PlaceId, ushort>>>()),
+                    It.IsAny<double>()),
                 Times.Never);
         }
 
         /// <summary>
-        /// Given: Places with train mode exist
+        /// Given: Places with both car and train modes exist
         /// When: Car and train API calls can execute in parallel
-        /// Then: Both services execute concurrently (train doesn't wait for car to complete)
+        /// Then: Both services execute concurrently
         /// </summary>
         [Test]
-        public async Task ExecutesServicesInParallel_WhenTrainPlacesExist()
+        public async Task ExecutesServicesInParallel_WhenBothTransportModesExist()
         {
             // Arrange
             var places = new List<PlaceEntity>
             {
-                CreatePlace("place1", "Home", TransportMode.Train)
+                CreatePlace("place1", "Home", TransportMode.Car),
+                CreatePlace("place2", "Office", TransportMode.Train)
             };
 
             var carResults = new List<CarRouteResult>
@@ -305,7 +278,7 @@ public class TripOrchestrationServiceTests
             {
                 new TrainRouteResult
                 {
-                    PlaceId = PlaceId.Parse("place1"),
+                    PlaceId = PlaceId.Parse("place2"),
                     DurationSeconds = 800,
                     CostCents = 150
                 }
@@ -335,13 +308,11 @@ public class TripOrchestrationServiceTests
                 .Setup(s => s.CalculateRoutesAsync(
                     It.IsAny<IEnumerable<PlaceEntity>>(),
                     It.IsAny<double>(),
-                    It.IsAny<double>(),
-                    It.IsAny<Task<Dictionary<PlaceId, ushort>>>()))
-                .Returns(async (IEnumerable<PlaceEntity> _, double _, double _, Task<Dictionary<PlaceId, ushort>> costsTask) =>
+                    It.IsAny<double>()))
+                .Returns(async () =>
                 {
                     trainExecutionTime = DateTime.UtcNow;
                     await Task.Delay(100); // Simulate API delay
-                    await costsTask; // Await car costs
                     return trainResults;
                 });
 
@@ -444,8 +415,7 @@ public class TripOrchestrationServiceTests
                 .Setup(s => s.CalculateRoutesAsync(
                     It.IsAny<IEnumerable<PlaceEntity>>(),
                     It.IsAny<double>(),
-                    It.IsAny<double>(),
-                    It.IsAny<Task<Dictionary<PlaceId, ushort>>>()))
+                    It.IsAny<double>()))
                 .ThrowsAsync(new InvalidOperationException("Train service failed"));
 
             var loggerMock = new Mock<ILogger<TripOrchestrationService>>();
@@ -491,8 +461,7 @@ public class TripOrchestrationServiceTests
                     .Setup(s => s.CalculateRoutesAsync(
                         It.IsAny<IEnumerable<PlaceEntity>>(),
                         It.IsAny<double>(),
-                        It.IsAny<double>(),
-                        It.IsAny<Task<Dictionary<PlaceId, ushort>>>()))
+                        It.IsAny<double>()))
                     .ReturnsAsync(trainResults);
             }
 

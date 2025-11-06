@@ -14,22 +14,27 @@ namespace api.Services
     public sealed class TrainTransitousService : ITrainRouteService
     {
         private readonly HttpClient client;
+        private readonly ICarRouteService carRouteService;
         private readonly ILogger<TrainTransitousService> logger;
 
         public TrainTransitousService(
             IHttpClientFactory clientFactory,
+            ICarRouteService carRouteService,
             ILogger<TrainTransitousService> logger)
         {
             client = clientFactory.CreateClient();
+            this.carRouteService = carRouteService;
             this.logger = logger;
         }
 
-        public Task<IEnumerable<TrainRouteResult>> CalculateRoutesAsync(
+        public async Task<IEnumerable<TrainRouteResult>> CalculateRoutesAsync(
             IEnumerable<PlaceEntity> places,
             double originLatitude,
-            double originLongitude,
-            Task<Dictionary<PlaceId, ushort>> carCosts)
+            double originLongitude)
         {
+            var carRoutes = await carRouteService.CalculateRoutesAsync(places, originLatitude, originLongitude);
+            var carCosts = carRoutes.ToDictionary(r => r.PlaceId, r => r.CostCents);
+            
             throw new NotImplementedException("TrainTransitousService.CalculateRoutesAsync not yet implemented");
         }
     }
