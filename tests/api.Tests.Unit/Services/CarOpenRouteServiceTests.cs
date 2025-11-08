@@ -22,6 +22,10 @@ public class CarOpenRouteServiceTests
         private readonly Mock<IOptions<OpenRouteServiceOptions>> optionsMock;
         private readonly Mock<ILogger<CarOpenRouteService>> loggerMock;
         private readonly CarOpenRouteService service;
+        private readonly JsonSerializerOptions _jsonOptions = new()
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
 
         public CalculateRoutesAsync()
         {
@@ -47,10 +51,7 @@ public class CarOpenRouteServiceTests
 
         private void SetupHttpResponse<T>(HttpStatusCode statusCode, T response)
         {
-            var json = JsonSerializer.Serialize(response, new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-            });
+            var json = JsonSerializer.Serialize(response, _jsonOptions);
             SetupHttpResponse(statusCode, json);
         }
 
