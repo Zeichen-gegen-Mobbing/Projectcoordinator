@@ -47,8 +47,8 @@ namespace api.Services
             {
                 locations = places.Select(place => new[] { place.Longitude, place.Latitude })
                     .Append([originLongitude, originLatitude]),
-                destinations = Enumerable.Range(places.Count(), 1),
-                sources = Enumerable.Range(0, places.Count()),
+                destinations = Enumerable.Range(places.Count, 1),
+                sources = Enumerable.Range(0, places.Count),
                 metrics = _metrics
             });
 
