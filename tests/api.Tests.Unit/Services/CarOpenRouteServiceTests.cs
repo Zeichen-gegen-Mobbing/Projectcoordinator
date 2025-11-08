@@ -131,8 +131,8 @@ public class CarOpenRouteServiceTests
 
             SetupHttpResponse(HttpStatusCode.OK, new
             {
-                durations = new[] { new[] { 600.0 } },
-                distances = new[] { new[] { 5500.0 } } // 5.5 km
+                durations = new double[][] { [600.0] },
+                distances = new double[][] { [5500.0] } // 5.5 km
             });
 
 
@@ -223,8 +223,8 @@ public class CarOpenRouteServiceTests
                     StatusCode = HttpStatusCode.OK,
                     Content = new StringContent(JsonSerializer.Serialize(new
                     {
-                        durations = new[] { new[] { 600.0 } },
-                        distances = new[] { new[] { 5000.0 } }
+                        durations = new double[][] { [600.0] },
+                        distances = new double[][] { [5000.0] }
                     }, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }))
                 });
 
