@@ -117,10 +117,10 @@
         }
     }
 
-    private string GetTransportModeSymbol(TransportMode mode) => mode switch
+    private static string GetTransportModeSymbol(TransportMode mode) => mode switch
     {
         TransportMode.Car => "🚗",
         TransportMode.Train => "🚆",
-        _ => ""
+        _ => "unknown"
     };
 }
