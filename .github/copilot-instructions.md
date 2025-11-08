@@ -224,6 +224,52 @@ Located in `.github/workflows/`:
 - Use `// Arrange`, `// Act`, `// Assert` comments to clearly separate test phases
 - Keep setup code minimal and focused on the test scenario
 - Extract common setup to helper methods or base classes when appropriate
+- **Constructor Pattern for Shared Setup**: Initialize shared dependencies in the constructor to avoid duplication
+  ```csharp
+  public class MyServiceTests
+  {
+      private readonly MyService _service;
+      private readonly Mock<IDependency> _dependencyMock;
+
+      public MyServiceTests()
+      {
+          // Setup shared dependencies once
+          _dependencyMock = new Mock<IDependency>();
+          
+          var options = Options.Create(new MyOptions { /* config */ });
+          
+          _service = new MyService(_dependencyMock.Object, options);
+      }
+
+      [Test]
+      public async Task TestMethod()
+      {
+          // Arrange - Configure mocks specific to this test
+          _dependencyMock.Setup(d => d.Method()).Returns(value);
+          
+          // Act
+          var result = await _service.CallMethod();
+          
+          // Assert
+          await Assert.That(result).IsEqualTo(expected);
+      }
+  }
+  ```
+- **Benefits**: Reduces code duplication, makes tests more maintainable, clearly separates shared setup from test-specific setup
+- **Apply to both unit and integration tests**: Use this pattern whenever multiple tests share the same service initialization
+
+**Integration Tests**:
+- **Project Naming**: `<ProjectName>.Tests.Integration` (e.g., `api.Tests.Integration`)
+- **Location**: `tests/<ProjectName>.Tests.Integration/` directory
+- **Use real dependencies**: Integration tests should use real HttpClient, real database connections, etc.
+- Example:
+  ```csharp
+  public MyServiceIntegrationTests()
+  {
+      var httpClient = new HttpClient(); // Real HTTP client, not mocked
+      _service = new MyService(httpClient, options);
+  }
+  ```
 
 ### Validation Steps for Changes
 **Before submitting PRs, always:**

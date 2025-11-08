@@ -15,6 +15,35 @@ namespace api.Tests.Integration.Services;
 /// </summary>
 public class TrainTransitousServiceIntegrationTests
 {
+    private readonly TrainTransitousService _service;
+    private readonly Mock<ICarRouteService> _carServiceMock;
+
+    public TrainTransitousServiceIntegrationTests()
+    {
+        // Setup real HTTP client for integration tests
+        var httpClientFactoryMock = new Mock<IHttpClientFactory>();
+        httpClientFactoryMock
+            .Setup(f => f.CreateClient(It.IsAny<string>()))
+            .Returns(new HttpClient());
+
+        // Mock car service - will be configured per test
+        _carServiceMock = new Mock<ICarRouteService>();
+
+        var options = Microsoft.Extensions.Options.Options.Create(new TransitousOptions
+        {
+            Title = "Transitous",
+            BaseUrl = "https://api.transitous.org"
+        });
+
+        var loggerMock = new Mock<ILogger<TrainTransitousService>>();
+
+        _service = new TrainTransitousService(
+            httpClientFactoryMock.Object,
+            _carServiceMock.Object,
+            options,
+            loggerMock.Object);
+    }
+
     /// <summary>
     /// Given: Real Transitous API and real coordinates (Berlin to Munich)
     /// When: Calling CalculateRoutesAsync
@@ -42,15 +71,7 @@ public class TrainTransitousServiceIntegrationTests
             }
         };
 
-        // Create real HTTP client factory
-        var httpClientFactoryMock = new Mock<IHttpClientFactory>();
-        httpClientFactoryMock
-            .Setup(f => f.CreateClient(It.IsAny<string>()))
-            .Returns(new HttpClient());
-
-        // Mock car service to return fixed costs
-        var carServiceMock = new Mock<ICarRouteService>();
-        carServiceMock
+        _carServiceMock
             .Setup(s => s.CalculateRoutesAsync(places, originLat, originLon))
             .ReturnsAsync(new List<CarRouteResult>
             {
@@ -63,22 +84,8 @@ public class TrainTransitousServiceIntegrationTests
                 }
             });
 
-        var options = Microsoft.Extensions.Options.Options.Create(new TransitousOptions
-        {
-            Title = "Transitous",
-            BaseUrl = "https://api.transitous.org"
-        });
-
-        var loggerMock = new Mock<ILogger<TrainTransitousService>>();
-
-        var service = new TrainTransitousService(
-            httpClientFactoryMock.Object,
-            carServiceMock.Object,
-            options,
-            loggerMock.Object);
-
         // Act
-        var results = (await service.CalculateRoutesAsync(places, originLat, originLon)).ToList();
+        var results = (await _service.CalculateRoutesAsync(places, originLat, originLon)).ToList();
 
         // Assert
         await Assert.That(results.Count).IsEqualTo(1);
@@ -120,13 +127,7 @@ public class TrainTransitousServiceIntegrationTests
             }
         };
 
-        var httpClientFactoryMock = new Mock<IHttpClientFactory>();
-        httpClientFactoryMock
-            .Setup(f => f.CreateClient(It.IsAny<string>()))
-            .Returns(new HttpClient());
-
-        var carServiceMock = new Mock<ICarRouteService>();
-        carServiceMock
+        _carServiceMock
             .Setup(s => s.CalculateRoutesAsync(places, originLat, originLon))
             .ReturnsAsync(new List<CarRouteResult>
             {
@@ -139,22 +140,8 @@ public class TrainTransitousServiceIntegrationTests
                 }
             });
 
-        var options = Microsoft.Extensions.Options.Options.Create(new TransitousOptions
-        {
-            Title = "Transitous",
-            BaseUrl = "https://api.transitous.org"
-        });
-
-        var loggerMock = new Mock<ILogger<TrainTransitousService>>();
-
-        var service = new TrainTransitousService(
-            httpClientFactoryMock.Object,
-            carServiceMock.Object,
-            options,
-            loggerMock.Object);
-
         // Act
-        var results = (await service.CalculateRoutesAsync(places, originLat, originLon)).ToList();
+        var results = (await _service.CalculateRoutesAsync(places, originLat, originLon)).ToList();
 
         // Assert
         await Assert.That(results.Count).IsEqualTo(1);
