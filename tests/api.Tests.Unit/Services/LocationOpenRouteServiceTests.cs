@@ -101,7 +101,7 @@ public class LocationOpenRouteServiceTests
             {
                 Geometry = new OpenRouteServiceGeocodeResponse.Geometry
                 {
-                    Coordinates = new[] { 13.404954, 52.520008 }
+                    Coordinates = [13.404954, 52.520008]
                 },
                 Properties = new OpenRouteServiceGeocodeResponse.Properties
                 {

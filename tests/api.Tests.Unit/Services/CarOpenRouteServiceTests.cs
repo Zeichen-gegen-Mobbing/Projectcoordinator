@@ -78,6 +78,7 @@ public class CarOpenRouteServiceTests
             Latitude = 52.5200,
             Longitude = 13.4050
         };
+
         /// <summary>
         /// Given: A valid list of places and origin coordinates
         /// When: OpenRouteService returns successful response with durations and distances
@@ -95,8 +96,8 @@ public class CarOpenRouteServiceTests
 
             SetupHttpResponse(HttpStatusCode.OK, new
             {
-                durations = new[] { new[] { 600.0 }, new[] { 900.0 } },
-                distances = new[] { new[] { 5000.0 }, new[] { 10000.0 } }
+                durations = new double[][] { [600.0], [900.0] },
+                distances = new double[][] { [5000.0], [10000.0] }
             });
 
 
