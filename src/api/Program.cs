@@ -31,6 +31,11 @@ var host = new HostBuilder()
             configuration.GetSection(settings.Title).Bind(settings);
         }).ValidateDataAnnotations();
 
+        services.AddOptionsWithValidateOnStart<TransitousOptions>().Configure<IConfiguration>((settings, configuration) =>
+        {
+            configuration.GetSection(settings.Title).Bind(settings);
+        }).ValidateDataAnnotations();
+
         services.AddOptionsWithValidateOnStart<AuthenticationOptions>().Configure<IConfiguration>((settings, configuration) =>
         {
             configuration.GetSection(AuthenticationOptions.Title).Bind(settings);
@@ -60,7 +65,9 @@ var host = new HostBuilder()
 
         services.AddScoped<IPlaceRepository, PlaceRepository>();
         services.AddScoped<IPlaceService, PlaceCosmosService>();
-        services.AddScoped<ITripService, TripOpenRouteService>();
+        services.AddScoped<ICarRouteService, CarOpenRouteService>();
+        services.AddScoped<ITrainRouteService, TrainTransitousService>();
+        services.AddScoped<ITripService, TripOrchestrationService>();
         services.AddScoped<ILocationService, LocationOpenRouteService>();
         services.AddScoped<AuthorizationHeaderMiddleware>();
         services.AddProblemDetails();

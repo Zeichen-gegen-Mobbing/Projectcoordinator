@@ -224,6 +224,52 @@ Located in `.github/workflows/`:
 - Use `// Arrange`, `// Act`, `// Assert` comments to clearly separate test phases
 - Keep setup code minimal and focused on the test scenario
 - Extract common setup to helper methods or base classes when appropriate
+- **Constructor Pattern for Shared Setup**: Initialize shared dependencies in the constructor to avoid duplication
+  ```csharp
+  public class MyServiceTests
+  {
+      private readonly MyService _service;
+      private readonly Mock<IDependency> _dependencyMock;
+
+      public MyServiceTests()
+      {
+          // Setup shared dependencies once
+          _dependencyMock = new Mock<IDependency>();
+          
+          var options = Options.Create(new MyOptions { /* config */ });
+          
+          _service = new MyService(_dependencyMock.Object, options);
+      }
+
+      [Test]
+      public async Task TestMethod()
+      {
+          // Arrange - Configure mocks specific to this test
+          _dependencyMock.Setup(d => d.Method()).Returns(value);
+          
+          // Act
+          var result = await _service.CallMethod();
+          
+          // Assert
+          await Assert.That(result).IsEqualTo(expected);
+      }
+  }
+  ```
+- **Benefits**: Reduces code duplication, makes tests more maintainable, clearly separates shared setup from test-specific setup
+- **Apply to both unit and integration tests**: Use this pattern whenever multiple tests share the same service initialization
+
+**Integration Tests**:
+- **Project Naming**: `<ProjectName>.Tests.Integration` (e.g., `api.Tests.Integration`)
+- **Location**: `tests/<ProjectName>.Tests.Integration/` directory
+- **Use real dependencies**: Integration tests should use real HttpClient, real database connections, etc.
+- Example:
+  ```csharp
+  public MyServiceIntegrationTests()
+  {
+      var httpClient = new HttpClient(); // Real HTTP client, not mocked
+      _service = new MyService(httpClient, options);
+  }
+  ```
 
 ### Validation Steps for Changes
 **Before submitting PRs, always:**
@@ -252,6 +298,37 @@ Located in `.github/workflows/`:
 - **Secrets**: Use Azure Key Vault for production (see `infrastructure/keyvault.tf`)
 - **Local Development**: Store in `local.settings.json` (API) and `appsettings.json` (Frontend)
 - **Environment Switching**: Conditional compilation for debug vs release builds
+
+### Type Selection Guidelines
+
+**Structs** (Value Types):
+- Use for small, immutable data types (< 16 bytes recommended)
+- Data that is frequently copied or passed by value
+- Examples: coordinates, small DTOs, primitives wrappers
+- **Key characteristics**: Stack-allocated, passed by value, no inheritance
+
+**Immutable Records** (Reference Types - PREFERRED for DTOs):
+- Use for data transfer objects (DTOs), API models, response/request models
+- Data that should not change after creation
+- When value-based equality is desired
+- Examples: API responses, configuration options, domain events
+- **Syntax**: `public sealed record MyRecord(string Property);` or with `{ get; init; }`
+- **Key characteristics**: Reference type, immutable, value-based equality, concise syntax
+
+**Mutable Records** (Reference Types):
+- Use sparingly - only when you need record features but require mutation
+- Temporary data structures that need modification
+- **Syntax**: `public record MyRecord { get; set; }`
+- **Key characteristics**: Reference type, mutable, value-based equality
+- **Warning**: Prefer immutable records when possible for thread safety
+
+**Classes** (Reference Types):
+- Use for complex domain entities with behavior
+- Objects with mutable state and lifecycle management
+- When inheritance is needed
+- Examples: services, repositories, domain entities, controllers
+- **Key characteristics**: Reference type, supports inheritance, identity-based equality by default
+
 
 ## Common Issues and Workarounds
 

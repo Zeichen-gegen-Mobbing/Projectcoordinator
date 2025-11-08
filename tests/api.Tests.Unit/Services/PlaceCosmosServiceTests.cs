@@ -102,7 +102,8 @@ public class PlaceCosmosServiceTests
                 UserId = UserId.Parse("00000000-0000-0000-0000-000000000001"),
                 Name = "New Place",
                 Latitude = 52.5200,
-                Longitude = 13.4050
+                Longitude = 13.4050,
+                TransportMode = TransportMode.Car
             };
 
             var addedEntity = new PlaceEntity

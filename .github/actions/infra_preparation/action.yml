@@ -23,14 +23,20 @@ runs:
     run: cp infrastructure/backend.tf.disabled infrastructure/backend.tf
     shell: bash
   - name: Configure Backend
+    env:
+      CLIENT_ID: ${{ inputs.client-id }}
+      TENANT_ID: ${{ inputs.tenant-id }}
+      SUBSCRIPTION_ID: ${{ inputs.subscription-id }}
     run: |
-      echo "ARM_CLIENT_ID=${{ inputs.client-id }}" >> $GITHUB_ENV
-      echo "ARM_TENANT_ID=${{ inputs.tenant-id }}" >> $GITHUB_ENV
-      echo "ARM_SUBSCRIPTION_ID=${{ inputs.subscription-id }}" >> $GITHUB_ENV
+      echo "ARM_CLIENT_ID=$CLIENT_ID" >> $GITHUB_ENV
+      echo "ARM_TENANT_ID=$TENANT_ID" >> $GITHUB_ENV
+      echo "ARM_SUBSCRIPTION_ID=$SUBSCRIPTION_ID" >> $GITHUB_ENV
       echo "ARM_USE_AZUREAD=true" >> $GITHUB_ENV
       echo "ARM_USE_OIDC=true" >> $GITHUB_ENV
     shell: bash
 
   - name: Configure OpenTofu
-    run: echo "OPENTOFU_VERSION=${{ inputs.version }}" >> $GITHUB_ENV
+    env:
+      TOFU_VERSION: ${{ inputs.version }}
+    run: echo "OPENTOFU_VERSION=$TOFU_VERSION" >> $GITHUB_ENV
     shell: bash

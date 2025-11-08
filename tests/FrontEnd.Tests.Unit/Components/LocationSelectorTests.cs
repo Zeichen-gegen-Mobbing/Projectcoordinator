@@ -33,7 +33,7 @@ public class LocationSelectorTests : Bunit.TestContext
 			// Act
 			var cut = RenderComponent<LocationSelector>(parameters => parameters
 				.Add(p => p.OnLocationSelected, OnLocationSelected)
-				.Add(p => p.Disabled, false));
+				.Add(p => p.DisableSearch, false).Add(p => p.DisableSelect, false));
 
 			// Assert
 			var searchInput = cut.Find("input[placeholder='Enter address or place name']");
@@ -50,7 +50,7 @@ public class LocationSelectorTests : Bunit.TestContext
 			// Act
 			var cut = RenderComponent<LocationSelector>(parameters => parameters
 				.Add(p => p.OnLocationSelected, OnLocationSelected)
-				.Add(p => p.Disabled, true));
+				.Add(p => p.DisableSearch, true).Add(p => p.DisableSelect, true));
 
 			// Assert
 			var searchButton = cut.Find("button[type='submit']");
@@ -73,7 +73,7 @@ public class LocationSelectorTests : Bunit.TestContext
 
 			var cut = RenderComponent<LocationSelector>(parameters => parameters
 				.Add(p => p.OnLocationSelected, OnLocationSelected)
-				.Add(p => p.Disabled, false)
+				.Add(p => p.DisableSearch, false).Add(p => p.DisableSelect, false)
 				.Add(p => p.OnSearchStarted, OnSearchStarted));
 
 			// Act
@@ -98,7 +98,7 @@ public class LocationSelectorTests : Bunit.TestContext
 
 			var cut = RenderComponent<LocationSelector>(parameters => parameters
 				.Add(p => p.OnLocationSelected, OnLocationSelected)
-				.Add(p => p.Disabled, false));
+				.Add(p => p.DisableSearch, false).Add(p => p.DisableSelect, false));
 			// OnSearchStarted not provided
 
 			// Act
@@ -129,7 +129,7 @@ public class LocationSelectorTests : Bunit.TestContext
 
 			var cut = RenderComponent<LocationSelector>(parameters => parameters
 				.Add(p => p.OnLocationSelected, OnLocationSelected)
-				.Add(p => p.Disabled, false));
+				.Add(p => p.DisableSearch, false).Add(p => p.DisableSelect, false));
 
 			// Act
 			var searchInput = cut.Find("input[placeholder='Enter address or place name']");
@@ -160,7 +160,7 @@ public class LocationSelectorTests : Bunit.TestContext
 
 			var cut = RenderComponent<LocationSelector>(parameters => parameters
 				.Add(p => p.OnLocationSelected, OnLocationSelected)
-				.Add(p => p.Disabled, false));
+				.Add(p => p.DisableSearch, false).Add(p => p.DisableSelect, false));
 
 			// Act
 			var searchInput = cut.Find("input[placeholder='Enter address or place name']");
@@ -184,7 +184,7 @@ public class LocationSelectorTests : Bunit.TestContext
 
 			var cut = RenderComponent<LocationSelector>(parameters => parameters
 				.Add(p => p.OnLocationSelected, OnLocationSelected)
-				.Add(p => p.Disabled, false));
+				.Add(p => p.DisableSearch, false).Add(p => p.DisableSelect, false));
 
 			// Act
 			var searchInput = cut.Find("input[placeholder='Enter address or place name']");
@@ -221,7 +221,7 @@ public class LocationSelectorTests : Bunit.TestContext
 
 			var cut = RenderComponent<LocationSelector>(parameters => parameters
 				.Add(p => p.OnLocationSelected, OnLocationSelected)
-				.Add(p => p.Disabled, false));
+				.Add(p => p.DisableSearch, false).Add(p => p.DisableSelect, false));
 
 			// Act - First search and select
 			var searchInput = cut.Find("input[placeholder='Enter address or place name']");
@@ -269,7 +269,7 @@ public class LocationSelectorTests : Bunit.TestContext
 
 			var cut = RenderComponent<LocationSelector>(parameters => parameters
 				.Add(p => p.OnLocationSelected, OnLocationSelected)
-				.Add(p => p.Disabled, false));
+				.Add(p => p.DisableSearch, false).Add(p => p.DisableSelect, false));
 
 			// Search first
 			var searchInput = cut.Find("input[placeholder='Enter address or place name']");
@@ -304,7 +304,7 @@ public class LocationSelectorTests : Bunit.TestContext
 
 			var cut = RenderComponent<LocationSelector>(parameters => parameters
 				.Add(p => p.OnLocationSelected, OnLocationSelected)
-				.Add(p => p.Disabled, false));
+				.Add(p => p.DisableSearch, false).Add(p => p.DisableSelect, false));
 
 			var searchInput = cut.Find("input[placeholder='Enter address or place name']");
 			searchInput.Change("Berlin");
@@ -337,7 +337,7 @@ public class LocationSelectorTests : Bunit.TestContext
 
 			var cut = RenderComponent<LocationSelector>(parameters => parameters
 				.Add(p => p.OnLocationSelected, OnLocationSelected)
-				.Add(p => p.Disabled, false));
+				.Add(p => p.DisableSearch, false).Add(p => p.DisableSelect, false));
 
 			var searchInput = cut.Find("input[placeholder='Enter address or place name']");
 			searchInput.Change("Berlin");
@@ -374,7 +374,7 @@ public class LocationSelectorTests : Bunit.TestContext
 
 			var cut = RenderComponent<LocationSelector>(parameters => parameters
 				.Add(p => p.OnLocationSelected, OnLocationSelected)
-				.Add(p => p.Disabled, false));
+				.Add(p => p.DisableSearch, false).Add(p => p.DisableSelect, false));
 
 			var searchInput = cut.Find("input[placeholder='Enter address or place name']");
 			searchInput.Change("Berlin");
@@ -411,7 +411,7 @@ public class LocationSelectorTests : Bunit.TestContext
 
 			var cut = RenderComponent<LocationSelector>(parameters => parameters
 				.Add(p => p.OnLocationSelected, OnLocationSelected)
-				.Add(p => p.Disabled, false));
+				.Add(p => p.DisableSearch, false).Add(p => p.DisableSelect, false));
 
 			var searchInput = cut.Find("input[placeholder='Enter address or place name']");
 			searchInput.Change("Berlin");
@@ -457,7 +457,7 @@ public class LocationSelectorTests : Bunit.TestContext
 
 			var cut = RenderComponent<LocationSelector>(parameters => parameters
 				.Add(p => p.OnLocationSelected, OnLocationSelected)
-				.Add(p => p.Disabled, false));
+				.Add(p => p.DisableSearch, false).Add(p => p.DisableSelect, false));
 
 			var searchInput = cut.Find("input[placeholder='Enter address or place name']");
 			searchInput.Change("Berlin");
@@ -497,7 +497,7 @@ public class LocationSelectorTests : Bunit.TestContext
 
 			var cut = RenderComponent<LocationSelector>(parameters => parameters
 				.Add(p => p.OnLocationSelected, OnLocationSelected)
-				.Add(p => p.Disabled, false));
+				.Add(p => p.DisableSearch, false).Add(p => p.DisableSelect, false));
 
 			var searchInput = cut.Find("input[placeholder='Enter address or place name']");
 			searchInput.Change("Berlin");
@@ -530,3 +530,4 @@ public class LocationSelectorTests : Bunit.TestContext
 		}
 	}
 }
+
