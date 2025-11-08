@@ -137,7 +137,9 @@ namespace api.Services
                     return [0];
                 }
 
-                return result.Direct.Concat(result.Itineraries).Select(i => i.Duration);
+                // Skip some of the longest durations to reduce impact of outliers
+                int skip = (result.Direct.Count + result.Itineraries.Count) / 5;
+                return result.Direct.Concat(result.Itineraries).Select(i => i.Duration).Order().SkipLast(skip);
             }
             catch (Exception ex)
             {
