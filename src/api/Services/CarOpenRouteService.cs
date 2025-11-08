@@ -74,7 +74,7 @@ namespace api.Services
                 {
                     var durationSeconds = result.Durations[index].Single();
                     var distanceMeters = result.Distances[index].Single();
-                    var costCents = (ushort)(Math.Ceiling(distanceMeters / 1000) * 30);
+                    var costCents = (ushort)(Math.Ceiling(distanceMeters / 1000) * 25);
 
                     return new CarRouteResult
                     {
