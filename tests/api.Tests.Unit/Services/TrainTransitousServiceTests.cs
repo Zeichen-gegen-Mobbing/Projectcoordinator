@@ -22,6 +22,10 @@ public class TrainTransitousServiceTests
         private readonly Mock<ICarRouteService> carServiceMock;
         private readonly Mock<ILogger<TrainTransitousService>> loggerMock;
         private readonly TrainTransitousService service;
+        private readonly JsonSerializerOptions _jsonOptions = new()
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
 
         public CalculateRoutesAsync()
         {
@@ -47,10 +51,7 @@ public class TrainTransitousServiceTests
 
         private void SetupHttpResponse<T>(HttpStatusCode statusCode, T response)
         {
-            var json = JsonSerializer.Serialize(response, new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-            });
+            var json = JsonSerializer.Serialize(response, _jsonOptions);
             SetupHttpResponse(statusCode, json);
         }
 
@@ -345,7 +346,7 @@ public class TrainTransitousServiceTests
                             new { duration = 800 }
                         },
                         direct = Array.Empty<object>()
-                    }, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }))
+                    }, _jsonOptions))
                 });
 
 
