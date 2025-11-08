@@ -58,7 +58,7 @@ namespace api.Services
 
             var carCosts = carRouteService.CalculateRoutesAsync(places, originLatitude, originLongitude).ContinueWith(r => r.Result.ToDictionary(r => r.PlaceId, r => r.CostCents));
 
-            var departureTime = GetNextWeekdayAtNoon();
+            var departureTime = GetNextWeekdayStartTime();
 
             var routeTasks = places.Select(async place =>
             {
@@ -165,10 +165,10 @@ namespace api.Services
             }
         }
 
-        private static DateTimeOffset GetNextWeekdayAtNoon()
+        private static DateTimeOffset GetNextWeekdayStartTime()
         {
             var now = DateTimeOffset.UtcNow;
-            var candidate = new DateTimeOffset(now.Year, now.Month, now.Day, 12, 0, 0, TimeSpan.Zero);
+            var candidate = new DateTimeOffset(now.Year, now.Month, now.Day, 10, 0, 0, TimeSpan.Zero);
 
             if (candidate <= now)
             {
