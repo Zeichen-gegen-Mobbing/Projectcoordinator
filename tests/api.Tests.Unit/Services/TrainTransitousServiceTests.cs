@@ -132,7 +132,7 @@ public class TrainTransitousServiceTests
         /// <summary>
         /// Given: Transitous API returns multiple itineraries
         /// When: Calling CalculateRoutesAsync
-        /// Then: Returns average duration of all itineraries for each direction, then averages both directions
+        /// Then: Returns average duration of all itineraries
         /// </summary>
         [Test]
         public async Task UsesAverageOfAllItineraries_WhenMultipleItinerariesReturned()
@@ -152,10 +152,6 @@ public class TrainTransitousServiceTests
                 .Setup(s => s.CalculateRoutesAsync(places, 52.5100, 13.4000))
                 .ReturnsAsync(carResults);
 
-            // Return multiple itineraries with different durations
-            // First call (outbound): 600, 800, 1000 -> average = 800
-            // Second call (return): 700, 900, 1100 -> average = 900
-            // Overall average: (800 + 900) / 2 = 850
             SetupHttpResponse(HttpStatusCode.OK, new
             {
                 itineraries = new[]
@@ -174,8 +170,55 @@ public class TrainTransitousServiceTests
             await Assert.That(results.Count).IsEqualTo(1);
             var result = results.Single();
 
-            // Average of outbound (600, 800, 1000 = avg 800) and return (same response = avg 800) = 800
             await Assert.That(result.DurationSeconds).IsEqualTo((uint)800);
+            await Assert.That(result.CostCents).IsEqualTo((uint)150);
+        }
+
+        /// <summary>
+        /// Given: Transitous API returns more than 5 itineraries
+        /// When: Calling CalculateRoutesAsync
+        /// Then: Returns average duration of all itineraries excluding the longest 20%
+        /// </summary>
+        [Test]
+        public async Task ExcludesLongest20Percent_WhenMultipleItinerariesReturned()
+        {
+            // Arrange
+            var places = new List<PlaceEntity>
+            {
+                CreatePlace("place1", "Home")
+            };
+
+            var carResults = new List<CarRouteResult>
+            {
+                new() { PlaceId = PlaceId.Parse("place1"), CostCents = 150, DurationSeconds = 600, DistanceMeters = 5000 }
+            };
+
+            carServiceMock
+                .Setup(s => s.CalculateRoutesAsync(places, 52.5100, 13.4000))
+                .ReturnsAsync(carResults);
+
+            SetupHttpResponse(HttpStatusCode.OK, new
+            {
+                itineraries = new[]
+                {
+                    new { duration = 2 },
+                    new { duration = 3 },
+                    new { duration = 5 },
+                    new { duration = 7 },
+                    new { duration = 11 },
+                    new { duration = 13 },
+                },
+                direct = Array.Empty<object>()
+            });
+
+            // Act
+            var results = (await service.CalculateRoutesAsync(places, 52.5100, 13.4000)).ToList();
+
+            // Assert
+            await Assert.That(results.Count).IsEqualTo(1);
+            var result = results.Single();
+
+            await Assert.That(result.DurationSeconds).IsEqualTo((uint)5);
             await Assert.That(result.CostCents).IsEqualTo((uint)150);
         }
 
@@ -203,21 +246,17 @@ public class TrainTransitousServiceTests
                 .Setup(s => s.CalculateRoutesAsync(places, 52.5100, 13.4000))
                 .ReturnsAsync(carResults);
 
-            // Return both itineraries and direct routes
-            // Itineraries: 1000, 1200 -> average = 1100
-            // Direct: 500, 700 -> average = 600
-            // Should return 600 (lower average)
             SetupHttpResponse(HttpStatusCode.OK, new
             {
                 itineraries = new[]
                 {
-                    new { duration = 1000 },
-                    new { duration = 1200 }
+                    new { duration = 2 },
+                    new { duration = 3 }
                 },
                 direct = new[]
                 {
-                    new { duration = 500 },
-                    new { duration = 700 }
+                    new { duration = 5 },
+                    new { duration = 7 }
                 }
             });
 
@@ -228,8 +267,7 @@ public class TrainTransitousServiceTests
             await Assert.That(results.Count).IsEqualTo(1);
             var result = results.Single();
 
-            // Should return average of direct (600) since it's lower than itineraries (1100)
-            await Assert.That(result.DurationSeconds).IsEqualTo((uint)600);
+            await Assert.That(result.DurationSeconds).IsEqualTo((uint)4);
             await Assert.That(result.CostCents).IsEqualTo((uint)150);
         }
 

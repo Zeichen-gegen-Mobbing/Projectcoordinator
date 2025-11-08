@@ -80,13 +80,13 @@ namespace api.Services
                     var outbound = await outboundTask;
                     var returnTrip = await returnTripTask;
 
-                    var averageDuration = outbound.Concat(returnTrip).Average(d => d);
+                    var averageDuration = (uint)Math.Floor(outbound.Concat(returnTrip).Average(d => d));
                     var costCents = (await carCosts).TryGetValue(place.Id, out var cost) ? cost : 0;
 
                     return new TrainRouteResult
                     {
                         PlaceId = place.Id,
-                        DurationSeconds = averageDuration > uint.MaxValue ? uint.MaxValue : (uint)averageDuration,
+                        DurationSeconds = averageDuration,
                         CostCents = costCents
                     };
                 }
