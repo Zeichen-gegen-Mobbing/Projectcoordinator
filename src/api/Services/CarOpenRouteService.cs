@@ -34,20 +34,19 @@ namespace api.Services
         }
 
         public async Task<IEnumerable<CarRouteResult>> CalculateRoutesAsync(
-            IEnumerable<PlaceEntity> places,
+            IList<PlaceEntity> places,
             double originLatitude,
             double originLongitude)
         {
-            if (!places.Any())
+            if (places.Count == 0)
             {
-                return Enumerable.Empty<CarRouteResult>();
+                return [];
             }
 
             var response = await client.PostAsJsonAsync("v2/matrix/driving-car", new
             {
                 locations = places.Select(place => new[] { place.Longitude, place.Latitude })
-                    .Append([originLongitude, originLatitude])
-                    .ToArray(),
+                    .Append([originLongitude, originLatitude]),
                 destinations = Enumerable.Range(places.Count(), 1),
                 sources = Enumerable.Range(0, places.Count()),
                 metrics = _metrics

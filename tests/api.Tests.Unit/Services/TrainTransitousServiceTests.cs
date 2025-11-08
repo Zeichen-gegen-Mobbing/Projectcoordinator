@@ -241,7 +241,7 @@ public class TrainTransitousServiceTests
         public async Task ReturnsEmpty_WhenNoPlacesProvided()
         {
             // Arrange
-            var places = Enumerable.Empty<PlaceEntity>();
+            List<PlaceEntity> places = [];
 
             carServiceMock
                 .Setup(s => s.CalculateRoutesAsync(places, 52.5100, 13.4000))

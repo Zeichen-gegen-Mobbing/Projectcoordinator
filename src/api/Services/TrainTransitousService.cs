@@ -47,11 +47,11 @@ namespace api.Services
         }
 
         public async Task<IEnumerable<TrainRouteResult>> CalculateRoutesAsync(
-            IEnumerable<PlaceEntity> places,
+            IList<PlaceEntity> places,
             double originLatitude,
             double originLongitude)
         {
-            if (!places.Any())
+            if (places.Count == 0)
             {
                 return [];
             }

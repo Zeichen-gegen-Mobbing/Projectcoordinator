@@ -31,13 +31,6 @@ public class TripOrchestrationServiceTests
             CostCents = cost
         };
 
-        private static TrainRouteResult CreateTrainResult(string placeId, double duration, uint cost) => new()
-        {
-            PlaceId = PlaceId.Parse(placeId),
-            DurationSeconds = (uint)Math.Ceiling(duration),
-            CostCents = cost
-        };
-
         /// <summary>
         /// Given: All places have Car transport mode
         /// When: Getting all trips
@@ -59,14 +52,14 @@ public class TripOrchestrationServiceTests
                 CreateCarResult("place2", 900, 10000, 300)
             };
 
-            var (service, carServiceMock, trainServiceMock, _) = CreateService(places, carResults);
+            var (service, _, trainServiceMock, _) = CreateService(places, carResults);
 
             // Act
             var trips = (await service.GetAllTripsAsync(52.5100, 13.4000)).ToList();
 
             // Assert
             await Assert.That(trips.Count).IsEqualTo(2);
-            
+
             var trip1 = trips.First(t => t.Place.Id == places[0].Id);
             await Assert.That(trip1.Time).IsEqualTo(TimeSpan.FromSeconds(600));
             await Assert.That(trip1.Cost).IsEqualTo((ushort)150);
@@ -79,7 +72,7 @@ public class TripOrchestrationServiceTests
             // Verify train service was not called
             trainServiceMock.Verify(
                 s => s.CalculateRoutesAsync(
-                    It.IsAny<IEnumerable<PlaceEntity>>(),
+                    It.IsAny<IList<PlaceEntity>>(),
                     It.IsAny<double>(),
                     It.IsAny<double>()),
                 Times.Never);
@@ -136,14 +129,14 @@ public class TripOrchestrationServiceTests
             // Verify only train service was called by orchestrator (train service calls car service internally)
             carServiceMock.Verify(
                 s => s.CalculateRoutesAsync(
-                    It.IsAny<IEnumerable<PlaceEntity>>(),
+                    It.IsAny<IList<PlaceEntity>>(),
                     It.IsAny<double>(),
                     It.IsAny<double>()),
                 Times.Never);
 
             trainServiceMock.Verify(
                 s => s.CalculateRoutesAsync(
-                    It.IsAny<IEnumerable<PlaceEntity>>(),
+                    It.IsAny<IList<PlaceEntity>>(),
                     52.5100,
                     13.4000),
                 Times.Once);
@@ -235,14 +228,14 @@ public class TripOrchestrationServiceTests
             // Verify no services were called
             carServiceMock.Verify(
                 s => s.CalculateRoutesAsync(
-                    It.IsAny<IEnumerable<PlaceEntity>>(),
+                    It.IsAny<IList<PlaceEntity>>(),
                     It.IsAny<double>(),
                     It.IsAny<double>()),
                 Times.Never);
 
             trainServiceMock.Verify(
                 s => s.CalculateRoutesAsync(
-                    It.IsAny<IEnumerable<PlaceEntity>>(),
+                    It.IsAny<IList<PlaceEntity>>(),
                     It.IsAny<double>(),
                     It.IsAny<double>()),
                 Times.Never);
@@ -293,7 +286,7 @@ public class TripOrchestrationServiceTests
             var carServiceMock = new Mock<ICarRouteService>();
             carServiceMock
                 .Setup(s => s.CalculateRoutesAsync(
-                    It.IsAny<IEnumerable<PlaceEntity>>(),
+                    It.IsAny<IList<PlaceEntity>>(),
                     It.IsAny<double>(),
                     It.IsAny<double>()))
                 .Returns(async () =>
@@ -306,7 +299,7 @@ public class TripOrchestrationServiceTests
             var trainServiceMock = new Mock<ITrainRouteService>();
             trainServiceMock
                 .Setup(s => s.CalculateRoutesAsync(
-                    It.IsAny<IEnumerable<PlaceEntity>>(),
+                    It.IsAny<IList<PlaceEntity>>(),
                     It.IsAny<double>(),
                     It.IsAny<double>()))
                 .Returns(async () =>
@@ -316,12 +309,10 @@ public class TripOrchestrationServiceTests
                     return trainResults;
                 });
 
-            var loggerMock = new Mock<ILogger<TripOrchestrationService>>();
             var service = new TripOrchestrationService(
                 repositoryMock.Object,
                 carServiceMock.Object,
-                trainServiceMock.Object,
-                loggerMock.Object);
+                trainServiceMock.Object);
 
             // Act
             await service.GetAllTripsAsync(52.5100, 13.4000);
@@ -353,19 +344,17 @@ public class TripOrchestrationServiceTests
             var carServiceMock = new Mock<ICarRouteService>();
             carServiceMock
                 .Setup(s => s.CalculateRoutesAsync(
-                    It.IsAny<IEnumerable<PlaceEntity>>(),
+                    It.IsAny<IList<PlaceEntity>>(),
                     It.IsAny<double>(),
                     It.IsAny<double>()))
                 .ThrowsAsync(new InvalidOperationException("Car service failed"));
 
             var trainServiceMock = new Mock<ITrainRouteService>();
-            var loggerMock = new Mock<ILogger<TripOrchestrationService>>();
 
             var service = new TripOrchestrationService(
                 repositoryMock.Object,
                 carServiceMock.Object,
-                trainServiceMock.Object,
-                loggerMock.Object);
+                trainServiceMock.Object);
 
             // Act & Assert
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
@@ -405,7 +394,7 @@ public class TripOrchestrationServiceTests
             var carServiceMock = new Mock<ICarRouteService>();
             carServiceMock
                 .Setup(s => s.CalculateRoutesAsync(
-                    It.IsAny<IEnumerable<PlaceEntity>>(),
+                    It.IsAny<IList<PlaceEntity>>(),
                     It.IsAny<double>(),
                     It.IsAny<double>()))
                 .ReturnsAsync(carResults);
@@ -413,18 +402,15 @@ public class TripOrchestrationServiceTests
             var trainServiceMock = new Mock<ITrainRouteService>();
             trainServiceMock
                 .Setup(s => s.CalculateRoutesAsync(
-                    It.IsAny<IEnumerable<PlaceEntity>>(),
+                    It.IsAny<IList<PlaceEntity>>(),
                     It.IsAny<double>(),
                     It.IsAny<double>()))
                 .ThrowsAsync(new InvalidOperationException("Train service failed"));
 
-            var loggerMock = new Mock<ILogger<TripOrchestrationService>>();
-
             var service = new TripOrchestrationService(
                 repositoryMock.Object,
                 carServiceMock.Object,
-                trainServiceMock.Object,
-                loggerMock.Object);
+                trainServiceMock.Object);
 
             // Act & Assert
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
@@ -449,7 +435,7 @@ public class TripOrchestrationServiceTests
             var carServiceMock = new Mock<ICarRouteService>();
             carServiceMock
                 .Setup(s => s.CalculateRoutesAsync(
-                    It.IsAny<IEnumerable<PlaceEntity>>(),
+                    It.IsAny<IList<PlaceEntity>>(),
                     It.IsAny<double>(),
                     It.IsAny<double>()))
                 .ReturnsAsync(carResults);
@@ -459,19 +445,16 @@ public class TripOrchestrationServiceTests
             {
                 trainServiceMock
                     .Setup(s => s.CalculateRoutesAsync(
-                        It.IsAny<IEnumerable<PlaceEntity>>(),
+                        It.IsAny<IList<PlaceEntity>>(),
                         It.IsAny<double>(),
                         It.IsAny<double>()))
                     .ReturnsAsync(trainResults);
             }
 
-            var loggerMock = new Mock<ILogger<TripOrchestrationService>>();
-
             var service = new TripOrchestrationService(
                 repositoryMock.Object,
                 carServiceMock.Object,
-                trainServiceMock.Object,
-                loggerMock.Object);
+                trainServiceMock.Object);
 
             return (service, carServiceMock, trainServiceMock, repositoryMock);
         }

@@ -150,7 +150,7 @@ public class CarOpenRouteServiceTests
         public async Task ReturnsEmpty_WhenNoPlacesProvided()
         {
             // Arrange
-            var places = Enumerable.Empty<PlaceEntity>();
+            List<PlaceEntity> places = [];
             SetupHttpResponse(HttpStatusCode.OK, "{}");
 
 

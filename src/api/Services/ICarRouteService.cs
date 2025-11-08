@@ -18,7 +18,7 @@ namespace api.Services
         /// <param name="originLongitude">Starting point longitude</param>
         /// <returns>Route results including time, distance, and cost</returns>
         Task<IEnumerable<CarRouteResult>> CalculateRoutesAsync(
-            IEnumerable<PlaceEntity> places,
+            IList<PlaceEntity> places,
             double originLatitude,
             double originLongitude);
     }
