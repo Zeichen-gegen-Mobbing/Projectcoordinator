@@ -133,7 +133,7 @@ namespace api.Services
                     return 0;
                 }
 
-                return result.Itineraries.First().Duration;
+                return result.Itineraries.Average(i => i.Duration);
             }
             catch (Exception ex)
             {

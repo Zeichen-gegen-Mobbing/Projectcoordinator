@@ -128,6 +128,55 @@ public class TrainTransitousServiceTests
         }
 
         /// <summary>
+        /// Given: Transitous API returns multiple itineraries
+        /// When: Calling CalculateRoutesAsync
+        /// Then: Returns average duration of all itineraries for each direction, then averages both directions
+        /// </summary>
+        [Test]
+        public async Task UsesAverageOfAllItineraries_WhenMultipleItinerariesReturned()
+        {
+            // Arrange
+            var places = new List<PlaceEntity>
+            {
+                CreatePlace("place1", "Home")
+            };
+
+            var carResults = new List<CarRouteResult>
+            {
+                new() { PlaceId = PlaceId.Parse("place1"), CostCents = 150, DurationSeconds = 600, DistanceMeters = 5000 }
+            };
+
+            carServiceMock
+                .Setup(s => s.CalculateRoutesAsync(places, 52.5100, 13.4000))
+                .ReturnsAsync(carResults);
+
+            // Return multiple itineraries with different durations
+            // First call (outbound): 600, 800, 1000 -> average = 800
+            // Second call (return): 700, 900, 1100 -> average = 900
+            // Overall average: (800 + 900) / 2 = 850
+            SetupHttpResponse(HttpStatusCode.OK, new
+            {
+                itineraries = new[]
+                {
+                    new { duration = 600.0 },
+                    new { duration = 800.0 },
+                    new { duration = 1000.0 }
+                }
+            });
+
+            // Act
+            var results = (await service.CalculateRoutesAsync(places, 52.5100, 13.4000)).ToList();
+
+            // Assert
+            await Assert.That(results.Count).IsEqualTo(1);
+            var result = results.Single();
+            
+            // Average of outbound (600, 800, 1000 = avg 800) and return (same response = avg 800) = 800
+            await Assert.That(result.DurationSeconds).IsEqualTo(800.0);
+            await Assert.That(result.CostCents).IsEqualTo((ushort)150);
+        }
+
+        /// <summary>
         /// Given: Empty list of places
         /// When: Calling CalculateRoutesAsync
         /// Then: Returns empty result set without calling APIs
