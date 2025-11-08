@@ -110,14 +110,39 @@ $ResponseHeader = $null
 $documents = Get-CosmosDbDocument -Context $cosmosDbContext -CollectionId $cosmosContainerId -MaxItemCount 1 -ResponseHeader ([ref] $ResponseHeader)
 if (-not $documents) {
     $userId = $([Guid]::NewGuid().ToString())
+    
+    # Place 1: Without TransportMode (defaults to Car)
     $document = @{
         id        = $([Guid]::NewGuid().ToString())
         userId    = $userId
-        name      = "Home"
-        latitude  = 52.5338
-        longitude = 13.3999
-
+        name      = "Berlin Office (Default)"
+        latitude  = 52.5200
+        longitude = 13.4050
     } | ConvertTo-Json
     $null = New-CosmosDbDocument -Context $cosmosDbContext -CollectionId $cosmosContainerId -DocumentBody $document -Encoding 'UTF-8' -PartitionKey $userId
+    
+    # Place 2: Explicit Car mode
+    $document = @{
+        id            = $([Guid]::NewGuid().ToString())
+        userId        = $userId
+        name          = "Berlin Office (Car)"
+        latitude      = 52.5200
+        longitude     = 13.4050
+        transportMode = 0  # Car
+    } | ConvertTo-Json
+    $null = New-CosmosDbDocument -Context $cosmosDbContext -CollectionId $cosmosContainerId -DocumentBody $document -Encoding 'UTF-8' -PartitionKey $userId
+    
+    # Place 3: Train mode
+    $document = @{
+        id            = $([Guid]::NewGuid().ToString())
+        userId        = $userId
+        name          = "Berlin Office (Train)"
+        latitude      = 52.5200
+        longitude     = 13.4050
+        transportMode = 1  # Train
+    } | ConvertTo-Json
+    $null = New-CosmosDbDocument -Context $cosmosDbContext -CollectionId $cosmosContainerId -DocumentBody $document -Encoding 'UTF-8' -PartitionKey $userId
+    
+    Write-Output "Created 3 test places for user $userId at Berlin coordinates with different transport modes."
 }
 #endregion
