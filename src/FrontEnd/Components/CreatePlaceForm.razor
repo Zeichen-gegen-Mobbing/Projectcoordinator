@@ -9,9 +9,18 @@
 </div>
 
 <div class="mb-3">
+    <label for="transportMode" class="form-label">Transport Mode</label>
+    <select class="form-select" id="transportMode" @bind="transportMode">
+        <option value="">-- Select Transport Mode --</option>
+        <option value="@TransportMode.Car">🚗 Car</option>
+        <option value="@TransportMode.Train">🚆 Train</option>
+    </select>
+</div>
+
+<div class="mb-3">
     <label class="form-label">Location</label>
-    <LocationSelector OnLocationSelected="CreatePlace" Disabled="@(!CanCreate)" SelectButtonText="Create"
-        SelectModalButtonText="Create" />
+    <LocationSelector OnLocationSelected="CreatePlace" DisableSelect="@(!CanCreate)" SelectButtonText="Create"
+        SelectModalButtonText="Create" ExternalErrorMessage="@errorMessage" />
 </div>
 
 @if (errorMessage != null)
@@ -32,9 +41,10 @@
     public EventCallback OnCancel { get; set; }
 
     private string placeName = "";
+    private TransportMode? transportMode = null;
     private string? errorMessage;
 
-    private bool CanCreate => !string.IsNullOrWhiteSpace(placeName);
+    private bool CanCreate => !string.IsNullOrWhiteSpace(placeName) && transportMode.HasValue;
 
     private async Task CreatePlace(LocationSearchResult result)
     {
@@ -50,9 +60,11 @@
             UserId,
             placeName,
             result.Latitude,
-            result.Longitude);
+            result.Longitude,
+            transportMode!.Value);
 
             placeName = "";
+            transportMode = null;
             await OnPlaceCreated.InvokeAsync(place);
         }
         catch (Exception ex)

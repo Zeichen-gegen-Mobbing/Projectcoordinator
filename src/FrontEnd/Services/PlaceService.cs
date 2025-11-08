@@ -18,13 +18,14 @@ namespace FrontEnd.Services
             response.EnsureSuccessStatusCode();
         }
 
-        public async Task<Place> CreatePlaceAsync(UserId userId, string name, double latitude, double longitude)
+        public async Task<Place> CreatePlaceAsync(UserId userId, string name, double latitude, double longitude, TransportMode transportMode)
         {
             var placeRequest = new PlaceRequest
             {
                 Name = name,
                 Latitude = latitude,
-                Longitude = longitude
+                Longitude = longitude,
+                TransportMode = transportMode
             };
 
             var response = await httpClient.PostAsJsonAsync($"/api/users/{userId.Value}/places", placeRequest);

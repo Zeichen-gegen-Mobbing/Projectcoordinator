@@ -183,7 +183,7 @@ public class PlaceServiceTests : IDisposable
             SetupMockResponse(expectedPlace, HttpStatusCode.Created);
 
             // Act
-            var result = await service.CreatePlaceAsync(userId, name, latitude, longitude);
+            var result = await service.CreatePlaceAsync(userId, name, latitude, longitude, TransportMode.Car);
 
             // Assert
             await Assert.That(result.Id).IsEqualTo(expectedPlace.Id);
@@ -224,7 +224,7 @@ public class PlaceServiceTests : IDisposable
                 });
 
             // Act
-            await service.CreatePlaceAsync(userId, name, latitude, longitude);
+            await service.CreatePlaceAsync(userId, name, latitude, longitude, TransportMode.Train);
 
             // Assert
             await Assert.That(capturedContent).IsNotNull();
@@ -236,13 +236,16 @@ public class PlaceServiceTests : IDisposable
             var hasName = payload.TryGetProperty("name", out var nameElement) || payload.TryGetProperty("Name", out nameElement);
             var hasLatitude = payload.TryGetProperty("latitude", out var latElement) || payload.TryGetProperty("Latitude", out latElement);
             var hasLongitude = payload.TryGetProperty("longitude", out var lonElement) || payload.TryGetProperty("Longitude", out lonElement);
+            var hasTransportMode = payload.TryGetProperty("transportMode", out var modeElement) || payload.TryGetProperty("TransportMode", out modeElement);
 
             await Assert.That(hasName).IsTrue();
             await Assert.That(hasLatitude).IsTrue();
             await Assert.That(hasLongitude).IsTrue();
+            await Assert.That(hasTransportMode).IsTrue();
             await Assert.That(nameElement.GetString()).IsEqualTo(name);
             await Assert.That(latElement.GetDouble()).IsEqualTo(latitude);
             await Assert.That(lonElement.GetDouble()).IsEqualTo(longitude);
+            await Assert.That(modeElement.GetInt32()).IsEqualTo((int)TransportMode.Train);
 
             // UserId should NOT be in the payload - it comes from the route
             var hasUserId = payload.TryGetProperty("userId", out _) || payload.TryGetProperty("UserId", out _);
@@ -264,7 +267,7 @@ public class PlaceServiceTests : IDisposable
             SetupMockResponse(expectedPlace, HttpStatusCode.Created);
 
             // Act
-            await service.CreatePlaceAsync(userId, "Test", 0, 0);
+            await service.CreatePlaceAsync(userId, "Test", 0, 0, TransportMode.Car);
 
             // Assert
             httpMessageHandlerMock.Protected().Verify(
@@ -292,7 +295,7 @@ public class PlaceServiceTests : IDisposable
                 });
 
             // Act & Assert
-            await Assert.That(async () => await service.CreatePlaceAsync(userId, "Test", 0, 0))
+            await Assert.That(async () => await service.CreatePlaceAsync(userId, "Test", 0, 0, TransportMode.Car))
                 .Throws<InvalidOperationException>()
                 .WithMessage("Failed to create place");
         }

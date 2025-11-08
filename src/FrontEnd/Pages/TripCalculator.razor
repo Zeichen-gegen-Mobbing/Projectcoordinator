@@ -20,7 +20,7 @@
         <p>Diese Seite ermöglicht es dir, die Reisedauer von den gespeicherten Orten zu berechnen und zu vergleichen.
         </p>
 
-        <FrontEnd.Components.LocationSelector Disabled=LocationSelected OnLocationSelected=LoadTrips
+        <FrontEnd.Components.LocationSelector DisableSearch=LocationSelected DisableSelect=LocationSelected OnLocationSelected=LoadTrips
             OnSearchStarted=ClearTrips />
 
         @if (trips.Any())

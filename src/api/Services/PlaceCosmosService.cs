@@ -26,14 +26,16 @@ namespace api.Services
                     UserId = placeRequest.UserId,
                     Name = placeRequest.Name,
                     Longitude = placeRequest.Longitude,
-                    Latitude = placeRequest.Latitude
+                    Latitude = placeRequest.Latitude,
+                    TransportMode = placeRequest.TransportMode
                 };
                 place = await repository.AddAsync(place);
                 return new Place()
                 {
                     Id = place.Id,
                     UserId = place.UserId,
-                    Name = place.Name
+                    Name = place.Name,
+                    TransportMode = place.TransportMode
                 };
             }
             else
@@ -52,6 +54,7 @@ namespace api.Services
                     Id = entity.Id,
                     UserId = entity.UserId,
                     Name = entity.Name,
+                    TransportMode = entity.TransportMode
                 };
             });
         }
@@ -66,6 +69,7 @@ namespace api.Services
                     Id = entity.Id,
                     UserId = entity.UserId,
                     Name = entity.Name,
+                    TransportMode = entity.TransportMode
                 };
             });
         }

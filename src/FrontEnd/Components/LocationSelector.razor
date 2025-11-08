@@ -1,4 +1,4 @@
-﻿@using System.ComponentModel.DataAnnotations;
+@using System.ComponentModel.DataAnnotations;
 @using System.ComponentModel.DataAnnotations.Schema;
 @using FrontEnd.Services;
 @using ZgM.ProjectCoordinator.Shared;
@@ -14,7 +14,7 @@
 				<InputText @bind-Value="searchModel.SearchText" placeholder="Enter address or place name"
 					class="form-control" />
 			</label>
-			<button disabled="@(Disabled || isSearching)" type="submit" class="btn btn-primary">
+			<button disabled="@(DisableSearch || isSearching)" type="submit" class="btn btn-primary">
 				@if (isSearching)
 				{
 					<span>Searching...</span>
@@ -78,7 +78,7 @@
 								</button>
 							</td>
 							<td>
-								<button disabled="@Disabled" @onclick="() => SelectLocation(result)"
+								<button disabled="@DisableSelect" @onclick="() => SelectLocation(result)"
 									class="btn btn-sm btn-success">
 									@SelectButtonText
 								</button>
@@ -123,7 +123,8 @@
 								{
 									addressParts.Add($"{mapLocation.Value.Street} {mapLocation.Value.HouseNumber}".Trim());
 								}
-								if (!string.IsNullOrEmpty(mapLocation.Value.PostalCode) || !string.IsNullOrEmpty(mapLocation.Value.Locality))
+								if (!string.IsNullOrEmpty(mapLocation.Value.PostalCode) ||
+								!string.IsNullOrEmpty(mapLocation.Value.Locality))
 								{
 									addressParts.Add($"{mapLocation.Value.PostalCode} {mapLocation.Value.Locality}".Trim());
 								}
@@ -135,11 +136,18 @@
 							@string.Join(", ", addressParts)
 						</div>
 					</div>
+					@if (!string.IsNullOrEmpty(ExternalErrorMessage))
+					{
+						<div class="alert alert-danger" role="alert">
+							@ExternalErrorMessage
+						</div>
+					}
 					<iframe src="@mapUrl" width="100%" height="400" style="border: 1px solid #ccc"></iframe>
 				</div>
 				<div class="modal-footer">
 					<button type="button" class="btn btn-secondary" @onclick="CloseMap">Close</button>
-					<button disabled="@Disabled" type="button" class="btn btn-success" @onclick="SelectMapLocation">@SelectModalButtonText</button>
+					<button disabled="@DisableSelect" type="button" class="btn btn-success"
+						@onclick="SelectMapLocation">@SelectModalButtonText</button>
 				</div>
 			</div>
 		</div>
@@ -188,14 +196,17 @@
 	[Required]
 	public required Func<LocationSearchResult, Task> OnLocationSelected { get; init; }
 	[Parameter]
-	[Required]
-	public required bool Disabled { get; set; }
+	public bool DisableSearch { get; set; } = false;
+	[Parameter]
+	public bool DisableSelect { get; set; } = false;
 	[Parameter]
 	public Action? OnSearchStarted { get; set; }
 	[Parameter]
 	public string SelectButtonText { get; set; } = "Select";
 	[Parameter]
 	public string SelectModalButtonText { get; set; } = "Select This Location";
+	[Parameter]
+	public string? ExternalErrorMessage { get; set; }
 
 	private readonly SearchModel searchModel = new();
 	private IEnumerable<LocationSearchResult>? searchResults;
@@ -241,7 +252,14 @@
 		selectedLocation = result;
 		searchResults = null;
 		hasSearched = false;
-		await OnLocationSelected(result);
+		try
+		{
+			await OnLocationSelected(result);
+		}
+		catch (Exception ex)
+		{
+			errorMessage = $"Error selecting location: {ex.Message}";
+		}
 	}
 
 	private void ShowMap(LocationSearchResult result)
@@ -260,8 +278,14 @@
 	{
 		if (mapLocation.HasValue)
 		{
-			await SelectLocation(mapLocation.Value);
-			CloseMap();
+			try
+			{
+				await SelectLocation(mapLocation.Value);
+			}
+			finally
+			{
+				CloseMap();
+			}
 		}
 	}
 

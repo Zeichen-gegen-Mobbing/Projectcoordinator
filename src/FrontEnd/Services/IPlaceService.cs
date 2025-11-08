@@ -6,6 +6,6 @@ namespace FrontEnd.Services
     {
         Task<IEnumerable<Place>> GetPlacesAsync(UserId userId);
         Task DeletePlaceAsync(UserId userId, PlaceId placeId);
-        Task<Place> CreatePlaceAsync(UserId userId, string name, double latitude, double longitude);
+        Task<Place> CreatePlaceAsync(UserId userId, string name, double latitude, double longitude, TransportMode transportMode);
     }
 }
