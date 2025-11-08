@@ -225,7 +225,7 @@ public class CarOpenRouteServiceTests
                     {
                         durations = new double[][] { [600.0] },
                         distances = new double[][] { [5000.0] }
-                    }, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }))
+                    }, _jsonOptions))
                 });
 
 
