@@ -126,7 +126,7 @@ namespace api.Services
                 var result = JsonSerializer.Deserialize<TransitousPlanResponse>(
                     responseBody, _serializeOptions);
 
-                if (result?.Itineraries == null || !result.Itineraries.Any())
+                if (result == null || result.Itineraries.Count == 0)
                 {
                     logger.LogWarning("No train routes found from {FromLat},{FromLon} to {ToLat},{ToLon}",
                         fromLat, fromLon, toLat, toLon);
@@ -164,14 +164,8 @@ namespace api.Services
             return candidate;
         }
 
-        private sealed class TransitousPlanResponse
-        {
-            public List<TransitousItinerary>? Itineraries { get; set; }
-        }
+        private sealed record TransitousPlanResponse(List<TransitousItinerary> Itineraries);
 
-        private sealed class TransitousItinerary
-        {
-            public double Duration { get; set; }
-        }
+        private sealed record TransitousItinerary(uint Duration);
     }
 }
