@@ -27,9 +27,10 @@
         {
             <QuickGrid Items="trips.AsQueryable()" Class="table table-hover table-bordered table-striped">
                 <PropertyColumn Property="@(t => t.UserDisplayName)" Sortable="true" />
-                <PropertyColumn Property="@(t => t.Place)" Sortable="false" />
                 <PropertyColumn Property="@(t => t.Time)" Format="" Sortable="true" IsDefaultSortColumn="true" />
-                <PropertyColumn Property="@(t => t.Cost)" Title="Costs (€)" Format="N2" Sortable="true" />
+                <PropertyColumn Property="@(t => t.Cost)" Title="Cost (€)" Format="N2" Sortable="true" />
+                <PropertyColumn Property="@(t => t.TransportModeSymbol)" Title="Mode" Sortable="true" />
+                <PropertyColumn Property="@(t => t.Place)" Sortable="false" />
             </QuickGrid>
             <small>Time & Distance provided by © openrouteservice.org by HeiGIT | Map data © OpenStreetMap
                 contributors</small>
@@ -110,6 +111,13 @@
         public string UserDisplayName => User?.DisplayName ?? "Loading Name";
         public required Place Place { get; set; }
         public required TimeSpan Time { get; set; }
-    public decimal Cost { get; set; }
+        public decimal Cost { get; set; }
+        
+        public string TransportModeSymbol => Place.TransportMode switch
+        {
+            TransportMode.Car => "🚗",
+            TransportMode.Train => "🚆",
+            _ => ""
+        };
     }
 }
