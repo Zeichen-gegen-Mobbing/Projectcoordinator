@@ -106,20 +106,20 @@ public class CarOpenRouteServiceTests
             await Assert.That(results.Count).IsEqualTo(2);
 
             var result1 = results.First(r => r.PlaceId == places[0].Id);
-            await Assert.That(result1.DurationSeconds).IsEqualTo(600.0);
-            await Assert.That(result1.DistanceMeters).IsEqualTo(5000.0);
-            await Assert.That(result1.CostCents).IsEqualTo((ushort)150); // ceil(5000/1000) * 30 = 5 * 30 = 150
+            await Assert.That(result1.DurationSeconds).IsEqualTo((uint)600);
+            await Assert.That(result1.DistanceMeters).IsEqualTo((uint)5000);
+            await Assert.That(result1.CostCents).IsEqualTo((uint)125); // ceil(5000/1000) * 25 = 5 * 25 = 125
 
             var result2 = results.First(r => r.PlaceId == places[1].Id);
-            await Assert.That(result2.DurationSeconds).IsEqualTo(900.0);
-            await Assert.That(result2.DistanceMeters).IsEqualTo(10000.0);
-            await Assert.That(result2.CostCents).IsEqualTo((ushort)300); // ceil(10000/1000) * 30 = 10 * 30 = 300
+            await Assert.That(result2.DurationSeconds).IsEqualTo((uint)900);
+            await Assert.That(result2.DistanceMeters).IsEqualTo((uint)10000);
+            await Assert.That(result2.CostCents).IsEqualTo((uint)250); // ceil(10000/1000) * 25 = 10 * 25 = 250
         }
 
         /// <summary>
         /// Given: A place with fractional kilometer distance (e.g., 5500m = 5.5km)
         /// When: Calculating cost
-        /// Then: Cost is rounded up (ceil) to next kilometer: ceil(5.5) * 30 = 180 cents
+        /// Then: Cost is rounded up (ceil) to next kilometer: ceil(5.5) * 25 = 150 cents
         /// </summary>
         [Test]
         public async Task RoundsUpCostToNextKilometer_WhenDistanceHasFraction()
@@ -138,7 +138,7 @@ public class CarOpenRouteServiceTests
             var results = (await service.CalculateRoutesAsync(places, 52.5100, 13.4000)).ToList();
 
             // Assert
-            await Assert.That(results.Single().CostCents).IsEqualTo((ushort)180); // ceil(5.5) * 30 = 6 * 30 = 180
+            await Assert.That(results.Single().CostCents).IsEqualTo((uint)150); // ceil(5.5) * 25 = 6 * 25 = 150
         }
 
         /// <summary>

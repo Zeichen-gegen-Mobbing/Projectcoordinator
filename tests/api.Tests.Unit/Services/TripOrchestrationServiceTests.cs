@@ -23,18 +23,18 @@ public class TripOrchestrationServiceTests
             TransportMode = mode
         };
 
-        private static CarRouteResult CreateCarResult(string placeId, double duration, double distance, ushort cost) => new()
+        private static CarRouteResult CreateCarResult(string placeId, double duration, double distance, uint cost) => new()
         {
             PlaceId = PlaceId.Parse(placeId),
-            DurationSeconds = duration,
-            DistanceMeters = distance,
+            DurationSeconds = (uint)Math.Ceiling(duration),
+            DistanceMeters = (uint)Math.Ceiling(distance),
             CostCents = cost
         };
 
-        private static TrainRouteResult CreateTrainResult(string placeId, double duration, ushort cost) => new()
+        private static TrainRouteResult CreateTrainResult(string placeId, double duration, uint cost) => new()
         {
             PlaceId = PlaceId.Parse(placeId),
-            DurationSeconds = duration,
+            DurationSeconds = (uint)Math.Ceiling(duration),
             CostCents = cost
         };
 

@@ -97,7 +97,7 @@ namespace api.Services
             return results;
         }
 
-        private async Task<double> CalculateSingleRouteAsync(
+        private async Task<uint> CalculateSingleRouteAsync(
             double fromLat, double fromLon,
             double toLat, double toLon,
             DateTimeOffset time)
@@ -149,7 +149,7 @@ namespace api.Services
                     ? result.Direct.Average(i => i.Duration)
                     : uint.MaxValue;
 
-                return Math.Min(transitAvg, directAvg);
+                return (uint)Math.Ceiling(Math.Min(transitAvg, directAvg));
             }
             catch (Exception ex)
             {

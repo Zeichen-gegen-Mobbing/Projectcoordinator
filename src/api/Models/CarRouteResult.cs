@@ -12,16 +12,16 @@ namespace api.Models
         /// <summary>
         /// Travel time in seconds
         /// </summary>
-        public required double DurationSeconds { get; init; }
+        public required uint DurationSeconds { get; init; }
 
         /// <summary>
         /// Distance in meters
         /// </summary>
-        public required double DistanceMeters { get; init; }
+        public required uint DistanceMeters { get; init; }
 
         /// <summary>
         /// Cost in cents
         /// </summary>
-        public required ushort CostCents { get; init; }
+        public required uint CostCents { get; init; }
     }
 }

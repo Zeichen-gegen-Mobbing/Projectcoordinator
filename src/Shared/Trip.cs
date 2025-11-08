@@ -14,6 +14,6 @@ namespace ZgM.ProjectCoordinator.Shared
         /// <summary>
         /// The cost of the Trip in cents.
         /// </summary>
-        public required ushort Cost { get; init; }
+        public required uint Cost { get; init; }
     }
 }

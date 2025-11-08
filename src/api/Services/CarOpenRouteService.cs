@@ -74,13 +74,13 @@ namespace api.Services
                 {
                     var durationSeconds = result.Durations[index].Single();
                     var distanceMeters = result.Distances[index].Single();
-                    var costCents = (ushort)(Math.Ceiling(distanceMeters / 1000) * 25);
+                    var costCents = (uint)(Math.Ceiling(distanceMeters / 1000) * 25);
 
                     return new CarRouteResult
                     {
                         PlaceId = place.Id,
-                        DurationSeconds = durationSeconds,
-                        DistanceMeters = distanceMeters,
+                        DurationSeconds = (uint)Math.Ceiling(durationSeconds),
+                        DistanceMeters = (uint)Math.Ceiling(distanceMeters),
                         CostCents = costCents
                     };
                 });

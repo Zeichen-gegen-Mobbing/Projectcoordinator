@@ -120,12 +120,12 @@ public class TrainTransitousServiceTests
             await Assert.That(results.Count).IsEqualTo(2);
 
             var result1 = results.Single(r => r.PlaceId == places[0].Id);
-            await Assert.That(result1.DurationSeconds).IsEqualTo(800.0); // Train time (average of outbound and return)
-            await Assert.That(result1.CostCents).IsEqualTo((ushort)150); // Car cost
+            await Assert.That(result1.DurationSeconds).IsEqualTo((uint)800); // Train time (average of outbound and return)
+            await Assert.That(result1.CostCents).IsEqualTo((uint)150); // Car cost
 
             var result2 = results.Single(r => r.PlaceId == places[1].Id);
-            await Assert.That(result2.DurationSeconds).IsEqualTo(800.0); // Train time (average of outbound and return)
-            await Assert.That(result2.CostCents).IsEqualTo((ushort)300); // Car cost
+            await Assert.That(result2.DurationSeconds).IsEqualTo((uint)800); // Train time (average of outbound and return)
+            await Assert.That(result2.CostCents).IsEqualTo((uint)300); // Car cost
         }
 
         /// <summary>
@@ -174,8 +174,8 @@ public class TrainTransitousServiceTests
             var result = results.Single();
 
             // Average of outbound (600, 800, 1000 = avg 800) and return (same response = avg 800) = 800
-            await Assert.That(result.DurationSeconds).IsEqualTo(800.0);
-            await Assert.That(result.CostCents).IsEqualTo((ushort)150);
+            await Assert.That(result.DurationSeconds).IsEqualTo((uint)800);
+            await Assert.That(result.CostCents).IsEqualTo((uint)150);
         }
 
         /// <summary>
@@ -228,8 +228,8 @@ public class TrainTransitousServiceTests
             var result = results.Single();
 
             // Should return average of direct (600) since it's lower than itineraries (1100)
-            await Assert.That(result.DurationSeconds).IsEqualTo(600.0);
-            await Assert.That(result.CostCents).IsEqualTo((ushort)150);
+            await Assert.That(result.DurationSeconds).IsEqualTo((uint)600);
+            await Assert.That(result.CostCents).IsEqualTo((uint)150);
         }
 
         /// <summary>

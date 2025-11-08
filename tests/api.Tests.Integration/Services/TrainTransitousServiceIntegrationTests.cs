@@ -82,17 +82,17 @@ public class TrainTransitousServiceIntegrationTests
 
         // Assert
         await Assert.That(results.Count).IsEqualTo(1);
-        
+
         var result = results.Single();
         await Assert.That(result.PlaceId).IsEqualTo(PlaceId.Parse("munich-test"));
-        
+
         // Train from Berlin to Munich should take between 3-8 hours (10800-28800 seconds)
         // We're averaging outbound + return, so expect realistic durations
-        await Assert.That(result.DurationSeconds).IsGreaterThan(0);
-        await Assert.That(result.DurationSeconds).IsLessThan(50000); // Less than ~14 hours
-        
+        await Assert.That(result.DurationSeconds).IsGreaterThan((uint)0);
+        await Assert.That(result.DurationSeconds).IsLessThan((uint)50000); // Less than ~14 hours
+
         // Should have car cost from the mock
-        await Assert.That(result.CostCents).IsEqualTo((ushort)500);
+        await Assert.That(result.CostCents).IsEqualTo((uint)500);
     }
 
     /// <summary>
@@ -158,11 +158,11 @@ public class TrainTransitousServiceIntegrationTests
 
         // Assert
         await Assert.That(results.Count).IsEqualTo(1);
-        
+
         var result = results.Single();
-        
+
         // Very short trip should use direct walking route (50-80 seconds)
-        await Assert.That(result.DurationSeconds).IsGreaterThanOrEqualTo(50);
-        await Assert.That(result.DurationSeconds).IsLessThanOrEqualTo(80);
+        await Assert.That(result.DurationSeconds).IsGreaterThanOrEqualTo((uint)50);
+        await Assert.That(result.DurationSeconds).IsLessThanOrEqualTo((uint)80);
     }
 }
