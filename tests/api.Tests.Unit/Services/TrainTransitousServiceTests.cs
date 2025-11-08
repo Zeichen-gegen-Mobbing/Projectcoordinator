@@ -384,11 +384,13 @@ public class TrainTransitousServiceTests
             });
 
 
-            // Act & Assert
-            var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            // Act & Assert - Task.WhenAll wraps exceptions in AggregateException
+            var exception = await Assert.ThrowsAsync<AggregateException>(async () =>
                 await service.CalculateRoutesAsync(places, 52.5100, 13.4000));
 
-            await Assert.That(exception!.Message).IsEqualTo("Car cost calculation failed");
+            await Assert.That(exception!.InnerException).IsNotNull();
+            await Assert.That(exception.InnerException).IsTypeOf<InvalidOperationException>();
+            await Assert.That(exception.InnerException!.Message).IsEqualTo("Car cost calculation failed");
         }
 
     }
