@@ -31,6 +31,11 @@ var host = new HostBuilder()
             configuration.GetSection(settings.Title).Bind(settings);
         }).ValidateDataAnnotations();
 
+        services.AddOptionsWithValidateOnStart<TransitousOptions>().Configure<IConfiguration>((settings, configuration) =>
+        {
+            configuration.GetSection(settings.Title).Bind(settings);
+        }).ValidateDataAnnotations();
+
         services.AddOptionsWithValidateOnStart<AuthenticationOptions>().Configure<IConfiguration>((settings, configuration) =>
         {
             configuration.GetSection(AuthenticationOptions.Title).Bind(settings);
