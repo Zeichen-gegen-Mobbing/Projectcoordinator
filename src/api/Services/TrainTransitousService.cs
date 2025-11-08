@@ -75,9 +75,9 @@ namespace api.Services
                         place.Latitude, place.Longitude,
                         originLatitude, originLongitude,
                         departureTime);
-
-                    var averageDuration = (outbound + returnTrip) / 2.0;
-                    var costCents = carCosts.TryGetValue(place.Id, out var cost) ? cost : (ushort)0;
+                    // this rounds down, but we are loosing at most 0.5 seconds which is acceptable to avoid floating point division
+                    var averageDuration = (outbound + returnTrip) / 2;
+                    var costCents = carCosts.TryGetValue(place.Id, out var cost) ? cost : 0;
 
                     results.Add(new TrainRouteResult
                     {
