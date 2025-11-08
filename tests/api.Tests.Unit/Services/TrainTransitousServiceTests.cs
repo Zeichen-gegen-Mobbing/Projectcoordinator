@@ -107,8 +107,9 @@ public class TrainTransitousServiceTests
             {
                 itineraries = new[]
                 {
-                    new { duration = 800.0 }
-                }
+                    new { duration = 800 }
+                },
+                direct = Array.Empty<object>()
             });
 
 
@@ -158,9 +159,64 @@ public class TrainTransitousServiceTests
             {
                 itineraries = new[]
                 {
-                    new { duration = 600.0 },
-                    new { duration = 800.0 },
-                    new { duration = 1000.0 }
+                    new { duration = 600 },
+                    new { duration = 800 },
+                    new { duration = 1000 }
+                },
+                direct = Array.Empty<object>()
+            });
+
+            // Act
+            var results = (await service.CalculateRoutesAsync(places, 52.5100, 13.4000)).ToList();
+
+            // Assert
+            await Assert.That(results.Count).IsEqualTo(1);
+            var result = results.Single();
+
+            // Average of outbound (600, 800, 1000 = avg 800) and return (same response = avg 800) = 800
+            await Assert.That(result.DurationSeconds).IsEqualTo(800.0);
+            await Assert.That(result.CostCents).IsEqualTo((ushort)150);
+        }
+
+        /// <summary>
+        /// Given: Transitous API returns both itineraries and direct routes
+        /// When: Calling CalculateRoutesAsync
+        /// Then: Returns the lower average of itineraries or direct routes
+        /// </summary>
+        /// <remarks>Unclear if the API would actually do that, but we want to handle both cases anyway</remarks>
+        [Test]
+        public async Task ReturnsLowerAverage_WhenBothItinerariesAndDirectProvided()
+        {
+            // Arrange
+            var places = new List<PlaceEntity>
+            {
+                CreatePlace("place1", "Place 1")
+            };
+
+            var carResults = new List<CarRouteResult>
+            {
+                new() { PlaceId = PlaceId.Parse("place1"), CostCents = 150, DurationSeconds = 600, DistanceMeters = 5000 }
+            };
+
+            carServiceMock
+                .Setup(s => s.CalculateRoutesAsync(places, 52.5100, 13.4000))
+                .ReturnsAsync(carResults);
+
+            // Return both itineraries and direct routes
+            // Itineraries: 1000, 1200 -> average = 1100
+            // Direct: 500, 700 -> average = 600
+            // Should return 600 (lower average)
+            SetupHttpResponse(HttpStatusCode.OK, new
+            {
+                itineraries = new[]
+                {
+                    new { duration = 1000 },
+                    new { duration = 1200 }
+                },
+                direct = new[]
+                {
+                    new { duration = 500 },
+                    new { duration = 700 }
                 }
             });
 
@@ -170,9 +226,9 @@ public class TrainTransitousServiceTests
             // Assert
             await Assert.That(results.Count).IsEqualTo(1);
             var result = results.Single();
-            
-            // Average of outbound (600, 800, 1000 = avg 800) and return (same response = avg 800) = 800
-            await Assert.That(result.DurationSeconds).IsEqualTo(800.0);
+
+            // Should return average of direct (600) since it's lower than itineraries (1100)
+            await Assert.That(result.DurationSeconds).IsEqualTo(600.0);
             await Assert.That(result.CostCents).IsEqualTo((ushort)150);
         }
 
@@ -286,8 +342,9 @@ public class TrainTransitousServiceTests
                     {
                         itineraries = new[]
                         {
-                            new { duration = 800.0 }
-                        }
+                            new { duration = 800 }
+                        },
+                        direct = Array.Empty<object>()
                     }, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }))
                 });
 
@@ -321,8 +378,9 @@ public class TrainTransitousServiceTests
             {
                 itineraries = new[]
                 {
-                    new { duration = 800.0 }
-                }
+                    new { duration = 800 }
+                },
+                direct = Array.Empty<object>()
             });
 
 

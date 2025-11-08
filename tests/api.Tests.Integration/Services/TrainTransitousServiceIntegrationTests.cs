@@ -96,25 +96,25 @@ public class TrainTransitousServiceIntegrationTests
     }
 
     /// <summary>
-    /// Given: Real Transitous API with short distance (Berlin city center to Berlin Tegel)
+    /// Given: Real Transitous API with very short distance (Hamburg neighborhood)
     /// When: Calling CalculateRoutesAsync
-    /// Then: Returns route with reasonable duration for short trip
+    /// Then: Returns route with very short duration (50-80 seconds from direct walking route)
     /// </summary>
     [Test]
     public async Task CalculatesShortDistanceRoute_WhenCallingActualTransitousApi()
     {
-        // Arrange - Berlin city center to Berlin outskirts
-        var originLat = 52.5200; // Berlin Hauptbahnhof
-        var originLon = 13.4050;
+        // Arrange - Hamburg short distance
+        var originLat = 53.584460; // Hamburg origin
+        var originLon = 10.060934;
 
         var places = new List<PlaceEntity>
         {
             new()
             {
-                Id = PlaceId.Parse("berlin-zoo-test"),
-                Name = "Berlin Zoo",
-                Latitude = 52.5074, // Berlin Zoologischer Garten
-                Longitude = 13.3316,
+                Id = PlaceId.Parse("hamburg-short-test"),
+                Name = "Hamburg Nearby",
+                Latitude = 53.584917, // Hamburg destination (very close)
+                Longitude = 10.060352,
                 TransportMode = TransportMode.Train,
                 UserId = UserId.Parse("00000000-0000-0000-0000-000000000001")
             }
@@ -132,10 +132,10 @@ public class TrainTransitousServiceIntegrationTests
             {
                 new()
                 {
-                    PlaceId = PlaceId.Parse("berlin-zoo-test"),
+                    PlaceId = PlaceId.Parse("hamburg-short-test"),
                     CostCents = 500,
-                    DurationSeconds = 3600,
-                    DistanceMeters = 50000
+                    DurationSeconds = 60,
+                    DistanceMeters = 100
                 }
             });
 
@@ -161,8 +161,8 @@ public class TrainTransitousServiceIntegrationTests
         
         var result = results.Single();
         
-        // Short trip within Berlin should be less than 2 hours (7200 seconds)
-        await Assert.That(result.DurationSeconds).IsGreaterThan(0);
-        await Assert.That(result.DurationSeconds).IsLessThan(7200);
+        // Very short trip should use direct walking route (50-80 seconds)
+        await Assert.That(result.DurationSeconds).IsGreaterThanOrEqualTo(50);
+        await Assert.That(result.DurationSeconds).IsLessThanOrEqualTo(80);
     }
 }

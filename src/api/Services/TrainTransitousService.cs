@@ -126,14 +126,30 @@ namespace api.Services
                 var result = JsonSerializer.Deserialize<TransitousPlanResponse>(
                     responseBody, _serializeOptions);
 
-                if (result == null || result.Itineraries.Count == 0)
+                if (result == null)
                 {
-                    logger.LogWarning("No train routes found from {FromLat},{FromLon} to {ToLat},{ToLon}",
+                    logger.LogWarning("No response from Transitous API for {FromLat},{FromLon} to {ToLat},{ToLon}",
                         fromLat, fromLon, toLat, toLon);
                     return 0;
                 }
 
-                return result.Itineraries.Average(i => i.Duration);
+                if (result.Itineraries.Count == 0 && result.Direct.Count == 0)
+                {
+                    logger.LogWarning("No train or direct routes found from {FromLat},{FromLon} to {ToLat},{ToLon}",
+                        fromLat, fromLon, toLat, toLon);
+                    return 0;
+                }
+
+                // Calculate averages for both transit and direct routes
+                var transitAvg = result.Itineraries.Count > 0
+                    ? result.Itineraries.Average(i => i.Duration)
+                    : uint.MaxValue;
+
+                var directAvg = result.Direct.Count > 0
+                    ? result.Direct.Average(i => i.Duration)
+                    : uint.MaxValue;
+
+                return Math.Min(transitAvg, directAvg);
             }
             catch (Exception ex)
             {
@@ -164,8 +180,9 @@ namespace api.Services
             return candidate;
         }
 
-        private sealed record TransitousPlanResponse(List<TransitousItinerary> Itineraries);
+        private sealed record TransitousPlanResponse(List<TransitousItinerary> Itineraries, List<TransitousItinerary> Direct);
 
+        // The duration is in seconds
         private sealed record TransitousItinerary(uint Duration);
     }
 }

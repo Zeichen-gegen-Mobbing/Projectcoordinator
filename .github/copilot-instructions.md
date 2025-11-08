@@ -253,6 +253,37 @@ Located in `.github/workflows/`:
 - **Local Development**: Store in `local.settings.json` (API) and `appsettings.json` (Frontend)
 - **Environment Switching**: Conditional compilation for debug vs release builds
 
+### Type Selection Guidelines
+
+**Structs** (Value Types):
+- Use for small, immutable data types (< 16 bytes recommended)
+- Data that is frequently copied or passed by value
+- Examples: coordinates, small DTOs, primitives wrappers
+- **Key characteristics**: Stack-allocated, passed by value, no inheritance
+
+**Immutable Records** (Reference Types - PREFERRED for DTOs):
+- Use for data transfer objects (DTOs), API models, response/request models
+- Data that should not change after creation
+- When value-based equality is desired
+- Examples: API responses, configuration options, domain events
+- **Syntax**: `public sealed record MyRecord(string Property);` or with `{ get; init; }`
+- **Key characteristics**: Reference type, immutable, value-based equality, concise syntax
+
+**Mutable Records** (Reference Types):
+- Use sparingly - only when you need record features but require mutation
+- Temporary data structures that need modification
+- **Syntax**: `public record MyRecord { get; set; }`
+- **Key characteristics**: Reference type, mutable, value-based equality
+- **Warning**: Prefer immutable records when possible for thread safety
+
+**Classes** (Reference Types):
+- Use for complex domain entities with behavior
+- Objects with mutable state and lifecycle management
+- When inheritance is needed
+- Examples: services, repositories, domain entities, controllers
+- **Key characteristics**: Reference type, supports inheritance, identity-based equality by default
+
+
 ## Common Issues and Workarounds
 
 ### Build Issues
