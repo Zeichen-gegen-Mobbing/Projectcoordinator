@@ -132,15 +132,14 @@ namespace api.Services
 
                 if (result == null)
                 {
-                    logger.LogWarning("No response from Transitous API for {FromLat},{FromLon} to {ToLat},{ToLon}",
-                        fromLat, fromLon, toLat, toLon);
+                    logger.LogWarning("No response from Transitous API: {Content}",
+                        responseBody);
                     return 0;
                 }
 
                 if (result.Itineraries.Count == 0 && result.Direct.Count == 0)
                 {
-                    logger.LogWarning("No train or direct routes found from {FromLat},{FromLon} to {ToLat},{ToLon}",
-                        fromLat, fromLon, toLat, toLon);
+                    logger.LogWarning("No train or direct routes found");
                     return 0;
                 }
 
