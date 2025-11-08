@@ -110,7 +110,7 @@ namespace api.Services
             var toPlace = $"{toLat.ToString(CultureInfo.InvariantCulture)},{toLon.ToString(CultureInfo.InvariantCulture)}";
             var timeParam = time.ToString("yyyy-MM-ddTHH:mm:ss.fffzzz");
 
-            var url = $"/api/v5/plan?fromPlace={fromPlace}&toPlace={toPlace}&time={Uri.EscapeDataString(timeParam)}&detailedTransfers=false";
+            var url = $"/api/v5/plan?fromPlace={fromPlace}&toPlace={toPlace}&time={Uri.EscapeDataString(timeParam)}&detailedTransfers=false&maxPreTransitTime=1800&maxPostTransitTime=1800";
 
             var response = await client.GetAsync(url);
             var responseBody = await response.Content.ReadAsStringAsync();
