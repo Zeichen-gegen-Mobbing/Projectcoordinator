@@ -28,6 +28,7 @@
                 <thead>
                     <tr>
                         <th>Place Name</th>
+                        <th>Mode</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -36,6 +37,7 @@
                     {
                         <tr>
                             <td>@place.Name</td>
+                            <td>@GetTransportModeSymbol(place.TransportMode)</td>
                             <td>
                                 <button class="btn btn-danger btn-sm" @onclick="() => DeletePlace(place)">Delete</button>
                             </td>
@@ -114,4 +116,11 @@
             errorMessage = $"Failed to delete place: {ex.Message}";
         }
     }
+
+    private string GetTransportModeSymbol(TransportMode mode) => mode switch
+    {
+        TransportMode.Car => "🚗",
+        TransportMode.Train => "🚆",
+        _ => ""
+    };
 }
