@@ -68,13 +68,15 @@ public class PlaceServiceTests : IDisposable
                 {
                     Id = new PlaceId("place1"),
                     UserId = userId,
-                    Name = "Test Place 1"
+                    Name = "Test Place 1",
+                    TransportMode = TransportMode.Car
                 },
                 new Place
                 {
                     Id = new PlaceId("place2"),
                     UserId = userId,
-                    Name = "Test Place 2"
+                    Name = "Test Place 2",
+                    TransportMode = TransportMode.Car
                 }
             };
 
@@ -177,7 +179,8 @@ public class PlaceServiceTests : IDisposable
             {
                 Id = new PlaceId("newplace123"),
                 UserId = userId,
-                Name = name
+                Name = name,
+                TransportMode = TransportMode.Car
             };
 
             SetupMockResponse(expectedPlace, HttpStatusCode.Created);
@@ -204,7 +207,8 @@ public class PlaceServiceTests : IDisposable
             {
                 Id = new PlaceId("place123"),
                 UserId = userId,
-                Name = name
+                Name = name,
+                TransportMode = TransportMode.Car
             };
 
             string? capturedContent = null;
@@ -261,7 +265,8 @@ public class PlaceServiceTests : IDisposable
             {
                 Id = new PlaceId("place123"),
                 UserId = userId,
-                Name = "Test"
+                Name = "Test",
+                TransportMode = TransportMode.Car
             };
 
             SetupMockResponse(expectedPlace, HttpStatusCode.Created);
@@ -301,3 +306,4 @@ public class PlaceServiceTests : IDisposable
         }
     }
 }
+

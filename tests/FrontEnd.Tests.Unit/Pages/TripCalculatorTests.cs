@@ -150,7 +150,8 @@ public class TripCalculatorTests : Bunit.TestContext
 				{
 					Id = new ZgM.ProjectCoordinator.Shared.PlaceId("place1"),
 					UserId = ZgM.ProjectCoordinator.Shared.UserId.Parse("00000000-0000-0000-0000-000000000001"),
-					Name = "Test Place"
+					Name = "Test Place",
+					TransportMode = ZgM.ProjectCoordinator.Shared.TransportMode.Car
 				},
 				Time = TimeSpan.FromMinutes(10),
 				Cost = 12345 // cents => 123.45
