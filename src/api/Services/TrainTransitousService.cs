@@ -80,13 +80,13 @@ namespace api.Services
                     var outbound = await outboundTask;
                     var returnTrip = await returnTripTask;
 
-                    var averageDuration = (outbound + returnTrip) / 2;
+                    var averageDuration = outbound.Concat(returnTrip).Average(d => d);
                     var costCents = (await carCosts).TryGetValue(place.Id, out var cost) ? cost : 0;
 
                     return new TrainRouteResult
                     {
                         PlaceId = place.Id,
-                        DurationSeconds = averageDuration,
+                        DurationSeconds = averageDuration > uint.MaxValue ? uint.MaxValue : (uint)averageDuration,
                         CostCents = costCents
                     };
                 }
@@ -101,7 +101,7 @@ namespace api.Services
             return await Task.WhenAll(routeTasks);
         }
 
-        private async Task<uint> CalculateSingleRouteAsync(
+        private async Task<IEnumerable<uint>> CalculateSingleRouteAsync(
             double fromLat, double fromLon,
             double toLat, double toLon,
             DateTimeOffset time)
@@ -134,25 +134,10 @@ namespace api.Services
                 {
                     logger.LogWarning("No response from Transitous API: {Content}",
                         responseBody);
-                    return 0;
+                    return [0];
                 }
 
-                if (result.Itineraries.Count == 0 && result.Direct.Count == 0)
-                {
-                    logger.LogWarning("No train or direct routes found");
-                    return 0;
-                }
-
-                // Calculate averages for both transit and direct routes
-                var transitAvg = result.Itineraries.Count > 0
-                    ? result.Itineraries.Average(i => i.Duration)
-                    : uint.MaxValue;
-
-                var directAvg = result.Direct.Count > 0
-                    ? result.Direct.Average(i => i.Duration)
-                    : uint.MaxValue;
-
-                return (uint)Math.Ceiling(Math.Min(transitAvg, directAvg));
+                return result.Direct.Concat(result.Itineraries).Select(i => i.Duration);
             }
             catch (Exception ex)
             {
