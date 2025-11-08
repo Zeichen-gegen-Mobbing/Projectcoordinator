@@ -14,18 +14,15 @@ namespace api.Services
         private readonly IPlaceRepository repository;
         private readonly ICarRouteService carRouteService;
         private readonly ITrainRouteService trainRouteService;
-        private readonly ILogger<TripOrchestrationService> logger;
 
         public TripOrchestrationService(
             IPlaceRepository repository,
             ICarRouteService carRouteService,
-            ITrainRouteService trainRouteService,
-            ILogger<TripOrchestrationService> logger)
+            ITrainRouteService trainRouteService)
         {
             this.repository = repository;
             this.carRouteService = carRouteService;
             this.trainRouteService = trainRouteService;
-            this.logger = logger;
         }
 
         public async Task<IEnumerable<Trip>> GetAllTripsAsync(double latitude, double longitude)
