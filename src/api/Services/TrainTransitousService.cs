@@ -56,35 +56,39 @@ namespace api.Services
                 return [];
             }
 
-            var carRoutes = await carRouteService.CalculateRoutesAsync(places, originLatitude, originLongitude);
-            var carCosts = carRoutes.ToDictionary(r => r.PlaceId, r => r.CostCents);
+            var carCosts = carRouteService.CalculateRoutesAsync(places, originLatitude, originLongitude).ContinueWith(r => r.Result.ToDictionary(r => r.PlaceId, r => r.CostCents));
 
             var departureTime = GetNextWeekdayAtNoon();
-            var results = new List<TrainRouteResult>();
 
-            foreach (var place in places)
+            var routeTasks = places.Select(async place =>
             {
                 try
                 {
-                    var outbound = await CalculateSingleRouteAsync(
+                    var outboundTask = CalculateSingleRouteAsync(
                         originLatitude, originLongitude,
                         place.Latitude, place.Longitude,
                         departureTime);
 
-                    var returnTrip = await CalculateSingleRouteAsync(
+                    var returnTripTask = CalculateSingleRouteAsync(
                         place.Latitude, place.Longitude,
                         originLatitude, originLongitude,
                         departureTime);
-                    // this rounds down, but we are loosing at most 0.5 seconds which is acceptable to avoid floating point division
+
+                    // Wait for both calls to complete
+                    await Task.WhenAll(outboundTask, returnTripTask);
+
+                    var outbound = await outboundTask;
+                    var returnTrip = await returnTripTask;
+
                     var averageDuration = (outbound + returnTrip) / 2;
-                    var costCents = carCosts.TryGetValue(place.Id, out var cost) ? cost : 0;
+                    var costCents = (await carCosts).TryGetValue(place.Id, out var cost) ? cost : 0;
 
-                    results.Add(new TrainRouteResult
+                    return new TrainRouteResult
                     {
                         PlaceId = place.Id,
                         DurationSeconds = averageDuration,
                         CostCents = costCents
-                    });
+                    };
                 }
                 catch (Exception ex)
                 {
@@ -92,9 +96,9 @@ namespace api.Services
                         place.Id, place.Name);
                     throw;
                 }
-            }
+            });
 
-            return results;
+            return await Task.WhenAll(routeTasks);
         }
 
         private async Task<uint> CalculateSingleRouteAsync(
