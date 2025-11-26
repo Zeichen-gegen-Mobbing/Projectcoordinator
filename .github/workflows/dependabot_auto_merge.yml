@@ -18,7 +18,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
       - name: Approve a PR if not already approved
-        if: ${{ steps.dependabot-metadata.outputs.update-type == 'version-update:semver-minor'}}
+        if: ${{ steps.dependabot-metadata.outputs.update-type != 'version-update:semver-major'}}
         run: |
           gh pr checkout "$PR_URL" # sets the upstream metadata for `gh pr status`
           if [ "$(gh pr status --json reviewDecision -q .currentBranch.reviewDecision)" != "APPROVED" ];
