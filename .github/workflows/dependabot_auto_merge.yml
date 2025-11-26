@@ -11,14 +11,14 @@ jobs:
     steps:
       - name: Dependabot metadata
         id: dependabot-metadata
-        uses: dependabot/fetch-metadata@v2
+        uses: dependabot/fetch-metadata@08eff52bf64351f401fb50d4972fa95b9f2c2d1b
       - uses: actions/checkout@v4
       - name: Enable auto-merge for Dependabot PRs
         run: gh pr merge --auto --squash "${{github.event.pull_request.html_url}}"
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
       - name: Approve a PR if not already approved
-        if: ${{  && steps.dependabot-metadata.outputs.update-type == 'version-update:semver-minor'}}
+        if: ${{ steps.dependabot-metadata.outputs.update-type == 'version-update:semver-minor'}}
         run: |
           gh pr checkout "$PR_URL" # sets the upstream metadata for `gh pr status`
           if [ "$(gh pr status --json reviewDecision -q .currentBranch.reviewDecision)" != "APPROVED" ];
