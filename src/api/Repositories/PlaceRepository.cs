@@ -28,7 +28,7 @@ namespace api.Repositories
         private async Task<Container> Init(CosmosOptions settings, CosmosClient client)
         {
             logger.LogDebug("Initializing Container");
-            var container = client.GetContainer(settings.DatabaseId, settings.ContainerId);
+            var container = client.GetContainer(settings.DatabaseId, settings.PlacesContainerId);
             // verify that container exists
             try
             {
@@ -36,7 +36,7 @@ namespace api.Repositories
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Failed to read container {ContainerId} in database {DatabaseId}. Make sure they exists!", settings.ContainerId, settings.DatabaseId);
+                logger.LogError(ex, "Failed to read container {ContainerId} in database {DatabaseId}. Make sure they exists!", settings.PlacesContainerId, settings.DatabaseId);
                 throw;
             }
 

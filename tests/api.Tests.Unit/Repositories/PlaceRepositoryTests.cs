@@ -26,7 +26,8 @@ public class PlaceRepositoryTests
             Title = "TestCosmos",
             ConnectionString = "AccountEndpoint=https://test.documents.azure.com:443/;AccountKey=test-key==",
             DatabaseId = "TestDb",
-            ContainerId = "TestContainer"
+            PlacesContainerId = "TestContainer",
+            UserSettingsContainerId = "TestUserContainer"
         });
 
         mockCosmosClient.Setup(c => c.GetContainer(It.IsAny<string>(), It.IsAny<string>()))

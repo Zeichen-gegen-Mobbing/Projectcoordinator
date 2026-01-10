@@ -1,4 +1,4 @@
-using ZgM.ProjectCoordinator.Shared;
+using api.Entities;
 
 namespace api.Models
 {
@@ -7,7 +7,7 @@ namespace api.Models
     /// </summary>
     public sealed class CarRouteResult
     {
-        public required PlaceId PlaceId { get; init; }
+        public required PlaceEntity Place { get; init; }
 
         /// <summary>
         /// Travel time in seconds
@@ -18,10 +18,5 @@ namespace api.Models
         /// Distance in meters
         /// </summary>
         public required uint DistanceMeters { get; init; }
-
-        /// <summary>
-        /// Cost in cents
-        /// </summary>
-        public required uint CostCents { get; init; }
     }
 }

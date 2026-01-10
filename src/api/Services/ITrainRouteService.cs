@@ -18,7 +18,7 @@ namespace api.Services
         /// <param name="originLatitude">Starting point latitude</param>
         /// <param name="originLongitude">Starting point longitude</param>
         /// <returns>Route results including train time and car-based cost</returns>
-        Task<IEnumerable<TrainRouteResult>> CalculateRoutesAsync(
+        IAsyncEnumerable<TrainRouteResult> CalculateRoutesAsync(
             IList<PlaceEntity> places,
             double originLatitude,
             double originLongitude);
