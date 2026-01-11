@@ -12,7 +12,7 @@ jobs:
       - name: Dependabot metadata
         id: dependabot-metadata
         uses: dependabot/fetch-metadata@21025c705c08248db411dc16f3619e6b5f9ea21a
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Enable auto-merge for Dependabot PRs
         run: gh pr merge --auto --squash "${{github.event.pull_request.html_url}}"
         env:
