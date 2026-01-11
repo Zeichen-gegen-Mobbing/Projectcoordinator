@@ -24,15 +24,7 @@ internal sealed class UserSettingRepository : IUserSettingRepository
         logger.LogDebug("Initializing Container");
         var container = client.GetContainer(settings.DatabaseId, settings.UserSettingsContainerId);
         // verify that container exists
-        try
-        {
-            await container.ReadContainerAsync();
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Failed to read container {ContainerId} in database {DatabaseId}. Make sure they exists!", settings.PlacesContainerId, settings.DatabaseId);
-            throw;
-        }
+        await container.ReadContainerAsync();
 
         return container;
     }
