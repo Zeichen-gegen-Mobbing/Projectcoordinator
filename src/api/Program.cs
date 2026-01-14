@@ -63,6 +63,12 @@ var host = new HostBuilder()
 
         services.AddHttpClient();
 
+        services.ConfigureHttpClientDefaults(http =>
+        {
+            // Turn on resilience by default
+            http.AddStandardResilienceHandler();
+        });
+
         services.AddScoped<IPlaceRepository, PlaceRepository>();
         services.AddScoped<IPlaceService, PlaceCosmosService>();
         services.AddScoped<ICarRouteService, CarOpenRouteService>();
