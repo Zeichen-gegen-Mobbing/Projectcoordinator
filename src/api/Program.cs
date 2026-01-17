@@ -72,6 +72,21 @@ var host = new HostBuilder()
         services.AddScoped<IPlaceRepository, PlaceRepository>();
         services.AddScoped<IPlaceService, PlaceCosmosService>();
         services.AddScoped<ICarRouteService, CarOpenRouteService>();
+#pragma warning disable EXTEXP0001 // We need to configure different resiliency, so we need the RemoveAllResilienceHandlers
+        services.AddHttpClient<ITrainRouteService, TrainTransitousService>((serviceProvider, client) =>
+        {
+            var options = serviceProvider.GetRequiredService<IOptions<TransitousOptions>>().Value;
+            TrainTransitousService.ConfigureClient(client, options);
+        })
+            .RemoveAllResilienceHandlers()
+            .AddStandardResilienceHandler(options =>
+            {
+                // Transitous can be slow sometimes, so we need to increase the timeout
+                var requestTimeout = 120;
+                options.AttemptTimeout.Timeout = TimeSpan.FromSeconds(requestTimeout);
+                options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(requestTimeout * 3);
+            });
+#pragma warning restore EXTEXP0001
         services.AddScoped<ITrainRouteService, TrainTransitousService>();
         services.AddScoped<ITripService, TripOrchestrationService>();
         services.AddScoped<ILocationService, LocationOpenRouteService>();
