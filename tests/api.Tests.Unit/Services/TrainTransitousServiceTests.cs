@@ -18,7 +18,6 @@ public class TrainTransitousServiceTests
     public class CalculateRoutesAsync
     {
         private readonly Mock<HttpMessageHandler> httpHandlerMock;
-        private readonly Mock<IHttpClientFactory> clientFactoryMock;
         private readonly Mock<ICarRouteService> carServiceMock;
         private readonly Mock<ILogger<TrainTransitousService>> loggerMock;
         private readonly TrainTransitousService service;
@@ -30,15 +29,8 @@ public class TrainTransitousServiceTests
         public CalculateRoutesAsync()
         {
             httpHandlerMock = new Mock<HttpMessageHandler>();
-            clientFactoryMock = new Mock<IHttpClientFactory>();
             carServiceMock = new Mock<ICarRouteService>();
             loggerMock = new Mock<ILogger<TrainTransitousService>>();
-
-            var httpClient = new HttpClient(httpHandlerMock.Object)
-            {
-                BaseAddress = new Uri("https://api.transitous.org/")
-            };
-            clientFactoryMock.Setup(f => f.CreateClient(It.IsAny<string>())).Returns(httpClient);
 
             var options = Microsoft.Extensions.Options.Options.Create(new TransitousOptions
             {
@@ -46,7 +38,10 @@ public class TrainTransitousServiceTests
                 BaseUrl = "https://api.transitous.org"
             });
 
-            service = new TrainTransitousService(clientFactoryMock.Object, carServiceMock.Object, options, loggerMock.Object);
+            var httpClient = new HttpClient(httpHandlerMock.Object);
+            TrainTransitousService.ConfigureClient(httpClient, options.Value);
+
+            service = new TrainTransitousService(httpClient, carServiceMock.Object, options, loggerMock.Object);
         }
 
         private void SetupHttpResponse<T>(HttpStatusCode statusCode, T response)

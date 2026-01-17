@@ -20,12 +20,6 @@ public class TrainTransitousServiceIntegrationTests
 
     public TrainTransitousServiceIntegrationTests()
     {
-        // Setup real HTTP client for integration tests
-        var httpClientFactoryMock = new Mock<IHttpClientFactory>();
-        httpClientFactoryMock
-            .Setup(f => f.CreateClient(It.IsAny<string>()))
-            .Returns(new HttpClient());
-
         // Mock car service - will be configured per test
         _carServiceMock = new Mock<ICarRouteService>();
 
@@ -37,8 +31,12 @@ public class TrainTransitousServiceIntegrationTests
 
         var loggerMock = new Mock<ILogger<TrainTransitousService>>();
 
+        // Setup real HTTP client for integration tests
+        var httpClient = new HttpClient();
+        TrainTransitousService.ConfigureClient(httpClient, options.Value);
+
         _service = new TrainTransitousService(
-            httpClientFactoryMock.Object,
+            httpClient,
             _carServiceMock.Object,
             options,
             loggerMock.Object);
