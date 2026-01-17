@@ -88,7 +88,6 @@ var host = new HostBuilder()
                 options.CircuitBreaker.SamplingDuration = TimeSpan.FromSeconds(requestTimeout * 2);
             });
 #pragma warning restore EXTEXP0001
-        services.AddScoped<ITrainRouteService, TrainTransitousService>();
         services.AddScoped<ITripService, TripOrchestrationService>();
         services.AddScoped<ILocationService, LocationOpenRouteService>();
         services.AddScoped<AuthorizationHeaderMiddleware>();
