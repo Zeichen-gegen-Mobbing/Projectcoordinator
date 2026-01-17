@@ -35,6 +35,16 @@
             <small>Time & Distance provided by © openrouteservice.org by HeiGIT | Map data © OpenStreetMap
                 contributors</small>
         }
+        else if (LocationSelected)
+        {
+            <div class="text-center my-4">
+                <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-3"><strong>Calculating trip durations...</strong></p>
+                <p class="text-muted">This may take a while (up to three minutes)</p>
+            </div>
+        }
         else
         {
             <b>@status</b>
