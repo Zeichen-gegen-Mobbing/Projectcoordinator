@@ -85,6 +85,7 @@ var host = new HostBuilder()
                 var requestTimeout = 120;
                 options.AttemptTimeout.Timeout = TimeSpan.FromSeconds(requestTimeout);
                 options.TotalRequestTimeout.Timeout = TimeSpan.FromSeconds(requestTimeout * 3);
+                options.CircuitBreaker.SamplingDuration = TimeSpan.FromSeconds(requestTimeout * 2);
             });
 #pragma warning restore EXTEXP0001
         services.AddScoped<ITrainRouteService, TrainTransitousService>();
