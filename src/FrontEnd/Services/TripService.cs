@@ -10,24 +10,17 @@ namespace FrontEnd.Services
         {
             using (logger.BeginScope(nameof(GetTripsAsync)))
             {
-                try
-                {
-                    // Use relative URI string (not Uri object) because HttpClient has BaseAddress configured
-                    var requestUri = string.Format(new CultureInfo("en-US"), "trips?latitude={0}&longitude={1}", latitude, longitude);
+                // Use relative URI string (not Uri object) because HttpClient has BaseAddress configured
+                var requestUri = string.Format(new CultureInfo("en-US"), "trips?latitude={0}&longitude={1}", latitude, longitude);
 
-                    var result = await httpClient.GetFromJsonAsync<IEnumerable<Trip>>(requestUri);
-                    if (result is null)
-                    {
-                        throw new InvalidOperationException("Received null, thats very unexpected");
-                    }
-                    else
-                    {
-                        return result;
-                    }
-                }
-                catch (Exception ex)
+                var result = await httpClient.GetFromJsonAsync<IEnumerable<Trip>>(requestUri);
+                if (result is null)
                 {
-                    throw new InvalidOperationException(httpClient.BaseAddress?.ToString() ?? "Nothing", ex);
+                    throw new InvalidOperationException("Received null, thats very unexpected");
+                }
+                else
+                {
+                    return result;
                 }
             }
         }

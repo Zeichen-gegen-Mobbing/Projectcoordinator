@@ -69,24 +69,35 @@
         StateHasChanged();
         await Task.Yield();
 
-        Console.WriteLine("Start getting trips");
-        foreach (Trip t in (await TripService.GetTripsAsync(result.Latitude, result.Longitude)))
+        try
         {
-            var trip = new TripViewModel()
+            Console.WriteLine("Start getting trips");
+            foreach (Trip t in (await TripService.GetTripsAsync(result.Latitude, result.Longitude)))
             {
-                Place = t.Place,
-                Time = t.Time,
-                Cost = (decimal)t.Cost / 100
-            };
-            trips.Add(trip);
+                var trip = new TripViewModel()
+                {
+                    Place = t.Place,
+                    Time = t.Time,
+                    Cost = (decimal)t.Cost / 100
+                };
+                trips.Add(trip);
+                StateHasChanged();
+                await Task.Yield();
+                _ = loadUser(trip);
+            }
+            status = trips.Any() ? "Finished loading trips" : "No trips found. Probably no Places are saved.";
+        }
+        catch (Exception ex)
+        {
+            status = $"Error loading trips: {ex.Message}";
+            Console.WriteLine($"Error loading trips: {ex}");
+        }
+        finally
+        {
+            LocationSelected = false;
             StateHasChanged();
             await Task.Yield();
-            _ = loadUser(trip);
         }
-        LocationSelected = false;
-        status = trips.Any() ? "Finished loading trips" : "No trips found. Probably no Places are saved.";
-        StateHasChanged();
-        await Task.Yield();
     }
 
     private async Task loadUser(TripViewModel trip)
