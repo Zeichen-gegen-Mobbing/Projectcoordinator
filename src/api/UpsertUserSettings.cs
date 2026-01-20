@@ -1,6 +1,6 @@
 using api.Extensions;
 using api.Options;
-using api.Repositories;
+using api.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
@@ -14,7 +14,7 @@ namespace api;
 /// Azure Function to create or update user cost settings
 /// </summary>
 public sealed class UpsertUserSettings(
-    IUserSettingRepository repository,
+    IUserSettingsService userSettingsService,
     ILogger<UpsertUserSettings> logger,
     IOptions<RoleOptions> roleOptions)
 {
@@ -35,21 +35,12 @@ public sealed class UpsertUserSettings(
                 return new BadRequestObjectResult("Request body is required");
             }
 
-            // Create UserSettings model
-            var settings = new Models.UserSettings
+            var settings = await userSettingsService.UpsertUserSettingsAsync(new Models.UserSettings
             {
                 UserId = requestedUserId,
                 CentsPerKilometer = sharedRequest.CentsPerKilometer,
                 CentsPerHour = sharedRequest.CentsPerHour
-            };
-
-            await repository.UpsertAsync(settings);
-
-            logger.LogInformation(
-                "Successfully upserted cost settings for user {UserId}: CentsPerKm={CentsPerKm}, CentsPerHour={CentsPerHour}",
-                userId,
-                settings.CentsPerKilometer,
-                settings.CentsPerHour);
+            });
 
             return new OkObjectResult(settings);
         }

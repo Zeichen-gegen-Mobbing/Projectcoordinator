@@ -1,20 +1,14 @@
-using api.Models;
-using api.Repositories;
 using Microsoft.Extensions.Logging;
 
 namespace api.Services;
 
 public sealed class CostCalculationService(
-    IUserSettingRepository userSettingRepository,
+    IUserSettingsService userSettingsService,
     ILogger<CostCalculationService> logger) : ICostCalculationService
 {
-    private readonly IUserSettingRepository userSettingRepository = userSettingRepository;
-    private readonly ILogger<CostCalculationService> logger = logger;
-    private readonly Dictionary<ZgM.ProjectCoordinator.Shared.UserId, UserSettings?> _cache = [];
-
     public async Task<uint> CalculateCostAsync(ZgM.ProjectCoordinator.Shared.UserId userId, uint distanceMeters, uint durationSeconds)
     {
-        var settings = await userSettingRepository.GetByUserIdAsync(userId);
+        var settings = await userSettingsService.GetUserSettingsAsync(userId);
 
         if (settings?.CentsPerHour is not null)
         {
@@ -25,7 +19,17 @@ public sealed class CostCalculationService(
             return cost;
         }
 
-        var centsPerKm = settings?.CentsPerKilometer ?? 25;
+        uint centsPerKm;
+        if (settings?.CentsPerKilometer is not null)
+        {
+            centsPerKm = settings.CentsPerKilometer.Value;
+        }
+        else
+        {
+            var defaultSettings = await userSettingsService.GetDefaultSettingsAsync();
+            centsPerKm = defaultSettings.CentsPerKilometer ?? 25;
+        }
+
         var kilometers = distanceMeters / 1000.0;
         var kmCost = (uint)Math.Ceiling(kilometers * centsPerKm);
 
@@ -35,3 +39,4 @@ public sealed class CostCalculationService(
         return kmCost;
     }
 }
+

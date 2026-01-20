@@ -7,5 +7,7 @@ namespace FrontEnd.Services
         Task<UserSettings?> GetUserSettingsAsync(UserId userId);
         Task<UserSettings> UpsertUserSettingsAsync(UserId userId, UserSettings settings);
         Task DeleteUserSettingsAsync(UserId userId);
+        Task<UserSettings> GetDefaultSettingsAsync();
+        Task<UserSettings> UpsertDefaultSettingsAsync(UserSettings settings);
     }
 }

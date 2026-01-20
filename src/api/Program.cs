@@ -64,6 +64,7 @@ var host = new HostBuilder()
         services.AddScoped<IPlaceRepository, PlaceRepository>();
         services.AddScoped<IUserSettingRepository, UserSettingRepository>();
         services.AddScoped<IPlaceService, PlaceCosmosService>();
+        services.AddScoped<IUserSettingsService, UserSettingsService>();
         services.AddScoped<ICostCalculationService, CostCalculationService>();
         services.AddScoped<ICarRouteService, CarOpenRouteService>();
         services.AddScoped<ITrainRouteService, TrainTransitousService>();

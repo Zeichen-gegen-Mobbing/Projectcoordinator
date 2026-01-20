@@ -4,7 +4,6 @@
 @using FrontEnd.Models
 @using FrontEnd.Services
 @using System.ComponentModel.DataAnnotations
-@using SharedUserSettings = ZgM.ProjectCoordinator.Shared.UserSettings
 @inject IUserSettingsService UserSettingsService
 
 <PageTitle>User Cost Settings</PageTitle>
@@ -20,7 +19,7 @@
     <div class="card">
         <div class="card-body">
             <h5 class="card-title">Cost Settings for @selectedUser.DisplayName</h5>
-            
+
             @if (isLoading)
             {
                 <div class="text-center">
@@ -33,7 +32,7 @@
             {
                 <EditForm Model="@settingsModel" OnValidSubmit="@SaveSettings">
                     <DataAnnotationsValidator />
-                    
+
                     <div class="mb-3">
                         <label class="form-label">Cost Calculation Method</label>
                         <InputRadioGroup @bind-Value="settingsModel.Method">
@@ -84,7 +83,7 @@
                             }
                             Save Settings
                         </button>
-                        
+
                         @if (currentSettings != null)
                         {
                             <button type="button" class="btn btn-danger" @onclick="DeleteSettings" disabled="@isDeleting">
@@ -118,7 +117,7 @@
 
 @code {
     private GraphUser? selectedUser;
-    private SharedUserSettings? currentSettings;
+    private UserSettings? currentSettings;
     private SettingsModel settingsModel = new();
     private bool isLoading;
     private bool isSaving;
@@ -131,12 +130,12 @@
         selectedUser = user;
         successMessage = null;
         errorMessage = null;
-        
+
         if (user != null)
         {
             await LoadSettings(UserId.Parse(user.Id));
         }
-        
+
         StateHasChanged();
     }
 
@@ -146,7 +145,7 @@
         try
         {
             currentSettings = await UserSettingsService.GetUserSettingsAsync(userId);
-            
+
             if (currentSettings != null)
             {
                 if (currentSettings.CentsPerHour.HasValue)
@@ -178,29 +177,29 @@
     private async Task SaveSettings()
     {
         if (selectedUser == null) return;
-        
+
         isSaving = true;
         successMessage = null;
         errorMessage = null;
-        
+
         try
         {
             var userId = UserId.Parse(selectedUser.Id);
-            
+
             var settings = settingsModel.Method switch
             {
-                CostMethod.PerKilometer => new SharedUserSettings 
-                { 
-                    CentsPerKilometer = settingsModel.CentsPerKilometer 
+                CostMethod.PerKilometer => new UserSettings
+                {
+                    CentsPerKilometer = settingsModel.CentsPerKilometer
                 },
-                CostMethod.PerHour => new SharedUserSettings 
-                { 
-                    CentsPerHour = settingsModel.CentsPerHour 
+                CostMethod.PerHour => new UserSettings
+                {
+                    CentsPerHour = settingsModel.CentsPerHour
                 },
-                CostMethod.UseDefault => new SharedUserSettings(),
+                CostMethod.UseDefault => new UserSettings(),
                 _ => throw new InvalidOperationException("Invalid cost method")
             };
-            
+
             currentSettings = await UserSettingsService.UpsertUserSettingsAsync(userId, settings);
             successMessage = "Settings saved successfully";
         }
@@ -217,11 +216,11 @@
     private async Task DeleteSettings()
     {
         if (selectedUser == null) return;
-        
+
         isDeleting = true;
         successMessage = null;
         errorMessage = null;
-        
+
         try
         {
             var userId = UserId.Parse(selectedUser.Id);
@@ -253,14 +252,16 @@
         public uint CentsPerKilometer { get; set; }
         public uint CentsPerHour { get; set; }
         [Range(0, Int32.MaxValue)]
-        public int CentsPerKilometerSigned { 
-            get {return Convert.ToInt32(CentsPerKilometer);}
-            set {CentsPerKilometer = Convert.ToUInt32(value);}
+        public int CentsPerKilometerSigned
+        {
+            get { return Convert.ToInt32(CentsPerKilometer); }
+            set { CentsPerKilometer = Convert.ToUInt32(value); }
         }
         [Range(0, Int32.MaxValue)]
-        public int CentsPerHourSigned { 
-            get {return Convert.ToInt32(CentsPerHour);}
-            set {CentsPerHour = Convert.ToUInt32(value);}
+        public int CentsPerHourSigned
+        {
+            get { return Convert.ToInt32(CentsPerHour); }
+            set { CentsPerHour = Convert.ToUInt32(value); }
         }
     }
 }

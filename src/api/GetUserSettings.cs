@@ -1,7 +1,7 @@
 using System.Net;
 using api.Extensions;
 using api.Options;
-using api.Repositories;
+using api.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
@@ -11,7 +11,7 @@ using ZgM.ProjectCoordinator.Shared;
 
 namespace api;
 
-public sealed class GetUserSettings(IUserSettingRepository repository, ILogger<GetUserSettings> logger, IOptions<RoleOptions> roleOptions)
+public sealed class GetUserSettings(IUserSettingsService userSettingsService, ILogger<GetUserSettings> logger, IOptions<RoleOptions> roleOptions)
 {
     [Function("GetUserSettings")]
     public async Task<IActionResult> Run(
@@ -27,7 +27,7 @@ public sealed class GetUserSettings(IUserSettingRepository repository, ILogger<G
                 roles: [roleOptions.Value.ProjectCoordination]);
 
             var userIdValue = UserId.Parse(userId);
-            var settings = await repository.GetByUserIdAsync(userIdValue);
+            var settings = await userSettingsService.GetUserSettingsAsync(userIdValue);
 
             if (settings == null)
             {
