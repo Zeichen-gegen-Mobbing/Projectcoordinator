@@ -1,0 +1,266 @@
+@page "/user-settings"
+@using ZgM.ProjectCoordinator.Shared
+@using FrontEnd.Components
+@using FrontEnd.Models
+@using FrontEnd.Services
+@using System.ComponentModel.DataAnnotations
+@using SharedUserSettings = ZgM.ProjectCoordinator.Shared.UserSettings
+@inject IUserSettingsService UserSettingsService
+
+<PageTitle>User Cost Settings</PageTitle>
+
+<h1>User Cost Settings</h1>
+
+<div class="mb-4">
+    <UserSearch Title="Search User" Label="Search for user to manage cost settings" OnUserSelected="@OnUserSelected" />
+</div>
+
+@if (selectedUser != null)
+{
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Cost Settings for @selectedUser.DisplayName</h5>
+            
+            @if (isLoading)
+            {
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <EditForm Model="@settingsModel" OnValidSubmit="@SaveSettings">
+                    <DataAnnotationsValidator />
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Cost Calculation Method</label>
+                        <InputRadioGroup @bind-Value="settingsModel.Method">
+                            <div class="form-check">
+                                <InputRadio class="form-check-input" id="methodKilometer" Value="@CostMethod.PerKilometer" />
+                                <label class="form-check-label" for="methodKilometer">
+                                    Cost per Kilometer
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <InputRadio class="form-check-input" id="methodHour" Value="@CostMethod.PerHour" />
+                                <label class="form-check-label" for="methodHour">
+                                    Cost per Hour
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <InputRadio class="form-check-input" id="methodDefault" Value="@CostMethod.UseDefault" />
+                                <label class="form-check-label" for="methodDefault">
+                                    Use Default Settings
+                                </label>
+                            </div>
+                        </InputRadioGroup>
+                    </div>
+
+                    @if (settingsModel.Method == CostMethod.PerKilometer)
+                    {
+                        <div class="mb-3">
+                            <label for="centsPerKm" class="form-label">Cents per Kilometer</label>
+                            <InputNumber @bind-Value="settingsModel.CentsPerKilometerSigned" class="form-control" id="centsPerKm" />
+                            <ValidationMessage For="@(() => settingsModel.CentsPerKilometerSigned)" />
+                        </div>
+                    }
+
+                    @if (settingsModel.Method == CostMethod.PerHour)
+                    {
+                        <div class="mb-3">
+                            <label for="centsPerHour" class="form-label">Cents per Hour</label>
+                            <InputNumber @bind-Value="settingsModel.CentsPerHourSigned" class="form-control" id="centsPerHour" />
+                            <ValidationMessage For="@(() => settingsModel.CentsPerHourSigned)" />
+                        </div>
+                    }
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary" disabled="@isSaving">
+                            @if (isSaving)
+                            {
+                                <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                            }
+                            Save Settings
+                        </button>
+                        
+                        @if (currentSettings != null)
+                        {
+                            <button type="button" class="btn btn-danger" @onclick="DeleteSettings" disabled="@isDeleting">
+                                @if (isDeleting)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                                }
+                                Delete Settings
+                            </button>
+                        }
+                    </div>
+                </EditForm>
+
+                @if (successMessage != null)
+                {
+                    <div class="alert alert-success mt-3" role="alert">
+                        @successMessage
+                    </div>
+                }
+
+                @if (errorMessage != null)
+                {
+                    <div class="alert alert-danger mt-3" role="alert">
+                        @errorMessage
+                    </div>
+                }
+            }
+        </div>
+    </div>
+}
+
+@code {
+    private GraphUser? selectedUser;
+    private SharedUserSettings? currentSettings;
+    private SettingsModel settingsModel = new();
+    private bool isLoading;
+    private bool isSaving;
+    private bool isDeleting;
+    private string? successMessage;
+    private string? errorMessage;
+
+    private async Task OnUserSelected(GraphUser? user)
+    {
+        selectedUser = user;
+        successMessage = null;
+        errorMessage = null;
+        
+        if (user != null)
+        {
+            await LoadSettings(UserId.Parse(user.Id));
+        }
+        
+        StateHasChanged();
+    }
+
+    private async Task LoadSettings(UserId userId)
+    {
+        isLoading = true;
+        try
+        {
+            currentSettings = await UserSettingsService.GetUserSettingsAsync(userId);
+            
+            if (currentSettings != null)
+            {
+                if (currentSettings.CentsPerHour.HasValue)
+                {
+                    settingsModel.Method = CostMethod.PerHour;
+                    settingsModel.CentsPerHour = currentSettings.CentsPerHour.Value;
+                }
+                else if (currentSettings.CentsPerKilometer.HasValue)
+                {
+                    settingsModel.Method = CostMethod.PerKilometer;
+                    settingsModel.CentsPerKilometer = currentSettings.CentsPerKilometer.Value;
+                }
+            }
+            else
+            {
+                settingsModel = new SettingsModel { Method = CostMethod.UseDefault };
+            }
+        }
+        catch (Exception)
+        {
+            errorMessage = "Failed to load user settings";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task SaveSettings()
+    {
+        if (selectedUser == null) return;
+        
+        isSaving = true;
+        successMessage = null;
+        errorMessage = null;
+        
+        try
+        {
+            var userId = UserId.Parse(selectedUser.Id);
+            
+            var settings = settingsModel.Method switch
+            {
+                CostMethod.PerKilometer => new SharedUserSettings 
+                { 
+                    CentsPerKilometer = settingsModel.CentsPerKilometer 
+                },
+                CostMethod.PerHour => new SharedUserSettings 
+                { 
+                    CentsPerHour = settingsModel.CentsPerHour 
+                },
+                CostMethod.UseDefault => new SharedUserSettings(),
+                _ => throw new InvalidOperationException("Invalid cost method")
+            };
+            
+            currentSettings = await UserSettingsService.UpsertUserSettingsAsync(userId, settings);
+            successMessage = "Settings saved successfully";
+        }
+        catch (Exception)
+        {
+            errorMessage = "Failed to save user settings";
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private async Task DeleteSettings()
+    {
+        if (selectedUser == null) return;
+        
+        isDeleting = true;
+        successMessage = null;
+        errorMessage = null;
+        
+        try
+        {
+            var userId = UserId.Parse(selectedUser.Id);
+            await UserSettingsService.DeleteUserSettingsAsync(userId);
+            currentSettings = null;
+            settingsModel = new SettingsModel { Method = CostMethod.UseDefault };
+            successMessage = "Settings deleted successfully";
+        }
+        catch (Exception)
+        {
+            errorMessage = "Failed to delete user settings";
+        }
+        finally
+        {
+            isDeleting = false;
+        }
+    }
+
+    private enum CostMethod
+    {
+        UseDefault,
+        PerKilometer,
+        PerHour
+    }
+
+    private class SettingsModel
+    {
+        public CostMethod Method { get; set; } = CostMethod.UseDefault;
+        public uint CentsPerKilometer { get; set; }
+        public uint CentsPerHour { get; set; }
+        [Range(0, Int32.MaxValue)]
+        public int CentsPerKilometerSigned { 
+            get {return Convert.ToInt32(CentsPerKilometer);}
+            set {CentsPerKilometer = Convert.ToUInt32(value);}
+        }
+        [Range(0, Int32.MaxValue)]
+        public int CentsPerHourSigned { 
+            get {return Convert.ToInt32(CentsPerHour);}
+            set {CentsPerHour = Convert.ToUInt32(value);}
+        }
+    }
+}

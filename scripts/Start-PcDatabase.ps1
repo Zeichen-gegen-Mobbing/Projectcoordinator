@@ -97,13 +97,23 @@ catch {
 
 $cosmosDbContext = New-CosmosDbContext -Emulator -Database $cosmosDbId
 
+$cosmosUserContainerId = "Projectcoordinator-UserSettings"
+try {
+    $null = Get-CosmosDbCollection -Context $cosmosDbContext -Id $cosmosUserContainerId
+    Write-Output "Collection '$cosmosUserContainerId' already exists."
+}
+catch {
+    Write-Output "Creating collection '$cosmosUserContainerId'"
+    $null = New-CosmosDbCollection -Context $cosmosDbContext -Id $cosmosUserContainerId -PartitionKey id -OfferThroughput 1000
+}
+
 try {
     $null = Get-CosmosDbCollection -Context $cosmosDbContext -Id $cosmosContainerId
     Write-Output "Collection '$cosmosContainerId' already exists."
 }
 catch {
-    Write-Output "Creating collection '$cosmosContainerId' with 4000 RU/s throughput."
-    $null = New-CosmosDbCollection -Context $cosmosDbContext -Id $cosmosContainerId -PartitionKey userId -OfferThroughput 4000
+    Write-Output "Creating collection '$cosmosContainerId'"
+    $null = New-CosmosDbCollection -Context $cosmosDbContext -Id $cosmosContainerId -PartitionKey userId -OfferThroughput 1000
 }
 
 $ResponseHeader = $null

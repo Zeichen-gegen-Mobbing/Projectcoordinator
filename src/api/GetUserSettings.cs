@@ -11,17 +11,20 @@ using ZgM.ProjectCoordinator.Shared;
 
 namespace api;
 
-public sealed class GetUserSettings(IUserSettingRepository repository, ILogger<GetUserSettings> logger)
+public sealed class GetUserSettings(IUserSettingRepository repository, ILogger<GetUserSettings> logger, IOptions<RoleOptions> roleOptions)
 {
     [Function("GetUserSettings")]
     public async Task<IActionResult> Run(
         [HttpTrigger(AuthorizationLevel.Function, "get", Route = "users/{userId}/settings")] HttpRequest req,
-        string userId, IOptions<RoleOptions> roleOptions)
+        string userId)
     {
         using (logger.BeginScope(new Dictionary<string, object> { { "FunctionName", nameof(GetUserSettings) } }))
         {
             logger.LogInformation("Getting cost settings for user {UserId}", userId);
-            await req.HttpContext.AuthorizeAzureFunctionAsync(scopes: ["Settings.Read"], roles: [roleOptions.Value.ProjectCoordination]);
+            logger.LogDebug("Only Role {Role} is allowed", roleOptions.Value.ProjectCoordination);
+            await req.HttpContext.AuthorizeAzureFunctionAsync(
+                scopes: ["Settings.Read"],
+                roles: [roleOptions.Value.ProjectCoordination]);
 
             var userIdValue = UserId.Parse(userId);
             var settings = await repository.GetByUserIdAsync(userIdValue);

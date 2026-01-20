@@ -12,13 +12,13 @@ using ZgM.ProjectCoordinator.Shared;
 
 namespace api;
 
-public sealed class DeleteUserSettings(IUserSettingRepository repository, ILogger<DeleteUserSettings> logger)
+public sealed class DeleteUserSettings(IUserSettingRepository repository, ILogger<DeleteUserSettings> logger, IOptions<RoleOptions> roleOptions)
 {
 
     [Function("DeleteUserSettings")]
     public async Task<IActionResult> Run(
         [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "users/{userId}/settings")] HttpRequest req,
-        string userId, IOptions<RoleOptions> roleOptions)
+        string userId)
     {
         using (logger.BeginScope(new Dictionary<string, object> { { "FunctionName", nameof(DeleteUserSettings) } }))
         {

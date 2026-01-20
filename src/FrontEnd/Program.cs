@@ -106,5 +106,14 @@ builder.Services.AddHttpClient<IPlaceService, PlaceService>(client =>
         .ConfigureHandler([baseAddress], [$"api://{authConfig.ApiClientId}/Places.Create", $"api://{authConfig.ApiClientId}/Places.Delete", $"api://{authConfig.ApiClientId}/Places.Read"]);
 });
 
+builder.Services.AddHttpClient<IUserSettingsService, UserSettingsService>(client =>
+{
+    client.BaseAddress = new Uri(baseAddress);
+})
+.AddHttpMessageHandler(sp =>
+{
+    return sp.GetRequiredService<CustomAuthorizationHeaderMessageHandler>()
+        .ConfigureHandler([baseAddress], [$"api://{authConfig.ApiClientId}/Settings.Read", $"api://{authConfig.ApiClientId}/Settings.Write", $"api://{authConfig.ApiClientId}/Settings.Delete"]);
+});
 
 await builder.Build().RunAsync();

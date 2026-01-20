@@ -15,12 +15,13 @@ namespace api;
 /// </summary>
 public sealed class UpsertUserSettings(
     IUserSettingRepository repository,
-    ILogger<UpsertUserSettings> logger)
+    ILogger<UpsertUserSettings> logger,
+    IOptions<RoleOptions> roleOptions)
 {
     [Function("UpsertUserSettings")]
     public async Task<IActionResult> Run(
         [HttpTrigger(AuthorizationLevel.Function, "put", Route = "users/{userId}/settings")] HttpRequest req,
-        string userId, IOptions<RoleOptions> roleOptions)
+        string userId)
     {
         using (logger.BeginScope(new Dictionary<string, object> { { "FunctionName", nameof(UpsertUserSettings) } }))
         {

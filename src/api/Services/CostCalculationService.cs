@@ -14,7 +14,7 @@ public sealed class CostCalculationService(
 
     public async Task<uint> CalculateCostAsync(ZgM.ProjectCoordinator.Shared.UserId userId, uint distanceMeters, uint durationSeconds)
     {
-        var settings = await GetUserSettingAsync(userId);
+        var settings = await userSettingRepository.GetByUserIdAsync(userId);
 
         if (settings?.CentsPerHour is not null)
         {
@@ -33,17 +33,5 @@ public sealed class CostCalculationService(
             userId, kmCost, kilometers, centsPerKm);
 
         return kmCost;
-    }
-
-    private async Task<UserSettings?> GetUserSettingAsync(ZgM.ProjectCoordinator.Shared.UserId userId)
-    {
-        if (_cache.TryGetValue(userId, out var cachedSettings))
-        {
-            return cachedSettings;
-        }
-
-        var settings = await userSettingRepository.GetByUserIdAsync(userId);
-        _cache[userId] = settings;
-        return settings;
     }
 }
