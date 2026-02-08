@@ -90,7 +90,7 @@ public class TripCalculatorTests : Bunit.TestContext
 		}
 
 		[Test]
-		public async Task InitialStatus_IsWaitingForCoordinates_WhenUserIsAuthorized()
+		public async Task InitialMessage_InstructsUserToSelectLocation_WhenUserIsAuthorized()
 		{
 			// Arrange
 			var authContext = this.AddTestAuthorization();
@@ -101,7 +101,7 @@ public class TripCalculatorTests : Bunit.TestContext
 			var cut = RenderComponent<TripCalculator>();
 
 			// Assert
-			await Assert.That(cut.Markup).Contains("Waiting for coordinates");
+			await Assert.That(cut.Markup).Contains("Select a location to calculate trip durations from saved places");
 		}
 
 		[Test]
@@ -184,6 +184,293 @@ public class TripCalculatorTests : Bunit.TestContext
 				await Assert.That(cut.Markup).Contains(expectedCost);
 				await Assert.That(cut.Markup).Contains("Costs (€)");
 			});
+		}
+	}
+
+	public class LoadingState : TripCalculatorTests
+	{
+		[Test]
+		public async Task ShowsLoadingSpinner_WhenCalculatingTrips()
+		{
+			// Arrange
+			var authContext = this.AddTestAuthorization();
+			authContext.SetAuthorized("TEST USER");
+			authContext.SetPolicies("Role:projectcoordination");
+
+			var searchResult = new ZgM.ProjectCoordinator.Shared.LocationSearchResult
+			{
+				Label = "Test Location",
+				Latitude = 52.5200,
+				Longitude = 13.4050
+			};
+
+			_locationServiceMock.Setup(s => s.SearchLocationsAsync(It.IsAny<string>()))
+				.ReturnsAsync(new[] { searchResult });
+
+			var tcs = new TaskCompletionSource<IEnumerable<ZgM.ProjectCoordinator.Shared.Trip>>();
+			_tripServiceMock.Setup(s => s.GetTripsAsync(It.IsAny<double>(), It.IsAny<double>()))
+				.Returns(tcs.Task);
+
+			// Act
+			var cut = RenderComponent<TripCalculator>();
+
+			var searchInput = cut.Find("input[placeholder='Enter address or place name']");
+			searchInput.Change("Berlin");
+
+			var searchButton = cut.Find("button[type='submit']");
+			await cut.InvokeAsync(() => searchButton.Click());
+
+			var selectButton = cut.Find("button.btn-success");
+			await cut.InvokeAsync(() => selectButton.Click());
+
+			// Assert - should show loading spinner
+			await Assert.That(cut.Markup).Contains("spinner-border");
+			await Assert.That(cut.Markup).Contains("Calculating trip durations");
+			await Assert.That(cut.Markup).Contains("up to three minutes");
+
+			// Cleanup - complete the task to avoid hanging test
+			tcs.SetResult(Array.Empty<ZgM.ProjectCoordinator.Shared.Trip>());
+		}
+
+		[Test]
+		public async Task HidesLoadingSpinner_WhenTripsLoadSuccessfully()
+		{
+			// Arrange
+			var authContext = this.AddTestAuthorization();
+			authContext.SetAuthorized("TEST USER");
+			authContext.SetPolicies("Role:projectcoordination");
+
+			var searchResult = new ZgM.ProjectCoordinator.Shared.LocationSearchResult
+			{
+				Label = "Test Location",
+				Latitude = 52.5200,
+				Longitude = 13.4050
+			};
+
+			_locationServiceMock.Setup(s => s.SearchLocationsAsync(It.IsAny<string>()))
+				.ReturnsAsync(new[] { searchResult });
+
+			var trip = new ZgM.ProjectCoordinator.Shared.Trip
+			{
+				Place = new ZgM.ProjectCoordinator.Shared.Place
+				{
+					Id = new ZgM.ProjectCoordinator.Shared.PlaceId("place1"),
+					UserId = ZgM.ProjectCoordinator.Shared.UserId.Parse("00000000-0000-0000-0000-000000000001"),
+					Name = "Test Place",
+					TransportMode = ZgM.ProjectCoordinator.Shared.TransportMode.Car
+				},
+				Time = TimeSpan.FromMinutes(10),
+				Cost = 1000
+			};
+
+			_tripServiceMock.Setup(s => s.GetTripsAsync(It.IsAny<double>(), It.IsAny<double>()))
+				.ReturnsAsync(new[] { trip });
+
+			JSInterop.Mode = JSRuntimeMode.Loose;
+
+			// Act
+			var cut = RenderComponent<TripCalculator>();
+
+			var searchInput = cut.Find("input[placeholder='Enter address or place name']");
+			searchInput.Change("Berlin");
+
+			var searchButton = cut.Find("button[type='submit']");
+			await cut.InvokeAsync(() => searchButton.Click());
+
+			var selectButton = cut.Find("button.btn-success");
+			await cut.InvokeAsync(() => selectButton.Click());
+
+			// Assert - should NOT show loading spinner anymore
+			cut.WaitForAssertion(async () =>
+			{
+				await Assert.That(cut.Markup).DoesNotContain("spinner-border");
+				await Assert.That(cut.Markup).DoesNotContain("Calculating trip durations");
+			});
+		}
+
+		[Test]
+		public async Task HidesLoadingSpinner_WhenTripLoadingFails()
+		{
+			// Arrange
+			var authContext = this.AddTestAuthorization();
+			authContext.SetAuthorized("TEST USER");
+			authContext.SetPolicies("Role:projectcoordination");
+
+			var searchResult = new ZgM.ProjectCoordinator.Shared.LocationSearchResult
+			{
+				Label = "Test Location",
+				Latitude = 52.5200,
+				Longitude = 13.4050
+			};
+
+			_locationServiceMock.Setup(s => s.SearchLocationsAsync(It.IsAny<string>()))
+				.ReturnsAsync(new[] { searchResult });
+
+			var tcs = new TaskCompletionSource<IEnumerable<ZgM.ProjectCoordinator.Shared.Trip>>();
+			_tripServiceMock.Setup(s => s.GetTripsAsync(It.IsAny<double>(), It.IsAny<double>()))
+				.Returns(tcs.Task);
+
+			// Act
+			var cut = RenderComponent<TripCalculator>();
+
+			var searchInput = cut.Find("input[placeholder='Enter address or place name']");
+			searchInput.Change("Berlin");
+
+			var searchButton = cut.Find("button[type='submit']");
+			await cut.InvokeAsync(() => searchButton.Click());
+
+			var selectButton = cut.Find("button.btn-success");
+			await cut.InvokeAsync(() => selectButton.Click());
+
+			// Assert - should show loading spinner first
+			await Assert.That(cut.Markup).Contains("spinner-border");
+			await Assert.That(cut.Markup).Contains("Calculating trip durations");
+
+			// Now make the task fail
+			tcs.SetException(new InvalidOperationException("API error"));
+
+			// Assert - should NOT show loading spinner anymore, should show error instead
+			cut.WaitForAssertion(async () =>
+			{
+				await Assert.That(cut.Markup).DoesNotContain("spinner-border");
+				await Assert.That(cut.Markup).DoesNotContain("Calculating trip durations");
+				await Assert.That(cut.Markup).Contains("Error loading trips");
+			});
+		}
+	}
+
+	public class ErrorState : TripCalculatorTests
+	{
+		[Test]
+		public async Task ShowsErrorMessage_WhenTripServiceThrowsException()
+		{
+			// Arrange
+			var authContext = this.AddTestAuthorization();
+			authContext.SetAuthorized("TEST USER");
+			authContext.SetPolicies("Role:projectcoordination");
+
+			var searchResult = new ZgM.ProjectCoordinator.Shared.LocationSearchResult
+			{
+				Label = "Test Location",
+				Latitude = 52.5200,
+				Longitude = 13.4050
+			};
+
+			_locationServiceMock.Setup(s => s.SearchLocationsAsync(It.IsAny<string>()))
+				.ReturnsAsync(new[] { searchResult });
+
+			_tripServiceMock.Setup(s => s.GetTripsAsync(It.IsAny<double>(), It.IsAny<double>()))
+				.ThrowsAsync(new InvalidOperationException("API is unavailable"));
+
+			// Act
+			var cut = RenderComponent<TripCalculator>();
+
+			var searchInput = cut.Find("input[placeholder='Enter address or place name']");
+			searchInput.Change("Berlin");
+
+			var searchButton = cut.Find("button[type='submit']");
+			await cut.InvokeAsync(() => searchButton.Click());
+
+			var selectButton = cut.Find("button.btn-success");
+			await cut.InvokeAsync(() => selectButton.Click());
+
+			// Assert - should show error alert
+			cut.WaitForAssertion(async () =>
+			{
+				await Assert.That(cut.Markup).Contains("Error loading trips");
+				await Assert.That(cut.Markup).Contains("API is unavailable");
+				await Assert.That(cut.Markup).Contains("alert-danger");
+			});
+		}
+
+		[Test]
+		public async Task ShowsErrorMessage_WhenNoTripsFound()
+		{
+			// Arrange
+			var authContext = this.AddTestAuthorization();
+			authContext.SetAuthorized("TEST USER");
+			authContext.SetPolicies("Role:projectcoordination");
+
+			var searchResult = new ZgM.ProjectCoordinator.Shared.LocationSearchResult
+			{
+				Label = "Test Location",
+				Latitude = 52.5200,
+				Longitude = 13.4050
+			};
+
+			_locationServiceMock.Setup(s => s.SearchLocationsAsync(It.IsAny<string>()))
+				.ReturnsAsync(new[] { searchResult });
+
+			_tripServiceMock.Setup(s => s.GetTripsAsync(It.IsAny<double>(), It.IsAny<double>()))
+				.ReturnsAsync(Array.Empty<ZgM.ProjectCoordinator.Shared.Trip>());
+
+			// Act
+			var cut = RenderComponent<TripCalculator>();
+
+			var searchInput = cut.Find("input[placeholder='Enter address or place name']");
+			searchInput.Change("Berlin");
+
+			var searchButton = cut.Find("button[type='submit']");
+			await cut.InvokeAsync(() => searchButton.Click());
+
+			var selectButton = cut.Find("button.btn-success");
+			await cut.InvokeAsync(() => selectButton.Click());
+
+			// Assert - should show error message
+			cut.WaitForAssertion(async () =>
+			{
+				await Assert.That(cut.Markup).Contains("No trips found");
+				await Assert.That(cut.Markup).Contains("no places are saved");
+			});
+		}
+
+		[Test]
+		public async Task ClearsErrorMessage_WhenNewSearchStarted()
+		{
+			// Arrange
+			var authContext = this.AddTestAuthorization();
+			authContext.SetAuthorized("TEST USER");
+			authContext.SetPolicies("Role:projectcoordination");
+
+			var searchResult = new ZgM.ProjectCoordinator.Shared.LocationSearchResult
+			{
+				Label = "Test Location",
+				Latitude = 52.5200,
+				Longitude = 13.4050
+			};
+
+			_locationServiceMock.Setup(s => s.SearchLocationsAsync(It.IsAny<string>()))
+				.ReturnsAsync(new[] { searchResult });
+
+			_tripServiceMock.Setup(s => s.GetTripsAsync(It.IsAny<double>(), It.IsAny<double>()))
+				.ThrowsAsync(new InvalidOperationException("API is unavailable"));
+
+			var cut = RenderComponent<TripCalculator>();
+
+			var searchInput = cut.Find("input[placeholder='Enter address or place name']");
+			searchInput.Change("Berlin");
+
+			var searchButton = cut.Find("button[type='submit']");
+			await cut.InvokeAsync(() => searchButton.Click());
+
+			var selectButton = cut.Find("button.btn-success");
+			await cut.InvokeAsync(() => selectButton.Click());
+
+			cut.WaitForAssertion(async () =>
+			{
+				await Assert.That(cut.Markup).Contains("Error loading trips");
+			});
+
+			// Act - start a new search
+			searchInput = cut.Find("input[placeholder='Enter address or place name']");
+			searchInput.Change("Munich");
+
+			searchButton = cut.Find("button[type='submit']");
+			await cut.InvokeAsync(() => searchButton.Click());
+
+			// Assert - error should be cleared
+			await Assert.That(cut.Markup).DoesNotContain("Error loading trips");
+			await Assert.That(cut.Markup).Contains("Select a location to calculate trip durations");
 		}
 	}
 }
