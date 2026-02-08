@@ -21,7 +21,6 @@ public sealed class GetUserSettings(IUserSettingsService userSettingsService, IL
         using (logger.BeginScope(new Dictionary<string, object> { { "FunctionName", nameof(GetUserSettings) } }))
         {
             logger.LogInformation("Getting cost settings for user {UserId}", userId);
-            logger.LogDebug("Only Role {Role} is allowed", roleOptions.Value.ProjectCoordination);
             await req.HttpContext.AuthorizeAzureFunctionAsync(
                 scopes: ["Settings.Read"],
                 roles: [roleOptions.Value.ProjectCoordination]);

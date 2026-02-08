@@ -30,6 +30,18 @@ locals {
       consent_display_name = "Search for Locations"
       consent_description  = "Allows to search for locations."
     }
+    "Settings.Delete" = {
+      consent_display_name = "Delete Settings"
+      consent_description  = "Allows to delete settings for any user if Project Coordinator."
+    }
+    "Settings.Read" = {
+      consent_display_name = "Read Settings"
+      consent_description  = "Allows to read settings for any user if Project Coordinator."
+    }
+    "Settings.Write" = {
+      consent_display_name = "Write Settings"
+      consent_description  = "Allows to write settings for any user if Project Coordinator."
+    }
   }
   api_roles = {
     "projectcoordination" = {
