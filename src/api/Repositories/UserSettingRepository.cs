@@ -22,7 +22,7 @@ internal sealed class UserSettingRepository : IUserSettingRepository
     private async Task<Container> Init(CosmosOptions settings, CosmosClient client)
     {
         logger.LogDebug("Initializing Container");
-        var container = client.GetContainer(settings.DatabaseId, settings.UserSettingsContainerId);
+        var container = client.GetContainer(settings.DatabaseId, settings.UsersContainerId);
         // verify that container exists
         await container.ReadContainerAsync();
 

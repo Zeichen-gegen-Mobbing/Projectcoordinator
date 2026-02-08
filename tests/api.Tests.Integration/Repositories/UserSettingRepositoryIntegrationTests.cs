@@ -56,13 +56,13 @@ public class UserSettingRepositoryIntegrationTests
             ConnectionString = _cosmosContainer.GetConnectionString(),
             DatabaseId = Guid.NewGuid().ToString(),
             PlacesContainerId = "Places",
-            UserSettingsContainerId = "UserSettings"
+            UsersContainerId = "UserSettings"
         });
         var database = (await _cosmosClient!.CreateDatabaseIfNotExistsAsync(cosmosOptions.Value.DatabaseId, cancellationToken: new CancellationTokenSource(TimeSpan.FromSeconds(10)).Token)).Database;
         await database.CreateContainerIfNotExistsAsync(
             new ContainerProperties
             {
-                Id = cosmosOptions.Value.UserSettingsContainerId,
+                Id = cosmosOptions.Value.UsersContainerId,
                 PartitionKeyPath = "/id"
             },
             cancellationToken: new CancellationTokenSource(TimeSpan.FromSeconds(10)).Token);
