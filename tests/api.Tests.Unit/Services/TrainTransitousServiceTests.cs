@@ -30,16 +30,16 @@ public class TrainTransitousServiceTests
             httpHandlerMock = new Mock<HttpMessageHandler>();
             loggerMock = new Mock<ILogger<TrainTransitousService>>();
 
-            var options = Microsoft.Extensions.Options.Options.Create(new TransitousOptions
+            var options = new TransitousOptions
             {
                 Title = "Transitous",
                 BaseUrl = "https://api.transitous.org"
-            });
+            };
 
             var httpClient = new HttpClient(httpHandlerMock.Object);
-            TrainTransitousService.ConfigureClient(httpClient, options.Value);
+            TrainTransitousService.ConfigureClient(httpClient, options);
 
-            service = new TrainTransitousService(httpClient, carServiceMock.Object, options, loggerMock.Object);
+            service = new TrainTransitousService(httpClient, loggerMock.Object);
         }
 
         private void SetupHttpResponse<T>(HttpStatusCode statusCode, T response)
