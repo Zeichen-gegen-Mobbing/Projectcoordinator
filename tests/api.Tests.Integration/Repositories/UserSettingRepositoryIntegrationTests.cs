@@ -3,6 +3,7 @@ using api.Repositories;
 using DotNet.Testcontainers;
 using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Containers;
+using DotNet.Testcontainers.Images;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -24,6 +25,7 @@ public class UserSettingRepositoryIntegrationTests
 {
     private static readonly CosmosDbContainer _cosmosContainer = new CosmosDbBuilder("mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:latest")
         .WithEnvironment("PROTOCOL", "https")
+        .WithImagePullPolicy(PullPolicy.Always) // Image is time bound so always use newest.
         .Build();
 
     private static CosmosClient? _cosmosClient;
