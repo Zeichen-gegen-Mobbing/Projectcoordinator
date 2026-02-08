@@ -16,5 +16,5 @@ public record CosmosOptions
     public required string PlacesContainerId { get; init; } = "Projectcoordinator-Places";
 
     [Required]
-    public required string UserContainerId { get; init; } = "Projectcoordinator-User";
+    public required string UsersContainerId { get; init; } = "Projectcoordinator-Users";
 }
