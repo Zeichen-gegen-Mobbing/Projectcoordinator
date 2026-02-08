@@ -62,7 +62,7 @@ else
 }
 
 @code {
-    private SettingsModel settingsModel = new();
+    private readonly SettingsModel settingsModel = new();
     private bool isLoading = true;
     private bool isSaving;
     private string? successMessage;
@@ -117,7 +117,7 @@ else
         }
     }
 
-    private class SettingsModel
+    private sealed class SettingsModel
     {
         public uint CentsPerKilometer { get; set; }
 

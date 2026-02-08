@@ -67,7 +67,7 @@ public class TripOrchestrationServiceTests
             };
 
             var (service, _, trainServiceMock, _, costServiceMock) = CreateService(places, carResults);
-            
+
             // Setup cost calculation
             costServiceMock.Setup(s => s.CalculateCostAsync(places[0].UserId, 5000, 600)).ReturnsAsync(150u);
             costServiceMock.Setup(s => s.CalculateCostAsync(places[1].UserId, 10000, 900)).ReturnsAsync(300u);
@@ -124,7 +124,7 @@ public class TripOrchestrationServiceTests
             };
 
             var (service, carServiceMock, trainServiceMock, _, costServiceMock) = CreateService(places, carResults, trainResults);
-            
+
             // Setup cost calculation - costs are based on car distance and train duration
             costServiceMock.Setup(s => s.CalculateCostAsync(places[0].UserId, 5000, 800)).ReturnsAsync(150u);
             costServiceMock.Setup(s => s.CalculateCostAsync(places[1].UserId, 10000, 1200)).ReturnsAsync(300u);
@@ -187,13 +187,8 @@ public class TripOrchestrationServiceTests
                 CreateTrainResult(places[1], 1200)
             };
 
-            var carResultsForTrain = new List<CarRouteResult>
-            {
-                CreateCarResult(places[1], 900, 10000)
-            };
-
             var (service, _, _, _, costServiceMock) = CreateService(places, carResults, trainResults);
-            
+
             // Setup cost calculation - car mode uses distance and duration, train uses car distance and train duration
             costServiceMock.Setup(s => s.CalculateCostAsync(places[0].UserId, 5000, 600)).ReturnsAsync(150u);
             costServiceMock.Setup(s => s.CalculateCostAsync(places[2].UserId, 3000, 400)).ReturnsAsync(90u);
@@ -355,7 +350,7 @@ public class TripOrchestrationServiceTests
                 .Returns(() => throw new InvalidOperationException("Car service failed"));
 
             var trainServiceMock = new Mock<ITrainRouteService>();
-            
+
             var costServiceMock = new Mock<ICostCalculationService>();
 
             var service = new TripOrchestrationService(

@@ -246,7 +246,7 @@
         PerHour
     }
 
-    private class SettingsModel
+    private sealed class SettingsModel
     {
         public CostMethod Method { get; set; } = CostMethod.UseDefault;
         public uint CentsPerKilometer { get; set; }
