@@ -28,18 +28,27 @@ namespace api.Services
         };
 
         public TrainTransitousService(
-            IHttpClientFactory clientFactory,
-            IOptions<TransitousOptions> options,
+            HttpClient client,
             ILogger<TrainTransitousService> logger)
         {
-            client = clientFactory.CreateClient();
-            client.BaseAddress = new Uri(options.Value.BaseUrl);
+            this.client = client;
+            this.logger = logger;
+        }
 
+        /// <summary>
+        /// Configures the HttpClient for Transitous API.
+        /// </summary>
+        /// <param name="client">The HttpClient to configure.</param>
+        /// <param name="options">The Transitous options containing configuration settings.</param>
+        /// <returns>The configured HttpClient.</returns>
+        public static HttpClient ConfigureClient(HttpClient client, TransitousOptions options)
+        {
+            client.BaseAddress = new Uri(options.BaseUrl);
             var version = Assembly.GetExecutingAssembly()
                 .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
                 .InformationalVersion;
             client.DefaultRequestHeaders.Add("User-Agent", $"Projectcoordinator/{version} (https://z-g-m.de)");
-            this.logger = logger;
+            return client;
         }
 
         public async IAsyncEnumerable<TrainRouteResult> CalculateRoutesAsync(
