@@ -43,6 +43,20 @@
                 </div>
             </Authorized>
         </AuthorizeView>
+        <AuthorizeView Policy="Role:projectcoordination">
+            <Authorized>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="user-settings">
+                        <span class="bi bi-currency-euro" aria-hidden="true"></span> User Cost Settings
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="default-settings">
+                        <span class="bi bi-gear-fill" aria-hidden="true"></span> Default Cost Settings
+                    </NavLink>
+                </div>
+            </Authorized>
+        </AuthorizeView>
     </nav>
 </div>
 

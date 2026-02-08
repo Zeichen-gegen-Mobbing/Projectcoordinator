@@ -9,7 +9,7 @@
             "request": "launch",
             "type": "msedge",
             "url": "http://localhost:4280",
-            "preLaunchTask": "swa start ",
+            "preLaunchTask": "Start SWA (with Backend) in Debug",
             "webRoot": "${workspaceFolder}/src\\FrontEnd",
             "timeout": 30000
         }

@@ -18,7 +18,6 @@ public class TrainTransitousServiceTests
     public class CalculateRoutesAsync
     {
         private readonly Mock<HttpMessageHandler> httpHandlerMock;
-        private readonly Mock<ICarRouteService> carServiceMock;
         private readonly Mock<ILogger<TrainTransitousService>> loggerMock;
         private readonly TrainTransitousService service;
         private readonly JsonSerializerOptions _jsonOptions = new()
@@ -29,19 +28,18 @@ public class TrainTransitousServiceTests
         public CalculateRoutesAsync()
         {
             httpHandlerMock = new Mock<HttpMessageHandler>();
-            carServiceMock = new Mock<ICarRouteService>();
             loggerMock = new Mock<ILogger<TrainTransitousService>>();
 
-            var options = Microsoft.Extensions.Options.Options.Create(new TransitousOptions
+            var options = new TransitousOptions
             {
                 Title = "Transitous",
                 BaseUrl = "https://api.transitous.org"
-            });
+            };
 
             var httpClient = new HttpClient(httpHandlerMock.Object);
-            TrainTransitousService.ConfigureClient(httpClient, options.Value);
+            TrainTransitousService.ConfigureClient(httpClient, options);
 
-            service = new TrainTransitousService(httpClient, carServiceMock.Object, options, loggerMock.Object);
+            service = new TrainTransitousService(httpClient, loggerMock.Object);
         }
 
         private void SetupHttpResponse<T>(HttpStatusCode statusCode, T response)
@@ -77,7 +75,7 @@ public class TrainTransitousServiceTests
         /// <summary>
         /// Given: A valid list of places and origin coordinates
         /// When: Transitous API returns successful response with durations
-        /// Then: Returns TrainRouteResult for each place with train time and car costs from CarService
+        /// Then: Returns TrainRouteResult for each place with train time
         /// </summary>
         [Test]
         public async Task ReturnsTrainRouteResults_WhenApiReturnsSuccess()
@@ -88,16 +86,6 @@ public class TrainTransitousServiceTests
                 CreatePlace("place1", "Home"),
                 CreatePlace("place2", "Office")
             };
-
-            var carResults = new List<CarRouteResult>
-            {
-                new() { PlaceId = PlaceId.Parse("place1"), CostCents = 150, DurationSeconds = 600, DistanceMeters = 5000 },
-                new() { PlaceId = PlaceId.Parse("place2"), CostCents = 300, DurationSeconds = 900, DistanceMeters = 10000 }
-            };
-
-            carServiceMock
-                .Setup(s => s.CalculateRoutesAsync(places, 52.5100, 13.4000))
-                .ReturnsAsync(carResults);
 
             SetupHttpResponse(HttpStatusCode.OK, new
             {
@@ -110,18 +98,22 @@ public class TrainTransitousServiceTests
 
 
             // Act
-            var results = (await service.CalculateRoutesAsync(places, 52.5100, 13.4000)).ToList();
+            var results = new List<TrainRouteResult>();
+            await foreach (var result in service.CalculateRoutesAsync(places, 52.5100, 13.4000))
+            {
+                results.Add(result);
+            }
 
             // Assert
             await Assert.That(results.Count).IsEqualTo(2);
 
-            var result1 = results.Single(r => r.PlaceId == places[0].Id);
+            var result1 = results.Single(r => r.Place.Id == places[0].Id);
             await Assert.That(result1.DurationSeconds).IsEqualTo((uint)800); // Train time (average of outbound and return)
-            await Assert.That(result1.CostCents).IsEqualTo((uint)150); // Car cost
+            await Assert.That(result1.Place).IsEqualTo(places[0]);
 
-            var result2 = results.Single(r => r.PlaceId == places[1].Id);
+            var result2 = results.Single(r => r.Place.Id == places[1].Id);
             await Assert.That(result2.DurationSeconds).IsEqualTo((uint)800); // Train time (average of outbound and return)
-            await Assert.That(result2.CostCents).IsEqualTo((uint)300); // Car cost
+            await Assert.That(result2.Place).IsEqualTo(places[1]);
         }
 
         /// <summary>
@@ -138,15 +130,6 @@ public class TrainTransitousServiceTests
                 CreatePlace("place1", "Home")
             };
 
-            var carResults = new List<CarRouteResult>
-            {
-                new() { PlaceId = PlaceId.Parse("place1"), CostCents = 150, DurationSeconds = 600, DistanceMeters = 5000 }
-            };
-
-            carServiceMock
-                .Setup(s => s.CalculateRoutesAsync(places, 52.5100, 13.4000))
-                .ReturnsAsync(carResults);
-
             SetupHttpResponse(HttpStatusCode.OK, new
             {
                 itineraries = new[]
@@ -159,14 +142,18 @@ public class TrainTransitousServiceTests
             });
 
             // Act
-            var results = (await service.CalculateRoutesAsync(places, 52.5100, 13.4000)).ToList();
+            var results = new List<TrainRouteResult>();
+            await foreach (var item in service.CalculateRoutesAsync(places, 52.5100, 13.4000))
+            {
+                results.Add(item);
+            }
 
             // Assert
             await Assert.That(results.Count).IsEqualTo(1);
             var result = results.Single();
 
             await Assert.That(result.DurationSeconds).IsEqualTo((uint)800);
-            await Assert.That(result.CostCents).IsEqualTo((uint)150);
+            await Assert.That(result.Place).IsEqualTo(places[0]);
         }
 
         /// <summary>
@@ -183,15 +170,6 @@ public class TrainTransitousServiceTests
                 CreatePlace("place1", "Home")
             };
 
-            var carResults = new List<CarRouteResult>
-            {
-                new() { PlaceId = PlaceId.Parse("place1"), CostCents = 150, DurationSeconds = 600, DistanceMeters = 5000 }
-            };
-
-            carServiceMock
-                .Setup(s => s.CalculateRoutesAsync(places, 52.5100, 13.4000))
-                .ReturnsAsync(carResults);
-
             SetupHttpResponse(HttpStatusCode.OK, new
             {
                 itineraries = new[]
@@ -207,14 +185,18 @@ public class TrainTransitousServiceTests
             });
 
             // Act
-            var results = (await service.CalculateRoutesAsync(places, 52.5100, 13.4000)).ToList();
+            var results = new List<TrainRouteResult>();
+            await foreach (var item in service.CalculateRoutesAsync(places, 52.5100, 13.4000))
+            {
+                results.Add(item);
+            }
 
             // Assert
             await Assert.That(results.Count).IsEqualTo(1);
             var result = results.Single();
 
             await Assert.That(result.DurationSeconds).IsEqualTo((uint)5);
-            await Assert.That(result.CostCents).IsEqualTo((uint)150);
+            await Assert.That(result.Place).IsEqualTo(places[0]);
         }
 
         /// <summary>
@@ -232,15 +214,6 @@ public class TrainTransitousServiceTests
                 CreatePlace("place1", "Place 1")
             };
 
-            var carResults = new List<CarRouteResult>
-            {
-                new() { PlaceId = PlaceId.Parse("place1"), CostCents = 150, DurationSeconds = 600, DistanceMeters = 5000 }
-            };
-
-            carServiceMock
-                .Setup(s => s.CalculateRoutesAsync(places, 52.5100, 13.4000))
-                .ReturnsAsync(carResults);
-
             SetupHttpResponse(HttpStatusCode.OK, new
             {
                 itineraries = new[]
@@ -256,14 +229,18 @@ public class TrainTransitousServiceTests
             });
 
             // Act
-            var results = (await service.CalculateRoutesAsync(places, 52.5100, 13.4000)).ToList();
+            var results = new List<TrainRouteResult>();
+            await foreach (var item in service.CalculateRoutesAsync(places, 52.5100, 13.4000))
+            {
+                results.Add(item);
+            }
 
             // Assert
             await Assert.That(results.Count).IsEqualTo(1);
             var result = results.Single();
 
             await Assert.That(result.DurationSeconds).IsEqualTo((uint)4);
-            await Assert.That(result.CostCents).IsEqualTo((uint)150);
+            await Assert.That(result.Place).IsEqualTo(places[0]);
         }
 
         /// <summary>
@@ -277,18 +254,18 @@ public class TrainTransitousServiceTests
             // Arrange
             List<PlaceEntity> places = [];
 
-            carServiceMock
-                .Setup(s => s.CalculateRoutesAsync(places, 52.5100, 13.4000))
-                .ReturnsAsync(Enumerable.Empty<CarRouteResult>());
-
             SetupHttpResponse(HttpStatusCode.OK, "{}");
 
 
             // Act
-            var results = await service.CalculateRoutesAsync(places, 52.5100, 13.4000);
+            var results = new List<TrainRouteResult>();
+            await foreach (var result in service.CalculateRoutesAsync(places, 52.5100, 13.4000))
+            {
+                results.Add(result);
+            }
 
             // Assert
-            await Assert.That(results.Count()).IsEqualTo(0);
+            await Assert.That(results.Count).IsEqualTo(0);
         }
 
         /// <summary>
@@ -302,19 +279,17 @@ public class TrainTransitousServiceTests
             // Arrange
             var places = new List<PlaceEntity> { CreatePlace("place1") };
 
-            carServiceMock
-                .Setup(s => s.CalculateRoutesAsync(places, 52.5100, 13.4000))
-                .ReturnsAsync(new List<CarRouteResult>
-                {
-                    new() { PlaceId = PlaceId.Parse("place1"), CostCents = 150, DurationSeconds = 600, DistanceMeters = 5000 }
-                });
-
             SetupHttpResponse(HttpStatusCode.InternalServerError, "Internal Server Error");
 
 
             // Act & Assert
             await Assert.ThrowsAsync<Exceptions.ProblemDetailsException>(async () =>
-                await service.CalculateRoutesAsync(places, 52.5100, 13.4000));
+            {
+                await foreach (var result in service.CalculateRoutesAsync(places, 52.5100, 13.4000))
+                {
+                    // Enumerate to trigger the exception
+                }
+            });
         }
 
         /// <summary>
@@ -328,19 +303,17 @@ public class TrainTransitousServiceTests
             // Arrange
             var places = new List<PlaceEntity> { CreatePlace("place1") };
 
-            carServiceMock
-                .Setup(s => s.CalculateRoutesAsync(places, 52.5100, 13.4000))
-                .ReturnsAsync(new List<CarRouteResult>
-                {
-                    new() { PlaceId = PlaceId.Parse("place1"), CostCents = 150, DurationSeconds = 600, DistanceMeters = 5000 }
-                });
-
             SetupHttpResponse(HttpStatusCode.OK, "{ invalid json }");
 
 
             // Act & Assert
             await Assert.ThrowsAsync<Exceptions.ProblemDetailsException>(async () =>
-                await service.CalculateRoutesAsync(places, 52.5100, 13.4000));
+            {
+                await foreach (var result in service.CalculateRoutesAsync(places, 52.5100, 13.4000))
+                {
+                    // Enumerate to trigger the exception
+                }
+            });
         }
 
         /// <summary>
@@ -353,13 +326,6 @@ public class TrainTransitousServiceTests
         {
             // Arrange
             var places = new List<PlaceEntity> { CreatePlace("place1") };
-
-            carServiceMock
-                .Setup(s => s.CalculateRoutesAsync(places, 52.5100, 13.4000))
-                .ReturnsAsync(new List<CarRouteResult>
-                {
-                    new() { PlaceId = PlaceId.Parse("place1"), CostCents = 150, DurationSeconds = 600, DistanceMeters = 5000 }
-                });
 
             HttpRequestMessage? capturedRequest = null;
             httpHandlerMock
@@ -384,7 +350,10 @@ public class TrainTransitousServiceTests
 
 
             // Act
-            await service.CalculateRoutesAsync(places, 52.5100, 13.4000);
+            await foreach (var result in service.CalculateRoutesAsync(places, 52.5100, 13.4000))
+            {
+                // Enumerate to execute the request
+            }
 
             // Assert
             await Assert.That(capturedRequest).IsNotNull();
@@ -393,39 +362,6 @@ public class TrainTransitousServiceTests
             await Assert.That(capturedRequest.Headers.UserAgent.ToString()).Contains("Projectcoordinator");
         }
 
-        /// <summary>
-        /// Given: CarService throws exception
-        /// When: Awaiting car routes in train calculation
-        /// Then: Propagates the exception from CarService
-        /// </summary>
-        [Test]
-        public async Task ThrowsException_WhenCarServiceFails()
-        {
-            // Arrange
-            var places = new List<PlaceEntity> { CreatePlace("place1") };
-
-            carServiceMock
-                .Setup(s => s.CalculateRoutesAsync(places, 52.5100, 13.4000))
-                .ThrowsAsync(new InvalidOperationException("Car cost calculation failed"));
-
-            SetupHttpResponse(HttpStatusCode.OK, new
-            {
-                itineraries = new[]
-                {
-                    new { duration = 800 }
-                },
-                direct = Array.Empty<object>()
-            });
-
-
-            // Act & Assert - Task.WhenAll wraps exceptions in AggregateException
-            var exception = await Assert.ThrowsAsync<AggregateException>(async () =>
-                await service.CalculateRoutesAsync(places, 52.5100, 13.4000));
-
-            await Assert.That(exception!.InnerException).IsNotNull();
-            await Assert.That(exception.InnerException).IsTypeOf<InvalidOperationException>();
-            await Assert.That(exception.InnerException!.Message).IsEqualTo("Car cost calculation failed");
-        }
-
     }
 }
+

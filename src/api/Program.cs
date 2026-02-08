@@ -41,6 +41,11 @@ var host = new HostBuilder()
             configuration.GetSection(AuthenticationOptions.Title).Bind(settings);
         }).ValidateDataAnnotations();
 
+        services.AddOptionsWithValidateOnStart<RoleOptions>().Configure<IConfiguration>((settings, configuration) =>
+        {
+            configuration.GetSection(settings.Title).Bind(settings);
+        }).ValidateDataAnnotations();
+
         SocketsHttpHandler socketsHttpHandler = new SocketsHttpHandler();
         // Customize this value based on desired DNS refresh timer
         socketsHttpHandler.PooledConnectionLifetime = TimeSpan.FromMinutes(5);
@@ -50,15 +55,8 @@ var host = new HostBuilder()
         // Use a Singleton instance of the CosmosClient
         services.AddSingleton<CosmosClient>(provider =>
         {
-            CosmosClientOptions options = new CosmosClientOptions()
-            {
-                UseSystemTextJsonSerializerWithOptions = new System.Text.Json.JsonSerializerOptions()
-                {
-                    PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase,
-                }
-            };
             var cosmosSettings = provider.GetRequiredService<IOptions<CosmosOptions>>();
-            return new CosmosClient(cosmosSettings.Value.ConnectionString, options);
+            return api.Factories.CosmosClientFactory.CreateCosmosClient(cosmosSettings.Value.ConnectionString);
         });
 
         services.AddHttpClient();
@@ -70,7 +68,10 @@ var host = new HostBuilder()
         });
 
         services.AddScoped<IPlaceRepository, PlaceRepository>();
+        services.AddScoped<IUserSettingRepository, UserSettingRepository>();
         services.AddScoped<IPlaceService, PlaceCosmosService>();
+        services.AddScoped<IUserSettingsService, UserSettingsService>();
+        services.AddScoped<ICostCalculationService, CostCalculationService>();
         services.AddScoped<ICarRouteService, CarOpenRouteService>();
 #pragma warning disable EXTEXP0001 // We need to configure different resiliency, so we need the RemoveAllResilienceHandlers
         services.AddHttpClient<ITrainRouteService, TrainTransitousService>((serviceProvider, client) =>

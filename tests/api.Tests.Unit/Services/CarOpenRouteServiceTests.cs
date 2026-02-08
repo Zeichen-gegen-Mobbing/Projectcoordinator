@@ -46,6 +46,7 @@ public class CarOpenRouteServiceTests
                 BaseAddress = new Uri("https://api.openrouteservice.org/")
             };
             clientFactoryMock.Setup(f => f.CreateClient(It.IsAny<string>())).Returns(httpClient);
+            
             service = new CarOpenRouteService(clientFactoryMock.Object, optionsMock.Object, loggerMock.Object);
         }
 
@@ -82,7 +83,7 @@ public class CarOpenRouteServiceTests
         /// <summary>
         /// Given: A valid list of places and origin coordinates
         /// When: OpenRouteService returns successful response with durations and distances
-        /// Then: Returns CarRouteResult for each place with correct time, distance, and calculated cost
+        /// Then: Returns CarRouteResult for each place with correct time and distance
         /// </summary>
         [Test]
         public async Task ReturnsCarRouteResults_WhenApiReturnsSuccess()
@@ -102,45 +103,24 @@ public class CarOpenRouteServiceTests
 
 
             // Act
-            var results = (await service.CalculateRoutesAsync(places, 52.5100, 13.4000)).ToList();
+            var results = new List<CarRouteResult>();
+            await foreach (var result in service.CalculateRoutesAsync(places, 52.5100, 13.4000))
+            {
+                results.Add(result);
+            }
 
             // Assert
             await Assert.That(results.Count).IsEqualTo(2);
 
-            var result1 = results.First(r => r.PlaceId == places[0].Id);
+            var result1 = results.First(r => r.Place.Id == places[0].Id);
             await Assert.That(result1.DurationSeconds).IsEqualTo((uint)600);
             await Assert.That(result1.DistanceMeters).IsEqualTo((uint)5000);
-            await Assert.That(result1.CostCents).IsEqualTo((uint)125); // ceil(5000/1000) * 25 = 5 * 25 = 125
+            await Assert.That(result1.Place).IsEqualTo(places[0]);
 
-            var result2 = results.First(r => r.PlaceId == places[1].Id);
+            var result2 = results.First(r => r.Place.Id == places[1].Id);
             await Assert.That(result2.DurationSeconds).IsEqualTo((uint)900);
             await Assert.That(result2.DistanceMeters).IsEqualTo((uint)10000);
-            await Assert.That(result2.CostCents).IsEqualTo((uint)250); // ceil(10000/1000) * 25 = 10 * 25 = 250
-        }
-
-        /// <summary>
-        /// Given: A place with fractional kilometer distance (e.g., 5500m = 5.5km)
-        /// When: Calculating cost
-        /// Then: Cost is rounded up (ceil) to next kilometer: ceil(5.5) * 25 = 150 cents
-        /// </summary>
-        [Test]
-        public async Task RoundsUpCostToNextKilometer_WhenDistanceHasFraction()
-        {
-            // Arrange
-            var places = new List<PlaceEntity> { CreatePlace("place1") };
-
-            SetupHttpResponse(HttpStatusCode.OK, new
-            {
-                durations = new double[][] { [600.0] },
-                distances = new double[][] { [5500.0] } // 5.5 km
-            });
-
-
-            // Act
-            var results = (await service.CalculateRoutesAsync(places, 52.5100, 13.4000)).ToList();
-
-            // Assert
-            await Assert.That(results.Single().CostCents).IsEqualTo((uint)150); // ceil(5.5) * 25 = 6 * 25 = 150
+            await Assert.That(result2.Place).IsEqualTo(places[1]);
         }
 
         /// <summary>
@@ -157,10 +137,14 @@ public class CarOpenRouteServiceTests
 
 
             // Act
-            var results = await service.CalculateRoutesAsync(places, 52.5100, 13.4000);
+            var results = new List<CarRouteResult>();
+            await foreach (var result in service.CalculateRoutesAsync(places, 52.5100, 13.4000))
+            {
+                results.Add(result);
+            }
 
             // Assert
-            await Assert.That(results.Count()).IsEqualTo(0);
+            await Assert.That(results.Count).IsEqualTo(0);
         }
 
         /// <summary>
@@ -178,7 +162,12 @@ public class CarOpenRouteServiceTests
 
             // Act & Assert
             await Assert.ThrowsAsync<Exception>(async () =>
-                await service.CalculateRoutesAsync(places, 52.5100, 13.4000));
+            {
+                await foreach (var result in service.CalculateRoutesAsync(places, 52.5100, 13.4000))
+                {
+                    // Enumerate to trigger the exception
+                }
+            });
         }
 
         /// <summary>
@@ -196,7 +185,12 @@ public class CarOpenRouteServiceTests
 
             // Act & Assert
             await Assert.ThrowsAsync<Exception>(async () =>
-                await service.CalculateRoutesAsync(places, 52.5100, 13.4000));
+            {
+                await foreach (var result in service.CalculateRoutesAsync(places, 52.5100, 13.4000))
+                {
+                    // Enumerate to trigger the exception
+                }
+            });
         }
 
         /// <summary>
@@ -230,7 +224,10 @@ public class CarOpenRouteServiceTests
 
 
             // Act
-            await service.CalculateRoutesAsync(places, 52.5100, 13.4000);
+            await foreach (var result in service.CalculateRoutesAsync(places, 52.5100, 13.4000))
+            {
+                // Enumerate to execute the request
+            }
 
             // Assert
             await Assert.That(capturedRequest).IsNotNull();

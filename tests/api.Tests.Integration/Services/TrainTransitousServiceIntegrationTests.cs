@@ -16,13 +16,9 @@ namespace api.Tests.Integration.Services;
 public class TrainTransitousServiceIntegrationTests
 {
     private readonly TrainTransitousService _service;
-    private readonly Mock<ICarRouteService> _carServiceMock;
 
     public TrainTransitousServiceIntegrationTests()
     {
-        // Mock car service - will be configured per test
-        _carServiceMock = new Mock<ICarRouteService>();
-
         var options = Microsoft.Extensions.Options.Options.Create(new TransitousOptions
         {
             Title = "Transitous",
@@ -37,8 +33,6 @@ public class TrainTransitousServiceIntegrationTests
 
         _service = new TrainTransitousService(
             httpClient,
-            _carServiceMock.Object,
-            options,
             loggerMock.Object);
     }
 
@@ -69,35 +63,23 @@ public class TrainTransitousServiceIntegrationTests
             }
         };
 
-        _carServiceMock
-            .Setup(s => s.CalculateRoutesAsync(places, originLat, originLon))
-            .ReturnsAsync(new List<CarRouteResult>
-            {
-                new()
-                {
-                    PlaceId = PlaceId.Parse("munich-test"),
-                    CostCents = 500,
-                    DurationSeconds = 3600,
-                    DistanceMeters = 50000
-                }
-            });
-
         // Act
-        var results = (await _service.CalculateRoutesAsync(places, originLat, originLon)).ToList();
+        var results = new List<TrainRouteResult>();
+        await foreach (var item in _service.CalculateRoutesAsync(places, originLat, originLon))
+        {
+            results.Add(item);
+        }
 
         // Assert
         await Assert.That(results.Count).IsEqualTo(1);
 
         var result = results.Single();
-        await Assert.That(result.PlaceId).IsEqualTo(PlaceId.Parse("munich-test"));
+        await Assert.That(result.Place.Id).IsEqualTo(PlaceId.Parse("munich-test"));
 
         // Train from Berlin to Munich should take between 3-8 hours (10800-28800 seconds)
         // We're averaging outbound + return, so expect realistic durations
         await Assert.That(result.DurationSeconds).IsGreaterThan((uint)0);
         await Assert.That(result.DurationSeconds).IsLessThan((uint)50000); // Less than ~14 hours
-
-        // Should have car cost from the mock
-        await Assert.That(result.CostCents).IsEqualTo((uint)500);
     }
 
     /// <summary>
@@ -125,21 +107,12 @@ public class TrainTransitousServiceIntegrationTests
             }
         };
 
-        _carServiceMock
-            .Setup(s => s.CalculateRoutesAsync(places, originLat, originLon))
-            .ReturnsAsync(new List<CarRouteResult>
-            {
-                new()
-                {
-                    PlaceId = PlaceId.Parse("hamburg-short-test"),
-                    CostCents = 500,
-                    DurationSeconds = 60,
-                    DistanceMeters = 100
-                }
-            });
-
         // Act
-        var results = (await _service.CalculateRoutesAsync(places, originLat, originLon)).ToList();
+        var results = new List<TrainRouteResult>();
+        await foreach (var item in _service.CalculateRoutesAsync(places, originLat, originLon))
+        {
+            results.Add(item);
+        }
 
         // Assert
         await Assert.That(results.Count).IsEqualTo(1);

@@ -13,6 +13,7 @@
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="api.Tests.Unit" />
+    <InternalsVisibleTo Include="api.Tests.Integration" />
     <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
   <ItemGroup>
@@ -28,6 +29,7 @@
     <PackageReference Include="Microsoft.Identity.Web" Version="4.0.1" />
     <!-- NewtonSoft is required by Cosmos for now. as soon that is removed remove this dependency-->
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <PackageReference Include="System.Linq.AsyncEnumerable" Version="10.0.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Shared\ZgM.ProjectCoordinator.Shared.csproj" />

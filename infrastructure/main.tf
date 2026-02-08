@@ -32,6 +32,14 @@ resource "azurerm_cosmosdb_sql_container" "places" {
   partition_key_paths = ["/userId"]
 }
 
+resource "azurerm_cosmosdb_sql_container" "users" {
+  account_name        = var.cosmos_account_name
+  resource_group_name = var.cosmos_resource_group_name
+  database_name       = var.cosmos_database_name
+  name                = "Projectcoordinator-Users"
+  partition_key_paths = ["/id"]
+}
+
 resource "azurerm_application_insights" "this" {
   name                = "appi-ProjectCoordinator-${var.environment}"
   resource_group_name = data.azurerm_resource_group.this.name

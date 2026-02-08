@@ -14,33 +14,26 @@ namespace api.Services
     /// <summary>
     /// Calculates car routes using OpenRouteService driving-car profile.
     /// </summary>
-    public sealed class CarOpenRouteService : ICarRouteService
+    public sealed class CarOpenRouteService(
+        IHttpClientFactory clientFactory,
+        IOptions<OpenRouteServiceOptions> options,
+        ILogger<CarOpenRouteService> logger) : ICarRouteService
     {
-        private readonly HttpClient client;
-        private readonly ILogger<CarOpenRouteService> logger;
+        private readonly HttpClient client = clientFactory.CreateClient().ConfigureForOpenRouteService(options.Value);
         private static readonly string[] _metrics = ["duration", "distance"];
         private static readonly JsonSerializerOptions _serializeOptions = new()
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         };
 
-        public CarOpenRouteService(
-            IHttpClientFactory clientFactory,
-            IOptions<OpenRouteServiceOptions> options,
-            ILogger<CarOpenRouteService> logger)
-        {
-            client = clientFactory.CreateClient().ConfigureForOpenRouteService(options.Value);
-            this.logger = logger;
-        }
-
-        public async Task<IEnumerable<CarRouteResult>> CalculateRoutesAsync(
+        public async IAsyncEnumerable<CarRouteResult> CalculateRoutesAsync(
             IList<PlaceEntity> places,
             double originLatitude,
             double originLongitude)
         {
             if (places.Count == 0)
             {
-                return [];
+                yield break;
             }
 
             var response = await client.PostAsJsonAsync("v2/matrix/driving-car", new
@@ -63,26 +56,11 @@ namespace api.Services
                     "Route Calculation Failed",
                     "Failed to calculate car routes from OpenRouteService");
             }
-
+            OpenRouteServiceMatrixResponse result;
             try
             {
-                var result = JsonSerializer.Deserialize<OpenRouteServiceMatrixResponse>(
+                result = JsonSerializer.Deserialize<OpenRouteServiceMatrixResponse>(
                     responseBody, _serializeOptions);
-
-                return places.Select((place, index) =>
-                {
-                    var durationSeconds = result.Durations[index].Single();
-                    var distanceMeters = result.Distances[index].Single();
-                    var costCents = (uint)(Math.Ceiling(distanceMeters / 1000) * 25);
-
-                    return new CarRouteResult
-                    {
-                        PlaceId = place.Id,
-                        DurationSeconds = (uint)Math.Ceiling(durationSeconds),
-                        DistanceMeters = (uint)Math.Ceiling(distanceMeters),
-                        CostCents = costCents
-                    };
-                });
             }
             catch (Exception ex)
             {
@@ -92,6 +70,18 @@ namespace api.Services
                     System.Net.HttpStatusCode.InternalServerError,
                     "Route Calculation Failed",
                     "Failed to parse response from OpenRouteService");
+            }
+
+            for (int i = 0; i < places.Count; i++)
+            {
+                var durationSeconds = result.Durations[i].Single();
+                var distanceMeters = result.Distances[i].Single();
+                yield return new CarRouteResult
+                {
+                    Place = places[i],
+                    DurationSeconds = (uint)Math.Ceiling(durationSeconds),
+                    DistanceMeters = (uint)Math.Ceiling(distanceMeters),
+                };
             }
         }
     }

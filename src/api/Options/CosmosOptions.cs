@@ -13,5 +13,8 @@ public record CosmosOptions
     public required string DatabaseId { get; init; } = "cosql-shared-free-zgm";
 
     [Required]
-    public required string ContainerId { get; init; } = "Projectcoordinator-Places";
+    public required string PlacesContainerId { get; init; } = "Projectcoordinator-Places";
+
+    [Required]
+    public required string UserSettingsContainerId { get; init; } = "Projectcoordinator-UserSettings";
 }

@@ -20,7 +20,6 @@ namespace api.Services
     public sealed class TrainTransitousService : ITrainRouteService
     {
         private readonly HttpClient client;
-        private readonly ICarRouteService carRouteService;
         private readonly ILogger<TrainTransitousService> logger;
         private static readonly JsonSerializerOptions _serializeOptions = new()
         {
@@ -30,13 +29,9 @@ namespace api.Services
 
         public TrainTransitousService(
             HttpClient client,
-            ICarRouteService carRouteService,
-            IOptions<TransitousOptions> options,
             ILogger<TrainTransitousService> logger)
         {
             this.client = client;
-
-            this.carRouteService = carRouteService;
             this.logger = logger;
         }
 
@@ -56,22 +51,22 @@ namespace api.Services
             return client;
         }
 
-        public async Task<IEnumerable<TrainRouteResult>> CalculateRoutesAsync(
+        public async IAsyncEnumerable<TrainRouteResult> CalculateRoutesAsync(
             IList<PlaceEntity> places,
             double originLatitude,
             double originLongitude)
         {
             if (places.Count == 0)
             {
-                return [];
+                yield break;
             }
-
-            var carCosts = carRouteService.CalculateRoutesAsync(places, originLatitude, originLongitude).ContinueWith(r => r.Result.ToDictionary(r => r.PlaceId, r => r.CostCents));
 
             var departureTime = GetNextWeekdayStartTime();
 
-            var routeTasks = places.Select(async place =>
+            foreach (var place in places)
             {
+                IEnumerable<uint> outboundDurations;
+                IEnumerable<uint> returnDurations;
                 try
                 {
                     var outboundTask = CalculateSingleRouteAsync(
@@ -87,18 +82,8 @@ namespace api.Services
                     // Wait for both calls to complete
                     await Task.WhenAll(outboundTask, returnTripTask);
 
-                    var outbound = await outboundTask;
-                    var returnTrip = await returnTripTask;
-
-                    var averageDuration = (uint)Math.Floor(outbound.Concat(returnTrip).Average(d => d));
-                    var costCents = (await carCosts).TryGetValue(place.Id, out var cost) ? cost : 0;
-
-                    return new TrainRouteResult
-                    {
-                        PlaceId = place.Id,
-                        DurationSeconds = averageDuration,
-                        CostCents = costCents
-                    };
+                    outboundDurations = await outboundTask;
+                    returnDurations = await returnTripTask;
                 }
                 catch (Exception ex)
                 {
@@ -106,9 +91,14 @@ namespace api.Services
                         place.Id, place.Name);
                     throw;
                 }
-            });
+                var averageDuration = (uint)Math.Floor(outboundDurations.Concat(returnDurations).Average(d => d));
 
-            return await Task.WhenAll(routeTasks);
+                yield return new TrainRouteResult
+                {
+                    Place = place,
+                    DurationSeconds = averageDuration
+                };
+            }
         }
 
         private async Task<IEnumerable<uint>> CalculateSingleRouteAsync(
