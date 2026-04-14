@@ -44,6 +44,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="System.Security.Cryptography.Xml" Version="9.0.15" />
     <Using Include="System.Threading.ExecutionContext" Alias="ExecutionContext" />
   </ItemGroup>
 </Project>
